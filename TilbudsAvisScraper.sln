@@ -5,6 +5,8 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TilbudsAvisLibrary", "TilbudsAvisLibrary\TilbudsAvisLibrary.csproj", "{889B5AFD-CD49-480A-B8B9-E3C98562BA50}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScraperConsole", "ScraperConsole\ScraperConsole.csproj", "{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{889B5AFD-CD49-480A-B8B9-E3C98562BA50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{889B5AFD-CD49-480A-B8B9-E3C98562BA50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{889B5AFD-CD49-480A-B8B9-E3C98562BA50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

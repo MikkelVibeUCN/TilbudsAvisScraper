@@ -2,10 +2,9 @@
 {
     public class Avis
     {
-        public Dictionary<string, float> Varer { get; set; } = new Dictionary<string, float>();
-
-
-
-
+        public List<Page> Pages { get; set; } = new List<Page>();
+        public string CompanyName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
     }
 }
