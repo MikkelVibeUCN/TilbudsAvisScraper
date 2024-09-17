@@ -1,4 +1,5 @@
 ﻿using PuppeteerSharp;
+using System.Web;
 using TilbudsAvisLibrary;
 namespace ScraperConsole
 {
@@ -6,26 +7,21 @@ namespace ScraperConsole
     {
         static async Task Main(string[] args)
         {
-            string result = await Scraper.FindAvisUrl("https://rema1000.dk/avis");
+            RemaScraper remaScraper = new RemaScraper();
+            string result = await remaScraper.FindAvisUrl("https://rema1000.dk/avis");
 
-            var outResult = await Scraper.CallUrl(result);
+            await remaScraper.DownloadAllPagesAsImages(result);
+
+            //var outResult = await IScraping.CallUrl("https://rema1000.dk/avis/ebduaEkY/2");
+
 
             //Console.WriteLine(outResult);
 
-            File.WriteAllText("response.html", outResult);
+            //File.WriteAllText("response.html", outResult);
+            //Console.WriteLine(remaScraper.GetImageUrl(outResult));
 
-            Console.WriteLine(result);
 
-            Console.WriteLine(GetImageUrl(outResult));
-        }
-
-        private static string GetImageUrl(string input)
-        {
-            string searchString = "background-image: url(\"";
-            int startIndex = input.IndexOf(searchString) + searchString.Length;
-            int endIndex = input.IndexOf("\"", startIndex);
-
-            return input.Substring(startIndex, endIndex - startIndex);
+            //Console.WriteLine(remaScraper.GetImageUrl(outResult));
         }
     }
 }

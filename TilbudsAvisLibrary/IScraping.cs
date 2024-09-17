@@ -1,13 +1,14 @@
 ﻿using PuppeteerSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace TilbudsAvisLibrary
 {
-    public class Scraper
+    public interface IScraping
     {
-        public Scraper()
-        {
-
-        }
         public static async Task<string> CallUrl(string fullUrl)
         {
             // Download the browser if necessary
@@ -45,17 +46,10 @@ namespace TilbudsAvisLibrary
             return content;
         }
 
-        public static async Task<string> FindAvisUrl(string url)
-        {
-            var response = await Scraper.CallUrl(url);
+        Task<string> FindAvisUrl(string url);
 
-            string searchString = "href=\"/avis/";
-            int startIndex = response.IndexOf(searchString) + searchString.Length;
-            int endIndex = response.IndexOf("\"", startIndex);
+        string GetImageUrl(string input, int pageNumber);
 
-            string substring = response.Substring(startIndex, endIndex - startIndex);
-
-            return url + "/" + substring + "/1";
-        }
+        Task DownloadAllPagesAsImages(string url);
     }
 }
