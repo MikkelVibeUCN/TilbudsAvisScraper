@@ -27,22 +27,32 @@ namespace TilbudsAvisLibrary
 
         public string GetImageUrl(string input, int pageNumber)
         {
-            string searchString = "data-id=\"page" + pageNumber;
-            int startIndex = input.IndexOf(searchString) + searchString.Length;
-            int endIndex = input.IndexOf("</div>", startIndex);
+            string middleString = "";
+            try
+            {
+                string searchString = "data-id=\"page" + pageNumber;
+                int startIndex = input.IndexOf(searchString) + searchString.Length;
+                int endIndex = input.IndexOf("</div>", startIndex);
 
-            string middleString = input.Substring(startIndex, endIndex - startIndex);
-            //Console.WriteLine(middleString);
+                middleString = input.Substring(startIndex, endIndex - startIndex);
+                //Console.WriteLine(middleString);
 
-            searchString = "&quot;";
-            startIndex = middleString.IndexOf(searchString) + searchString.Length;
-            endIndex = middleString.IndexOf("&quot;);", startIndex);
+                searchString = "&quot;";
+                startIndex = middleString.IndexOf(searchString) + searchString.Length;
+                endIndex = middleString.IndexOf("&quot;);", startIndex);
 
-            string encodedUrl = middleString.Substring(startIndex, endIndex - startIndex);
+                string encodedUrl = middleString.Substring(startIndex, endIndex - startIndex);
 
-            string decodedUrl = HttpUtility.HtmlDecode(encodedUrl);
+                string decodedUrl = HttpUtility.HtmlDecode(encodedUrl);
 
-            return HttpUtility.HtmlDecode(encodedUrl);
+                return HttpUtility.HtmlDecode(encodedUrl);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine();
+                File.WriteAllText($"output{input[0]}.html", input);
+                throw new Exception($"GetImageUrl failed. log saved to {input[0]}");
+            }
         }
 
         public async Task DownloadAllPagesAsImages(string url)
@@ -51,13 +61,27 @@ namespace TilbudsAvisLibrary
 
             int lastPage = FindTotalPagesInPaper(response);
 
+            int retryCount = 0;
+
             for (int i = 1; i <= lastPage; i++)
             {
                 string nextPageUrl = url.Substring(0, url.Length - 1) + i;
 
                 response = await IScraping.CallUrl(nextPageUrl);
+
+                try
+                {
+                    SaveImage(nextPageUrl, GetImageUrl(response, i), i);
+                    retryCount = 0;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Failed to save image number " + i + " " + e.Message);
+                    Console.WriteLine("Retry number " + retryCount+1);
+                    if(retryCount < 4) { i--; retryCount++; } 
+                    else { Console.WriteLine("Too many attempts, skipping"); }
+                }
                 
-                SaveImage(nextPageUrl, GetImageUrl(response, i), i);
             }
         }
         private void SaveImage(string nextPageUrl, string imageUrl, int i)
@@ -69,8 +93,7 @@ namespace TilbudsAvisLibrary
 
             RemaAvis.AddPage(new Page(imagePath));
 
-            Console.WriteLine(nextPageUrl);
-            Console.WriteLine(imageUrl);
+            Console.WriteLine("Successfully saved page " + i);
         }
         private int FindTotalPagesInPaper(string input)
         {
