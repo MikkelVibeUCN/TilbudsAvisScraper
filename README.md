@@ -1,0 +1,1 @@
+My newest project. The idea is to automatically download all papers from the danish grocers then save all these products in a database and allow users to get notified when specific items go below a certain price.
