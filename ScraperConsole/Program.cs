@@ -7,8 +7,16 @@ namespace ScraperConsole
     {
         static async Task Main(string[] args)
         {
-            RemaScraper remaScraper = new RemaScraper();
-            string result = await remaScraper.FindAvisUrl("https://rema1000.dk/avis");
+            
+            IEnumerable<Product> remaProducts = await new RemaProductScraper().GetAllProductsFromPage("https://shop.rema1000.dk/avisvarer");
+
+            foreach (var item in remaProducts)
+            {
+                Console.WriteLine(item.ToString());
+            }
+
+            //RemaAvisScraper remaScraper = new RemaAvisScraper();
+            //string result = await remaScraper.FindAvisUrl("https://rema1000.dk/avis");
 
             //await remaScraper.DownloadAllPagesAsImages(result);
 
@@ -22,8 +30,8 @@ namespace ScraperConsole
 
             //Console.WriteLine(remaScraper.GetImageUrl(outResult));
 
-            ImageProcessing process = new ImageProcessing();
-            process.ProcessAllImagesInFolder("RemaImages");
+            //ImageProcessing process = new ImageProcessing();
+            //process.ProcessAllImagesInFolder("RemaImages");
         }
     }
 }

@@ -1,20 +1,21 @@
 ﻿using PuppeteerSharp;
 using System.Web;
+using TilbudsAvisLibrary.Interfaces;
 
 namespace TilbudsAvisLibrary
 {
-    public class RemaScraper : IScraping
+    public class RemaAvisScraper : Scraper, IAvisScraper
     {
         private const string RemaImageFolder = "RemaImages";
-        private Avis RemaAvis = new Avis("Rema 1000", null, null);
-        public RemaScraper()
+        private Avis RemaAvis = new("Rema 1000", null, null);
+        public RemaAvisScraper()
         {
             Directory.CreateDirectory(RemaImageFolder);
         }
 
         public async Task<string> FindAvisUrl(string url)
         {
-            var response = await IScraping.CallUrl(url);
+            var response = await Scraper.CallUrl(url);
 
             string searchString = "href=\"/avis/";
             int startIndex = response.IndexOf(searchString) + searchString.Length;
@@ -57,7 +58,7 @@ namespace TilbudsAvisLibrary
 
         public async Task DownloadAllPagesAsImages(string url)
         {
-            var response = await IScraping.CallUrl(url);
+            var response = await Scraper.CallUrl(url);
 
             int lastPage = FindTotalPagesInPaper(response);
 
@@ -67,7 +68,7 @@ namespace TilbudsAvisLibrary
             {
                 string nextPageUrl = url.Substring(0, url.Length - 1) + i;
 
-                response = await IScraping.CallUrl(nextPageUrl);
+                response = await Scraper.CallUrl(nextPageUrl);
 
                 try
                 {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TilbudsAvisLibrary
 {
-    public interface IScraping
+    public abstract class Scraper
     {
         public static async Task<string> CallUrl(string fullUrl)
         {
@@ -39,17 +39,13 @@ namespace TilbudsAvisLibrary
 
             await page.GoToAsync(fullUrl);
 
+            await page.WaitForSelectorAsync("main");
+
             await Task.Delay(500 + random.Next(500));
 
             var content = await page.GetContentAsync();
 
             return content;
         }
-
-        Task<string> FindAvisUrl(string url);
-
-        string GetImageUrl(string input, int pageNumber);
-
-        Task DownloadAllPagesAsImages(string url);
     }
 }
