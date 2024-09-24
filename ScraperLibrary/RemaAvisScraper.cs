@@ -1,6 +1,7 @@
 ﻿using TilbudsAvisLibrary;
 using System.Web;
 using ScraperLibrary.Interfaces;
+using TilbudsAvisLibrary.Entities;
 
 namespace ScraperLibrary
 {
@@ -82,7 +83,6 @@ namespace ScraperLibrary
                     if(retryCount < 4) { i--; retryCount++; } 
                     else { Console.WriteLine("Too many attempts, skipping"); }
                 }
-                
             }
         }
         private void SaveImage(string nextPageUrl, string imageUrl, int i)

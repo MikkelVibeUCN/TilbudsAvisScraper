@@ -1,5 +1,4 @@
-
-namespace TilbudsAvisScraperAPI
+namespace TIlbudsAvisScraperAPI.Properties
 {
     public class Program
     {

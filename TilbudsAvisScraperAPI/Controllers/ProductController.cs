@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace TilbudsAvisScraperAPI.Controllers
+namespace TIlbudsAvisScraperAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]

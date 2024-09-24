@@ -1,6 +1,6 @@
-@TilbudsAvisScraperAPI_HostAddress = http://localhost:5242
+@TIlbudsAvisScraperAPI_HostAddress = http://localhost:5097
 
-GET {{TilbudsAvisScraperAPI_HostAddress}}/weatherforecast/
+GET {{TIlbudsAvisScraperAPI_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

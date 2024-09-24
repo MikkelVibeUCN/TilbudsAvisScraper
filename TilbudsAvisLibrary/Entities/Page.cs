@@ -1,4 +1,4 @@
-﻿namespace TilbudsAvisLibrary
+﻿namespace TilbudsAvisLibrary.Entities
 {
     public class Page
     {
@@ -6,7 +6,7 @@
         private List<Product> Products = new List<Product>();
         public Page(string imageUrl)
         {
-            this.ImageUrl = imageUrl;
+            ImageUrl = imageUrl;
         }
         public void AddProduct(Product product)
         {

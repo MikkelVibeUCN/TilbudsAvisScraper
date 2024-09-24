@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TilbudsAvisLibrary", "Tilbu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScraperConsole", "ScraperConsole\ScraperConsole.csproj", "{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TilbudsAvisScraperAPI", "TilbudsAvisScraperAPI\TilbudsAvisScraperAPI.csproj", "{3124FB4A-F84F-4F68-B48D-1A5CCF68DC09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScraperLibrary", "ScraperLibrary\ScraperLibrary.csproj", "{8EC6BCBA-3ABD-475A-998B-8143D3C23852}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScraperLibrary", "ScraperLibrary\ScraperLibrary.csproj", "{8EC6BCBA-3ABD-475A-998B-8143D3C23852}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TIlbudsAvisScraperAPI", "TIlbudsAvisScraperAPI\TIlbudsAvisScraperAPI.csproj", "{C6F168A4-D7DB-4C57-9034-FCE11D7034EE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +25,14 @@ Global
 		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3124FB4A-F84F-4F68-B48D-1A5CCF68DC09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3124FB4A-F84F-4F68-B48D-1A5CCF68DC09}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3124FB4A-F84F-4F68-B48D-1A5CCF68DC09}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3124FB4A-F84F-4F68-B48D-1A5CCF68DC09}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8EC6BCBA-3ABD-475A-998B-8143D3C23852}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8EC6BCBA-3ABD-475A-998B-8143D3C23852}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8EC6BCBA-3ABD-475A-998B-8143D3C23852}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8EC6BCBA-3ABD-475A-998B-8143D3C23852}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6F168A4-D7DB-4C57-9034-FCE11D7034EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6F168A4-D7DB-4C57-9034-FCE11D7034EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6F168A4-D7DB-4C57-9034-FCE11D7034EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6F168A4-D7DB-4C57-9034-FCE11D7034EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

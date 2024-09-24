@@ -1,4 +1,4 @@
-﻿namespace TilbudsAvisLibrary
+﻿namespace TilbudsAvisLibrary.Entities
 {
     public class Product
     {
@@ -13,15 +13,15 @@
 
         public Product(string name, float price, string imageUrl, string description, int externalId, int? id)
         {
-            this.Name = name;
-            this.Price = price;
-            this.ImageUrl = imageUrl;
-            this.Description = description;
-            this.ExternalId = externalId;
+            Name = name;
+            Price = price;
+            ImageUrl = imageUrl;
+            Description = description;
+            ExternalId = externalId;
             this.id = id;
         }
 
-        public override string ToString() 
+        public override string ToString()
         {
             return $"Name: {Name}, Price: {Price}, ImageUrl: {ImageUrl}, Description: {Description}, ExternalId: {ExternalId}";
         }

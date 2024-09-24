@@ -1,36 +1,31 @@
-﻿using TilbudsAvisLibrary;
-using ScraperLibrary;
+﻿using ScraperLibrary;
+using TilbudsAvisLibrary.Entities;
 namespace ScraperConsole
 {
     internal class Program
     {
         static async Task Main(string[] args)
         {
-            
-            IEnumerable<Product> remaProducts = await new RemaProductScraper().GetAllProductsFromPage("https://shop.rema1000.dk/avisvarer");
-
-            foreach (var item in remaProducts)
+            Task remaProductsTask = Task.Run(async () =>
             {
-                Console.WriteLine(item.ToString());
-            }
+                IEnumerable<Product> remaProducts = await new RemaProductScraper().GetAllProductsFromPage("https://shop.rema1000.dk/avisvarer");
 
-            //RemaAvisScraper remaScraper = new RemaAvisScraper();
-            //string result = await remaScraper.FindAvisUrl("https://rema1000.dk/avis");
+                foreach (var item in remaProducts)
+                {
+                    Console.WriteLine(item.ToString());
+                }
+            });
 
-            //await remaScraper.DownloadAllPagesAsImages(result);
+            Task remaScraperTask = Task.Run(async () =>
+            {
+                RemaAvisScraper remaScraper = new RemaAvisScraper();
+                string result = await remaScraper.FindAvisUrl("https://rema1000.dk/avis");
 
-            //var outResult = await IScraping.CallUrl("https://rema1000.dk/avis/ebduaEkY/2");
+                await remaScraper.DownloadAllPagesAsImages(result);
+            });
 
+            await Task.WhenAll(remaProductsTask, remaScraperTask);
 
-            //Console.WriteLine(outResult);
-
-            //File.WriteAllText("response.html", outResult);
-            //Console.WriteLine(remaScraper.GetImageUrl(outResult));
-
-            //Console.WriteLine(remaScraper.GetImageUrl(outResult));
-
-            //ImageProcessing process = new ImageProcessing();
-            //process.ProcessAllImagesInFolder("RemaImages");
         }
     }
 }

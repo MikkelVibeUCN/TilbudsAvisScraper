@@ -1,4 +1,4 @@
-﻿using TilbudsAvisLibrary;
+﻿using TilbudsAvisLibrary.Entities;
 
 namespace ScraperLibrary.Interfaces
 {

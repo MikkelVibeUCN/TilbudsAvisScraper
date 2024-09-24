@@ -1,4 +1,4 @@
-﻿namespace TilbudsAvisLibrary
+﻿namespace TilbudsAvisLibrary.Entities
 {
     public class Avis
     {

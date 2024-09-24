@@ -1,5 +1,5 @@
 ﻿using ScraperLibrary.Interfaces;
-using TilbudsAvisLibrary;
+using TilbudsAvisLibrary.Entities;
 
 namespace ScraperLibrary
 {
@@ -35,7 +35,7 @@ namespace ScraperLibrary
                     string productHtml = result.Substring(startIndex, endIndex - startIndex);
 
                     Product product = new(GetNameOfProduct(productHtml), 
-                        GetPriceOfProduct(productHtml), 
+                        GetPriceOfProduct<float>(productHtml), 
                         GetProductUrlFromHtml(productHtml), 
                         GetDescriptionOfProduct(productHtml),
                         GetExternalProductId(productHtml),
@@ -53,11 +53,11 @@ namespace ScraperLibrary
             return products;
         }
 
-        private float GetPriceOfProduct(string productHtml)
+        private dynamic GetPriceOfProduct<T>(string productHtml)
         {
             try
             {
-                return GetInformationFromHtml<float>(productHtml, "price-normal-discount\"", ">", "<");
+                return GetInformationFromHtml<T>(productHtml, "price-normal-discount\"", ">", "<");
 
             }
             catch 
