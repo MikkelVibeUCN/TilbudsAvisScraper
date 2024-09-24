@@ -11,6 +11,7 @@ namespace TilbudsAvisLibrary
 {
     public class RemaProductScraper : Scraper, IProductScraper
     {
+        private int counter = 0;
         public RemaProductScraper()
         {
 
@@ -19,6 +20,7 @@ namespace TilbudsAvisLibrary
         public async Task<List<Product>> GetAllProductsFromPage(string url)
         {
             string result = await Scraper.CallUrl(url);
+            
             List<Product> products = new List<Product>();
             
             int currentIndex = 0;
@@ -53,43 +55,77 @@ namespace TilbudsAvisLibrary
                 }
                 else
                 {
-                    // If no more products are found, end the loop
                     reachedEnd = true;
                 }
             }
-
             return products;
         }
 
         private float GetPriceOfProduct(string productHtml)
         {
-            return GetInformationFromHtml<float>(productHtml, "price-normal-discount\"", ">", "<");
+            try
+            {
+                return GetInformationFromHtml<float>(productHtml, "price-normal-discount\"", ">", "<");
+
+            }
+            catch 
+            {
+                return -1;
+            }
         }
 
         private string GetNameOfProduct(string productHtml)
         {
-            return GetInformationFromHtml<string>(productHtml, "class=\"title\"", ">", "<");
+            try
+            {
+                return GetInformationFromHtml<string>(productHtml, "class=\"title\"", ">", "<");
+            }
+            catch
+            {
+                return "";
+            }
         }
 
         private string GetProductUrlFromHtml(string productHtml)
         {
-            return GetInformationFromHtml<string>(productHtml, "product-grid-image", "src=\"", "\"");
+            try
+            {
+                return GetInformationFromHtml<string>(productHtml, "product-grid-image", "src=\"", "\"");
+            }
+            catch
+            {
+                return "";
+            }
         }
 
         private string GetDescriptionOfProduct(string productHtml)
         {
-            return GetInformationFromHtml<string>(productHtml, "extra", "\"\">", "<");
+            try
+            {
+                return GetInformationFromHtml<string>(productHtml, "extra", "\"\">", "<");
+            }
+            catch
+            {
+                return "";
+            }
         }
 
         private int GetExternalProductId(string productHtml)
         {
-            return GetInformationFromHtml<int>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/");
+            try
+            {
+                return GetInformationFromHtml<int>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/");
+            }
+            catch
+            {
+                return -1;
+            }
         }
 
         private dynamic GetInformationFromHtml<T>(string productHtml, string searchPattern, string startSearchKey, string endSearchKey)
         {
             int startIndex = productHtml.IndexOf(searchPattern);
-            if (startIndex != -1)
+            if (startIndex != -1 && productHtml.Contains(startSearchKey))
             {
                 startIndex = productHtml.IndexOf(startSearchKey, startIndex) + startSearchKey.Length; // Move past the startSearchKey
                 int endIndex = productHtml.IndexOf(endSearchKey, startIndex); // Find the closing tag
@@ -97,9 +133,9 @@ namespace TilbudsAvisLibrary
                 if (typeof(T) == typeof(float)) { return float.Parse(information); }
                 else if (typeof(T) == typeof(int)) { return int.Parse(information); }
                 else if (typeof(T) == typeof(string)) { return information; }
-                else return new InvalidCastException($"{typeof(T).FullName} is not supported");
+                else throw new InvalidCastException($"{typeof(T).FullName} is not supported");
             } 
-            return new KeyNotFoundException($"searchpattern: {searchPattern} wasn't found");
+            throw new KeyNotFoundException($"searchpattern: {searchPattern} wasn't found");
         }
     }
 }
