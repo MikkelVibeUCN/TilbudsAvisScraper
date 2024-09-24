@@ -1,17 +1,10 @@
-﻿using Emgu.CV.Stitching;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using TilbudsAvisLibrary.Interfaces;
+﻿using ScraperLibrary.Interfaces;
+using TilbudsAvisLibrary;
 
-namespace TilbudsAvisLibrary
+namespace ScraperLibrary
 {
     public class RemaProductScraper : Scraper, IProductScraper
     {
-        private int counter = 0;
         public RemaProductScraper()
         {
 
@@ -20,8 +13,7 @@ namespace TilbudsAvisLibrary
         public async Task<List<Product>> GetAllProductsFromPage(string url)
         {
             string result = await Scraper.CallUrl(url);
-            
-            List<Product> products = new List<Product>();
+            List<Product> products = [];
             
             int currentIndex = 0;
             bool reachedEnd = false;
@@ -42,7 +34,7 @@ namespace TilbudsAvisLibrary
                     // Extract the product HTML between the two patterns
                     string productHtml = result.Substring(startIndex, endIndex - startIndex);
 
-                    Product product = new Product(GetNameOfProduct(productHtml), 
+                    Product product = new(GetNameOfProduct(productHtml), 
                         GetPriceOfProduct(productHtml), 
                         GetProductUrlFromHtml(productHtml), 
                         GetDescriptionOfProduct(productHtml),
@@ -120,22 +112,6 @@ namespace TilbudsAvisLibrary
             {
                 return -1;
             }
-        }
-
-        private dynamic GetInformationFromHtml<T>(string productHtml, string searchPattern, string startSearchKey, string endSearchKey)
-        {
-            int startIndex = productHtml.IndexOf(searchPattern);
-            if (startIndex != -1 && productHtml.Contains(startSearchKey))
-            {
-                startIndex = productHtml.IndexOf(startSearchKey, startIndex) + startSearchKey.Length; // Move past the startSearchKey
-                int endIndex = productHtml.IndexOf(endSearchKey, startIndex); // Find the closing tag
-                string information = productHtml.Substring(startIndex, endIndex - startIndex).Trim();
-                if (typeof(T) == typeof(float)) { return float.Parse(information); }
-                else if (typeof(T) == typeof(int)) { return int.Parse(information); }
-                else if (typeof(T) == typeof(string)) { return information; }
-                else throw new InvalidCastException($"{typeof(T).FullName} is not supported");
-            } 
-            throw new KeyNotFoundException($"searchpattern: {searchPattern} wasn't found");
         }
     }
 }

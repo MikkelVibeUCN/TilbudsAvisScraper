@@ -1,13 +1,7 @@
 ﻿using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
-using Emgu.CV.Util;
-using Emgu.CV.XImgproc;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace TilbudsAvisLibrary
 {

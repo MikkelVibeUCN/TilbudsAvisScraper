@@ -1,11 +1,6 @@
 ﻿using PuppeteerSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace TilbudsAvisLibrary
+namespace ScraperLibrary
 {
     public abstract class Scraper
     {
@@ -46,6 +41,22 @@ namespace TilbudsAvisLibrary
             var content = await page.GetContentAsync();
 
             return content;
+        }
+
+        protected static dynamic GetInformationFromHtml<T>(string html, string searchPattern, string startSearchKey, string endSearchKey)
+        {
+            int startIndex = html.IndexOf(searchPattern);
+            if (startIndex != -1 && html.Contains(startSearchKey))
+            {
+                startIndex = html.IndexOf(startSearchKey, startIndex) + startSearchKey.Length; // Move past the startSearchKey
+                int endIndex = html.IndexOf(endSearchKey, startIndex); // Find the closing tag
+                string information = html.Substring(startIndex, endIndex - startIndex).Trim();
+                if (typeof(T) == typeof(float)) { return float.Parse(information); }
+                else if (typeof(T) == typeof(int)) { return int.Parse(information); }
+                else if (typeof(T) == typeof(string)) { return information; }
+                else throw new InvalidCastException($"{typeof(T).FullName} is not supported");
+            }
+            throw new KeyNotFoundException($"searchpattern: {searchPattern} wasn't found");
         }
     }
 }

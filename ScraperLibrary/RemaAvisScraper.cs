@@ -1,8 +1,8 @@
-﻿using PuppeteerSharp;
+﻿using TilbudsAvisLibrary;
 using System.Web;
-using TilbudsAvisLibrary.Interfaces;
+using ScraperLibrary.Interfaces;
 
-namespace TilbudsAvisLibrary
+namespace ScraperLibrary
 {
     public class RemaAvisScraper : Scraper, IAvisScraper
     {

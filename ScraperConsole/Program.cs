@@ -1,6 +1,5 @@
-﻿using PuppeteerSharp;
-using System.Web;
-using TilbudsAvisLibrary;
+﻿using TilbudsAvisLibrary;
+using ScraperLibrary;
 namespace ScraperConsole
 {
     internal class Program
