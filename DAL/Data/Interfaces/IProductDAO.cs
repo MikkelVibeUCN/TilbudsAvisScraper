@@ -1,7 +1,6 @@
 ﻿using TilbudsAvisLibrary.Entities;
-using TIlbudsAvisScraperAPI.Data.Interfaces;
 
-namespace TIlbudsAvisScraperAPI.Dao
+namespace DAL.Data.Interfaces
 {
     public interface IProductDAO : IDAO<Product>
     {

@@ -1,8 +1,9 @@
-﻿using TilbudsAvisLibrary.Entities;
-using TIlbudsAvisScraperAPI.Data.Interfaces;
-namespace TIlbudsAvisScraperAPI.Dao.Interfaces
+﻿using System.Runtime.CompilerServices;
+using TilbudsAvisLibrary.Entities;
+namespace DAL.Data.Interfaces
 {
     public interface IAvisDAO : IDAO<Avis>
     {
+       
     }
 }

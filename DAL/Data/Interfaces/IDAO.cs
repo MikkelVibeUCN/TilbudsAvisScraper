@@ -1,5 +1,4 @@
-﻿using System.Data.SqlClient;
-namespace TIlbudsAvisScraperAPI.Data.Interfaces
+﻿namespace DAL.Data.Interfaces
 {
     public interface IDAO<T>
     {

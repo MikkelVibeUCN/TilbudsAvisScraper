@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DAL\DAL.csproj" />
     <ProjectReference Include="..\TilbudsAvisLibrary\TilbudsAvisLibrary.csproj" />
-	  <ProjectReference Include="..\TilbudsAvisLibrary\DAL.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,3 +1,6 @@
+using DAL.Data.DAO;
+using DAL.Data.Interfaces;
+
 namespace TIlbudsAvisScraperAPI.Properties
 {
     public class Program
@@ -9,6 +12,8 @@ namespace TIlbudsAvisScraperAPI.Properties
             // Add services to the container.
 
             builder.Services.AddControllers();
+
+            builder.Services.AddScoped<IProductDAO, ProductDAO>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

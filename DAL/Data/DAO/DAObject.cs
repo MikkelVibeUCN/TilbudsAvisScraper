@@ -9,6 +9,6 @@ namespace DAL.Data.DAO
 {
     public abstract class DAObject
     {
-        protected string ConnectionString = "Server=localhost;Database=TilbudsAvis;Trusted_Connection=True;";
+        protected string ConnectionString = "Server=localhost;Database=TilbudsAvisScraperDB;Trusted_Connection=True;";
     }
 }

@@ -1,9 +1,7 @@
 ﻿using TilbudsAvisLibrary.Entities;
-using TIlbudsAvisScraperAPI.Dao;
-using TIlbudsAvisScraperAPI.Dao.Interfaces;
-using TIlbudsAvisScraperAPI.Data.Interfaces;
+using DAL.Data.Interfaces;
 
-namespace TIlbudsAvisScraperAPI.Data.DAO
+namespace DAL.Data.DAO
 {
     public class CompanyDAO : ICompanyDAO
     {
@@ -27,7 +25,7 @@ namespace TIlbudsAvisScraperAPI.Data.DAO
             throw new NotImplementedException();
         }
 
-        Task<int> IDAO<Company>.Add(Company company)
+        public Task<int> Add(Company company)
         {
             throw new NotImplementedException();
         }

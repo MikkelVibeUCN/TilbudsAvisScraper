@@ -6,23 +6,23 @@ namespace TIlbudsAvisScraperAPI.Controllers
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class ProductController : ControllerBase
+    public class AvisController : ControllerBase
     {
         const string baseURI = "api/v1/[controller]";
-        private readonly IProductDAO _productDAO;
+        private readonly IAvisDAO _avisDAO;
 
-        public ProductController(IProductDAO productDAO)
+        public AvisController(IAvisDAO avisDAO)
         {
-            this._productDAO = productDAO;
+            this._avisDAO = avisDAO;
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddProduct(Product product)
+        public async Task<IActionResult> AddAvis(Avis avis)
         {
-            var productId = await _productDAO.Add(product);
+            var avisId = await _avisDAO.Add(avis);
             // Assuming there's a method to set the Id internally
-            product.SetId(productId);
-            return Created($"{baseURI}/{product.Id}", product);
+            avis.SetId(avisId);
+            return Created($"{baseURI}/{avis.Id}", avis);
         }
 
         [HttpGet]

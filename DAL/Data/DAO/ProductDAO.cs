@@ -1,19 +1,18 @@
 ﻿using TilbudsAvisLibrary.Entities;
-using TIlbudsAvisScraperAPI.Dao;
-using TIlbudsAvisScraperAPI.Data.Interfaces;
 using System.Data.SqlClient;
-using DAL.Data.DAO;
+using DAL.Data.Interfaces;
 
-namespace TIlbudsAvisScraperAPI.Data.DAO
+namespace DAL.Data.DAO
 {
     public class ProductDAO : DAObject, IProductDAO
     {
-        private string productQuery = "INSERT INTO Product (Id, ExternalId, Name, Description, ImageUrl) " +
-                       "VALUES (@Id, @ExternalId, @Name, @Description, @ImageUrl); " +
+        private string productQuery = "INSERT INTO Product (ExternalId, Name, Description, ImageUrl) " +
+                       "VALUES (@ExternalId, @Name, @Description, @ImageUrl); " +
                        "SELECT SCOPE_IDENTITY();";
 
-        private string priceQuery = "INSERT INTO Price (Id, ProductId, Price) " +
-                   "VALUES (@Id, @ProductId, @Price);";
+        private string priceQuery = "INSERT INTO Price (ProductId, Price) " +
+                   "VALUES (@ProductId, @Price)" +
+                    "SELECT SCOPE_IDENTITY();";
 
         public Task Delete(int id)
         {
@@ -47,7 +46,6 @@ namespace TIlbudsAvisScraperAPI.Data.DAO
                     {
                         SqlCommand command = new SqlCommand(productQuery, connection, transaction);
 
-                        command.Parameters.AddWithValue("@Id", product.Id);
                         command.Parameters.AddWithValue("@ExternalId", product.ExternalId);
                         command.Parameters.AddWithValue("@Name", product.Name);
                         command.Parameters.AddWithValue("@Description", product.Description);
@@ -60,11 +58,10 @@ namespace TIlbudsAvisScraperAPI.Data.DAO
                         {
                             SqlCommand priceCommand = new SqlCommand(priceQuery, connection, transaction);
 
-                            priceCommand.Parameters.AddWithValue("@Id", price.Id);
                             priceCommand.Parameters.AddWithValue("@ProductId", generatedId);
                             priceCommand.Parameters.AddWithValue("@Price", price.PriceValue);
 
-                            await priceCommand.ExecuteNonQueryAsync();
+                            price.SetId(Convert.ToInt32(await priceCommand.ExecuteScalarAsync()));
                         }
 
                         transaction.Commit();
