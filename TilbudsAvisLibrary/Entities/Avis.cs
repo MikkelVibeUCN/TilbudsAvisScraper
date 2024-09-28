@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Collections;
+using System.Text.Json.Serialization;
 
 namespace TilbudsAvisLibrary.Entities
 {
@@ -6,17 +7,17 @@ namespace TilbudsAvisLibrary.Entities
     {
         public List<Page> Pages { get; set; } = new List<Page>();
         public List<Product> Products { get; set; } = new List<Product>();
-        public string CompanyName { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime ValidFrom { get; set; }
+        public DateTime ValidTo { get; set; }
         public int Id { get; private set; }
+        public int ExternalId { get; set; }
 
         [JsonConstructor]
-        public Avis(string companyName, DateTime startDate, DateTime endDate, List<Product> products)
+        public Avis(int externalId, DateTime validFrom, DateTime validTo, List<Product> products)
         {
-            CompanyName = companyName;
-            StartDate = startDate;
-            EndDate = endDate;
+            ExternalId = externalId;
+            ValidFrom = validFrom;
+            ValidTo = validTo;
             Products = products ?? new List<Product>();
         }
         public void SetId(int id) => Id = id;
@@ -37,7 +38,7 @@ namespace TilbudsAvisLibrary.Entities
         {
             Products.Remove(product);
         }
-        public List<Product> GetProducts()
+        public IEnumerable<Product> GetProducts()
         {
             return new List<Product>(Products);
         }

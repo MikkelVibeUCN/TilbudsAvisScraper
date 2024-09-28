@@ -8,7 +8,7 @@ namespace ScraperLibrary
     public class RemaAvisScraper : Scraper, IAvisScraper
     {
         private const string RemaImageFolder = "RemaImages";
-        private Avis RemaAvis = new("Rema 1000", null, null);
+        private Avis RemaAvis = new(0, DateTime.MinValue, DateTime.MinValue, []);
         public RemaAvisScraper()
         {
             Directory.CreateDirectory(RemaImageFolder);
@@ -92,7 +92,7 @@ namespace ScraperLibrary
 
             ImageDownloader.DownloadImage(imageUrl, imagePath);
 
-            RemaAvis.AddPage(new Page(imagePath));
+            RemaAvis.AddPage(new Page(imagePath, i));
 
             Console.WriteLine("Successfully saved page " + i);
         }

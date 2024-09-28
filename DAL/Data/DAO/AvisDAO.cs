@@ -4,8 +4,18 @@ using TilbudsAvisLibrary.Entities;
 
 namespace DAL.Data.DAO
 {
-    public class AvisDAO : IAvisDAO
+    public class AvisDAO : DAObject, IAvisDAO
     {
+        private string avisQuery = @"
+            INSERT INTO Avis (AvisExternalId, CompanyId, ValidFrom, ValidTo) 
+            VALUES (@AvisExternalId, @CompanyId, @ValidFrom, @ValidTo); 
+            SELECT SCOPE_IDENTITY();";
+
+        public Task<int> Add(Avis t)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task Delete(int id)
         {
             throw new NotImplementedException();
@@ -26,9 +36,9 @@ namespace DAL.Data.DAO
             throw new NotImplementedException();
         }
 
-        public async Task<int> Add(Avis avis)
+        public async Task<int> Add(Avis avis, int companyId)
         {
-            using (SqlConnection connection = new(ConnectionString))
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
                 await connection.OpenAsync();
 
@@ -36,25 +46,16 @@ namespace DAL.Data.DAO
                 {
                     try
                     {
-                        SqlCommand command = new SqlCommand(productQuery, connection, transaction);
+                        SqlCommand command = new SqlCommand(avisQuery, connection, transaction);
 
-                        command.Parameters.AddWithValue("@ExternalId", product.ExternalId);
-                        command.Parameters.AddWithValue("@Name", product.Name);
-                        command.Parameters.AddWithValue("@Description", product.Description);
-                        command.Parameters.AddWithValue("@ImageUrl", product.ImageUrl);
+                        // Assigning parameters to the SQL command
+                        command.Parameters.AddWithValue("@AvisExternalId", avis.ExternalId);
+                        command.Parameters.AddWithValue("@CompanyId", companyId);
+                        command.Parameters.AddWithValue("@ValidFrom", avis.ValidFrom);
+                        command.Parameters.AddWithValue("@ValidTo", avis.ValidTo);
 
+                        // Execute the query and get the generated ID
                         int generatedId = Convert.ToInt32(await command.ExecuteScalarAsync());
-
-                        // Add the prices related to that product
-                        foreach (Price price in product.GetPrices())
-                        {
-                            SqlCommand priceCommand = new SqlCommand(priceQuery, connection, transaction);
-
-                            priceCommand.Parameters.AddWithValue("@ProductId", generatedId);
-                            priceCommand.Parameters.AddWithValue("@Price", price.PriceValue);
-
-                            price.SetId(Convert.ToInt32(await priceCommand.ExecuteScalarAsync()));
-                        }
 
                         transaction.Commit();
 
@@ -68,5 +69,7 @@ namespace DAL.Data.DAO
                 }
             }
         }
+
+        
     }
 }

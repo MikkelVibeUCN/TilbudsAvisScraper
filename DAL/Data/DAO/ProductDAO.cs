@@ -14,6 +14,17 @@ namespace DAL.Data.DAO
                    "VALUES (@ProductId, @Price)" +
                     "SELECT SCOPE_IDENTITY();";
 
+        public ProductDAO()
+        {
+            using (SqlConnection connection = new(ConnectionString))
+            {
+                connection.Open();
+                Console.WriteLine("Connection opened");
+
+            }
+            Console.WriteLine("Connection closed");
+        }
+
         public Task Delete(int id)
         {
             throw new NotImplementedException();
@@ -34,47 +45,55 @@ namespace DAL.Data.DAO
             throw new NotImplementedException();
         }
 
-        public async Task<int> Add(Product product)
+        public Task<int> Add(Product product)
         {
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<Product>> AddProducts(IEnumerable<Product> products, int avisId)
+        {
+            List<Product> addedProducts = new();
             using (SqlConnection connection = new(ConnectionString))
             {
                 await connection.OpenAsync();
 
                 using (SqlTransaction transaction = connection.BeginTransaction())
                 {
-                    try
+                    foreach(Product product in products)
                     {
-                        SqlCommand command = new SqlCommand(productQuery, connection, transaction);
-
-                        command.Parameters.AddWithValue("@ExternalId", product.ExternalId);
-                        command.Parameters.AddWithValue("@Name", product.Name);
-                        command.Parameters.AddWithValue("@Description", product.Description);
-                        command.Parameters.AddWithValue("@ImageUrl", product.ImageUrl);
-
-                        int generatedId = Convert.ToInt32(await command.ExecuteScalarAsync());
-
-                        // Add the prices related to that product
-                        foreach (Price price in product.GetPrices())
+                        try
                         {
-                            SqlCommand priceCommand = new SqlCommand(priceQuery, connection, transaction);
+                            SqlCommand command = new SqlCommand(productQuery, connection, transaction);
 
-                            priceCommand.Parameters.AddWithValue("@ProductId", generatedId);
-                            priceCommand.Parameters.AddWithValue("@Price", price.PriceValue);
+                            command.Parameters.AddWithValue("@ExternalId", product.ExternalId);
+                            command.Parameters.AddWithValue("@Name", product.Name);
+                            command.Parameters.AddWithValue("@Description", product.Description);
+                            command.Parameters.AddWithValue("@ImageUrl", product.ImageUrl);
 
-                            price.SetId(Convert.ToInt32(await priceCommand.ExecuteScalarAsync()));
+                            product.SetId(Convert.ToInt32(await command.ExecuteScalarAsync()));
+
+                            // Add the prices related to that product
+                            foreach (Price price in product.GetPrices())
+                            {
+                                SqlCommand priceCommand = new SqlCommand(priceQuery, connection, transaction);
+
+                                priceCommand.Parameters.AddWithValue("@ProductId", product.Id);
+                                priceCommand.Parameters.AddWithValue("@Price", price.PriceValue);
+
+                                price.SetId(Convert.ToInt32(await priceCommand.ExecuteScalarAsync()));
+                            }
+                            addedProducts.Add(product);
                         }
-
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            throw ex;
+                        }
                         transaction.Commit();
-
-                        return generatedId;
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        throw ex;
                     }
                 }
             }
+            return addedProducts;
         }
     }
 }

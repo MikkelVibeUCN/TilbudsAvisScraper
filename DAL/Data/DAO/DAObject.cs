@@ -9,6 +9,11 @@ namespace DAL.Data.DAO
 {
     public abstract class DAObject
     {
-        protected string ConnectionString = "Server=localhost;Database=TilbudsAvisScraperDB;Trusted_Connection=True;";
+        protected string ConnectionString;
+
+        public DAObject()
+        {
+            ConnectionString = File.ReadAllText(@"C:\Users\Mikkel\source\repos\TilbudsAvisScraper\databaselogin.txt");
+        }
     }
 }

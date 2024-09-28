@@ -31,16 +31,9 @@ namespace ScraperLibrary
                     // Adjust startIndex to skip the pattern itself
                     startIndex += startPattern.Length;
 
-                    // Extract the product HTML between the two patterns
-                    string productHtml = result.Substring(startIndex, endIndex - startIndex);
+                    // Extract the product from the html
+                    Product product = CreateProductFromHtml(result, startIndex, endIndex);
 
-                    Product product = new(GetNameOfProduct(productHtml), 
-                        GetPriceOfProduct<float>(productHtml), 
-                        GetProductUrlFromHtml(productHtml), 
-                        GetDescriptionOfProduct(productHtml),
-                        GetExternalProductId(productHtml),
-                        null
-                        );
                     products.Add(product);
                     Console.WriteLine(product.ToString());
                     currentIndex = endIndex + endPattern.Length;
@@ -53,65 +46,41 @@ namespace ScraperLibrary
             return products;
         }
 
+        private Product CreateProductFromHtml(string result, int startIndex, int endIndex)
+        {
+            string productHtml = result.Substring(startIndex, endIndex - startIndex);
+
+            return new(GetNameOfProduct(productHtml),
+                GetProductUrlFromHtml(productHtml),
+                GetDescriptionOfProduct(productHtml),
+                GetExternalProductId(productHtml),
+                [new Price(GetPriceOfProduct<float>(productHtml))]
+                );
+        }
+
         private dynamic GetPriceOfProduct<T>(string productHtml)
         {
-            try
-            {
-                return GetInformationFromHtml<T>(productHtml, "price-normal-discount\"", ">", "<");
-
-            }
-            catch 
-            {
-                return -1;
-            }
+            return GetInformationFromHtml<T>(productHtml, "price-normal-discount\"", ">", "<");
         }
 
         private string GetNameOfProduct(string productHtml)
         {
-            try
-            {
-                return GetInformationFromHtml<string>(productHtml, "class=\"title\"", ">", "<");
-            }
-            catch
-            {
-                return "";
-            }
+            return GetInformationFromHtml<string>(productHtml, "class=\"title\"", ">", "<");
         }
 
         private string GetProductUrlFromHtml(string productHtml)
         {
-            try
-            {
-                return GetInformationFromHtml<string>(productHtml, "product-grid-image", "src=\"", "\"");
-            }
-            catch
-            {
-                return "";
-            }
+            return GetInformationFromHtml<string>(productHtml, "product-grid-image", "src=\"", "\"");
         }
 
         private string GetDescriptionOfProduct(string productHtml)
         {
-            try
-            {
-                return GetInformationFromHtml<string>(productHtml, "extra", "\"\">", "<");
-            }
-            catch
-            {
-                return "";
-            }
+            return GetInformationFromHtml<string>(productHtml, "extra", "\"\">", "<");
         }
 
         private int GetExternalProductId(string productHtml)
         {
-            try
-            {
-                return GetInformationFromHtml<int>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/");
-            }
-            catch
-            {
-                return -1;
-            }
+            return GetInformationFromHtml<int>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/");
         }
     }
 }
