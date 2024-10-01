@@ -12,10 +12,5 @@ namespace TIlbudsAvisScraperAPI.Controllers
         {
             this._productDAO = productDAO;
         }
-
-        public async Task<List<Product>> AddProducts(Avis avis)
-        {
-            return await _productDAO.AddProducts(avis.GetProducts(), avis.Id);
-        }
     }
 }

@@ -3,7 +3,7 @@
     public interface IDAO<T>
     {
 
-        Task<T> Get(int id);
+        Task<T?> Get(int id);
         Task<List<T>> GetAll();
         Task<int> Add(T t);
         Task Update(T t);

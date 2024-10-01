@@ -11,16 +11,18 @@ namespace TilbudsAvisLibrary.Entities
     {
         public int Id { get; private set; }
         public float PriceValue { get; set; }
+        public int ExternalAvisId { get; set; }
 
         [JsonConstructor]
         public Price(float priceValue)
         {
             this.PriceValue = priceValue;
         }
-        public Price(int id, float priceValue)
+        public Price(int id, float priceValue, int externalAvisId)
         {
             this.Id = id;
             this.PriceValue = priceValue;
+            this.ExternalAvisId = externalAvisId;
         }
 
         public void SetId(int id) => Id = id;

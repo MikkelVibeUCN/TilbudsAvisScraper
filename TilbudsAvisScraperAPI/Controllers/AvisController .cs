@@ -1,6 +1,7 @@
 using DAL.Data.DAO;
 using DAL.Data.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Data.SqlClient;
 using TilbudsAvisLibrary.Entities;
 
 namespace TIlbudsAvisScraperAPI.Controllers
@@ -10,22 +11,26 @@ namespace TIlbudsAvisScraperAPI.Controllers
     public class AvisController : ControllerBase
     {
         const string baseURI = "api/v1/[controller]";
-        private ProductController _productController;
         private readonly IAvisDAO _avisDAO;
 
         public AvisController(IAvisDAO avisDAO)
         {
             this._avisDAO = avisDAO;
-            this._productController = new ProductController(new ProductDAO());
         }
 
         [HttpPost]
         public async Task<IActionResult> AddAvis(Avis avis, int companyId)
         {
-            int avisId = await _avisDAO.Add(avis, companyId);
-            avis.SetId(avisId);
-            await _productController.AddProducts(avis);
-            return Created($"{baseURI}/{avis.Id}", avis);
+            try
+            {
+                int avisId = await _avisDAO.Add(avis, companyId);
+                avis.SetId(avisId);
+                return Created($"{baseURI}/{avis.Id}", avis);
+            }
+            catch (Exception e)
+            {
+                return Conflict(e.Message);
+            }
         }
 
         [HttpGet]

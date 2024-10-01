@@ -38,9 +38,9 @@ namespace TilbudsAvisLibrary.Entities
             return $"Name: {Name}, ImageUrl: {ImageUrl}, Description: {Description}, ExternalId: {ExternalId}";
         }
 
-        public void AddPrice(int id, float price)
+        public void AddPrice(Price price)
         {
-            Prices.Add(new Price(id, price));
+            Prices.Add(price);
         }
 
         public IEnumerable<Price> GetPrices()
