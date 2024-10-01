@@ -13,7 +13,9 @@ namespace DAL.Data.DAO
 
         public DAObject()
         {
-            ConnectionString = File.ReadAllText(@"C:\Users\Mikkel\source\repos\TilbudsAvisScraper\databaselogin.txt");
+            string currentDirectory = Directory.GetCurrentDirectory();
+            string filePath = Path.Combine(currentDirectory, "..", "databaselogin.txt");
+            ConnectionString = File.ReadAllText(filePath);
         }
     }
 }

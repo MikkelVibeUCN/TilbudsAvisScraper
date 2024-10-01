@@ -1,5 +1,5 @@
 -- Create Company table
-use TilbudsAvisScraperDB
+use TilbudsAvisDB
 CREATE TABLE Company (
     Id int identity(1,1) primary key not null, 
     Name VARCHAR(255)
@@ -11,6 +11,7 @@ CREATE TABLE Avis (
     ValidFrom DATE, 
     ValidTo DATE, 
     CompanyId INT,
+	ExternalId INT,
     CONSTRAINT FK_Avis_Company FOREIGN KEY (CompanyId) REFERENCES Company(Id)
 );
 
@@ -40,3 +41,4 @@ CREATE TABLE Price (
     CONSTRAINT FK_Price_Product FOREIGN KEY (ProductId) REFERENCES Product(Id)
 );
 
+insert into company(Name) values ('Rema1000');

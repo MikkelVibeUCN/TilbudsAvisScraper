@@ -7,8 +7,8 @@ namespace DAL.Data.DAO
     public class AvisDAO : DAObject, IAvisDAO
     {
         private string avisQuery = @"
-            INSERT INTO Avis (AvisExternalId, CompanyId, ValidFrom, ValidTo) 
-            VALUES (@AvisExternalId, @CompanyId, @ValidFrom, @ValidTo); 
+            INSERT INTO Avis (ExternalId, CompanyId, ValidFrom, ValidTo) 
+            VALUES (@ExternalId, @CompanyId, @ValidFrom, @ValidTo); 
             SELECT SCOPE_IDENTITY();";
 
         public Task<int> Add(Avis t)
@@ -49,7 +49,7 @@ namespace DAL.Data.DAO
                         SqlCommand command = new SqlCommand(avisQuery, connection, transaction);
 
                         // Assigning parameters to the SQL command
-                        command.Parameters.AddWithValue("@AvisExternalId", avis.ExternalId);
+                        command.Parameters.AddWithValue("@ExternalId", avis.ExternalId);
                         command.Parameters.AddWithValue("@CompanyId", companyId);
                         command.Parameters.AddWithValue("@ValidFrom", avis.ValidFrom);
                         command.Parameters.AddWithValue("@ValidTo", avis.ValidTo);

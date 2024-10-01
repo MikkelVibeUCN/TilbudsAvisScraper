@@ -22,7 +22,7 @@ namespace TIlbudsAvisScraperAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> AddAvis(Avis avis, int companyId)
         {
-            var avisId = await _avisDAO.Add(avis, companyId);
+            int avisId = await _avisDAO.Add(avis, companyId);
             avis.SetId(avisId);
             await _productController.AddProducts(avis);
             return Created($"{baseURI}/{avis.Id}", avis);
