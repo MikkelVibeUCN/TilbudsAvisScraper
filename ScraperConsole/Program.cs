@@ -1,4 +1,5 @@
 ﻿using ScraperLibrary;
+using System.Text.Json;
 using TilbudsAvisLibrary.Entities;
 namespace ScraperConsole
 {
@@ -8,37 +9,28 @@ namespace ScraperConsole
         {
             using (HttpClient client = new())
             {
-                Task remaProductsTask = Task.Run(async () =>
+                Task<List<Product>> remaProducts = Task.Run(async () =>
                 {
-                    IEnumerable<Product> remaProducts = await new RemaProductScraper().GetAllProductsFromPage("https://shop.rema1000.dk/avisvarer");
-
-                    foreach (var item in remaProducts)
-                    {
-                        Console.WriteLine(item.ToString());
-                    }
+                    return await new RemaProductScraper().GetAllProductsFromPage("https://shop.rema1000.dk/avisvarer");
                 });
 
-                Task remaScraperTask = Task.Run(async () =>
+                Task<Avis> remaAvis = Task.Run(async () =>
                 {
-                    RemaAvisScraper remaScraper = new RemaAvisScraper();
-                    string result = await remaScraper.FindAvisUrl("https://rema1000.dk/avis");
-
-                    await remaScraper.DownloadAllPagesAsImages(result);
+                    return await new RemaAvisScraper().GetAvis("https://rema1000.dk/avis");
                 });
 
-                await Task.WhenAll(remaProductsTask, remaScraperTask);
+                await Task.WhenAll(remaProducts, remaAvis);
 
+                remaAvis.Result.Products = remaProducts.Result;
 
+                var json = JsonSerializer.Serialize(remaAvis.Result);
+                var buffer = System.Text.Encoding.UTF8.GetBytes(json);
+                var byteContent = new ByteArrayContent(buffer);
+
+                HttpResponseMessage response = await client.PostAsync("https://localhost:5001/api/avis", byteContent);
+
+                Console.WriteLine(response.ToString());
             }
-
-
-
-            
-
-            
-
-
-
         }
     }
 }

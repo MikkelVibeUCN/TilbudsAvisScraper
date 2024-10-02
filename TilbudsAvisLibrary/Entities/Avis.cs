@@ -10,15 +10,23 @@ namespace TilbudsAvisLibrary.Entities
         public DateTime ValidFrom { get; set; }
         public DateTime ValidTo { get; set; }
         public int Id { get; private set; }
-        public int ExternalId { get; set; }
+        public string ExternalId { get; set; }
 
         [JsonConstructor]
-        public Avis(int externalId, DateTime validFrom, DateTime validTo, List<Product> products)
+        public Avis(string externalId, DateTime validFrom, DateTime validTo, List<Product> products)
         {
             ExternalId = externalId;
             ValidFrom = validFrom;
             ValidTo = validTo;
             Products = products ?? new List<Product>();
+        }
+
+        public Avis(string externalId, DateTime validFrom, DateTime validTo, List<Page> pages)
+        {
+            ExternalId = externalId;
+            ValidFrom = validFrom;
+            ValidTo = validTo;
+            Pages = pages;
         }
         public void SetId(int id) => Id = id;
 

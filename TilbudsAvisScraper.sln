@@ -9,9 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScraperConsole", "ScraperCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScraperLibrary", "ScraperLibrary\ScraperLibrary.csproj", "{8EC6BCBA-3ABD-475A-998B-8143D3C23852}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TIlbudsAvisScraperAPI", "TIlbudsAvisScraperAPI\TIlbudsAvisScraperAPI.csproj", "{C6F168A4-D7DB-4C57-9034-FCE11D7034EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TIlbudsAvisScraperAPI", "TIlbudsAvisScraperAPI\TIlbudsAvisScraperAPI.csproj", "{C6F168A4-D7DB-4C57-9034-FCE11D7034EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAL", "DAL\DAL.csproj", "{D14C592F-B573-407A-89F0-F0A409DDB1AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DAL", "DAL\DAL.csproj", "{D14C592F-B573-407A-89F0-F0A409DDB1AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TilbudsAvisWeb", "TilbudsAvisWeb\TilbudsAvisWeb.csproj", "{43C36D86-402F-4DAA-8C00-E0F1FBB4ADF9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{D14C592F-B573-407A-89F0-F0A409DDB1AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D14C592F-B573-407A-89F0-F0A409DDB1AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D14C592F-B573-407A-89F0-F0A409DDB1AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43C36D86-402F-4DAA-8C00-E0F1FBB4ADF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43C36D86-402F-4DAA-8C00-E0F1FBB4ADF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43C36D86-402F-4DAA-8C00-E0F1FBB4ADF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43C36D86-402F-4DAA-8C00-E0F1FBB4ADF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -8,7 +8,6 @@ namespace ScraperLibrary
     public class RemaAvisScraper : Scraper, IAvisScraper
     {
         private const string RemaImageFolder = "RemaImages";
-        private Avis RemaAvis = new(0, DateTime.MinValue, DateTime.MinValue, []);
         public RemaAvisScraper()
         {
             Directory.CreateDirectory(RemaImageFolder);
@@ -27,25 +26,29 @@ namespace ScraperLibrary
             return url + "/" + substring + "/1";
         }
 
+        public async Task<Avis> GetAvis(string input)
+        {
+            string avisUrl = await FindAvisUrl(input);
+
+            string searchString = "avis";
+            string endSearchKey = "/";
+
+            string externalId = GetInformationFromHtml<string>(avisUrl, searchString, endSearchKey, endSearchKey);
+
+            List<Page> pages = await GetPagesFromUrl(avisUrl);
+
+            return new Avis(externalId, DateTime.MinValue, DateTime.MinValue, pages);
+        }
+
         public string GetImageUrl(string input, int pageNumber)
         {
-            string middleString = "";
             try
             {
                 string searchString = "data-id=\"page" + pageNumber;
-                int startIndex = input.IndexOf(searchString) + searchString.Length;
-                int endIndex = input.IndexOf("</div>", startIndex);
+                string startSearchKey = "&quot;";
+                string endSearchKey = "&quot;);";
 
-                middleString = input.Substring(startIndex, endIndex - startIndex);
-                //Console.WriteLine(middleString);
-
-                searchString = "&quot;";
-                startIndex = middleString.IndexOf(searchString) + searchString.Length;
-                endIndex = middleString.IndexOf("&quot;);", startIndex);
-
-                string encodedUrl = middleString.Substring(startIndex, endIndex - startIndex);
-
-                string decodedUrl = HttpUtility.HtmlDecode(encodedUrl);
+                string encodedUrl = GetInformationFromHtml<string>(input, searchString, startSearchKey, endSearchKey);
 
                 return HttpUtility.HtmlDecode(encodedUrl);
             }
@@ -85,14 +88,45 @@ namespace ScraperLibrary
                 }
             }
         }
+
+        public async Task<List<Page>> GetPagesFromUrl(string url)
+        {
+            List<Page> resultingPages = new List<Page>();
+
+            var response = await Scraper.CallUrl(url);
+
+            int lastPage = FindTotalPagesInPaper(response);
+
+            int retryCount = 0;
+
+            for (int i = 1; i <= lastPage; i++)
+            {
+                string nextPageUrl = url.Substring(0, url.Length - 1) + i;
+
+                try
+                {
+                    response = await Scraper.CallUrl(nextPageUrl);
+                    resultingPages.Add(new Page(GetImageUrl(response, i), i));
+                    Console.WriteLine("Added page " + i);
+                    retryCount = 0;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Failed to add image number " + i + " " + e.Message);
+                    Console.WriteLine("Retry number " + retryCount + 1);
+                    if (retryCount < 4) { i--; retryCount++; }
+                    else { Console.WriteLine("Too many attempts, skipping"); }
+                }
+            }
+            return resultingPages;
+        }
+
         private void SaveImage(string nextPageUrl, string imageUrl, int i)
         {
             string imageName = $"image{i}.jpg";
             string imagePath = Path.Combine(RemaImageFolder, imageName);
 
             ImageDownloader.DownloadImage(imageUrl, imagePath);
-
-            RemaAvis.AddPage(new Page(imagePath, i));
 
             Console.WriteLine("Successfully saved page " + i);
         }

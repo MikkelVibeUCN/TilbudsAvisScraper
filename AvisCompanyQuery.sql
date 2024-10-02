@@ -42,3 +42,5 @@ CREATE TABLE Price (
 );
 
 insert into company(Name) values ('Rema1000');
+
+alter table avis add ExternalId int

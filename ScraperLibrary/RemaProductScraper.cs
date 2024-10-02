@@ -70,7 +70,7 @@ namespace ScraperLibrary
 
         private string GetProductUrlFromHtml(string productHtml)
         {
-            return GetInformationFromHtml<string>(productHtml, "product-grid-image", "src=\"", "\"");
+            try { return GetInformationFromHtml<string>(productHtml, "product-grid-image", "src=\"", "\""); } catch { return ""; }
         }
 
         private string GetDescriptionOfProduct(string productHtml)
@@ -80,7 +80,7 @@ namespace ScraperLibrary
 
         private int GetExternalProductId(string productHtml)
         {
-            return GetInformationFromHtml<int>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/");
+            try { return GetInformationFromHtml<int>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/"); } catch { return -1; }
         }
     }
 }

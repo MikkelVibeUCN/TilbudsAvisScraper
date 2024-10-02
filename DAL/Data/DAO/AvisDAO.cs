@@ -10,10 +10,12 @@ namespace DAL.Data.DAO
     {
         private IProductDAO _productDAO;
 
-        private string avisQuery = @"
+        private const string avisQuery = @"
             INSERT INTO Avis (ExternalId, CompanyId, ValidFrom, ValidTo) 
             VALUES (@ExternalId, @CompanyId, @ValidFrom, @ValidTo); 
             SELECT SCOPE_IDENTITY();";
+
+        private const string _PageQuery = "INSERT INTO Page(PdfUrl, PageNumber, AvisId) VALUES(@PdfUrl, @PageNumber, @AvisId) SELECT SCOPE_IDENTITY();";
 
         public AvisDAO(IProductDAO productDAO)
         {
@@ -88,7 +90,7 @@ namespace DAL.Data.DAO
             }
         }
 
-        private async Task<bool> DoesAvisWithExternalIdExist(int externalId)
+        private async Task<bool> DoesAvisWithExternalIdExist(string externalId)
         {
             using (SqlConnection connection = new(ConnectionString))
             {
@@ -109,7 +111,7 @@ namespace DAL.Data.DAO
         {
             foreach (Page page in avis.Pages)
             {
-                using (SqlCommand command = new SqlCommand("INSERT INTO Page(PdfUrl, PageNumber, AvisId) VALUES(@PdfUrl, @PageNumber, @AvisId) SELECT SCOPE_IDENTITY();", connection, transaction))
+                using (SqlCommand command = new SqlCommand(_PageQuery, connection, transaction))
                 {
                     command.Parameters.AddWithValue("@PdfUrl", page.ImageUrl);
                     command.Parameters.AddWithValue("@PageNumber", page.PageNumber);
