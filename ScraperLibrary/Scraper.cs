@@ -42,7 +42,6 @@ namespace ScraperLibrary
 
             return content;
         }
-
         protected static dynamic GetInformationFromHtml<T>(string html, string searchPattern, string startSearchKey, string endSearchKey)
         {
             int startIndex = html.IndexOf(searchPattern);
@@ -57,6 +56,14 @@ namespace ScraperLibrary
                 else throw new InvalidCastException($"{typeof(T).FullName} is not supported");
             }
             throw new KeyNotFoundException($"searchpattern: {searchPattern} wasn't found");
+        }
+        protected static DateTime ConvertStringToDate(string date, IFormatProvider originalDateFormat, IFormatProvider newDateFormat)
+        {
+            DateTime dateTime = DateTime.Parse(date, originalDateFormat);
+
+            DateTime convertedDateTime = DateTime.Parse(dateTime.ToString(newDateFormat), newDateFormat);
+
+            return convertedDateTime;
         }
     }
 }

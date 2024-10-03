@@ -10,13 +10,15 @@ namespace TilbudsAvisLibrary.Entities
     public class APIUser
     {
         public int? Id { get; private set; }
-        public string Email { get; set; }
-        public string Token { get; set; }
+        public string Role { get; private set; }
+        public int PermissionLevel { get; private set; }
+        public string Token { get; private set; }
 
-        public APIUser(string email, int? id)
+        public APIUser(string role, int permissionLevel, int? id)
         {
             Id = id;
-            Email = email; 
+            Role = role;
+            PermissionLevel = permissionLevel;
             Token = GenerateUniqueToken();
         }
 

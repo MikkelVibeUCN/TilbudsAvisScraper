@@ -21,32 +21,32 @@ namespace DAL.Data.DAO
         {
             this._productDAO = productDAO;
         }
-        public Task<int> Add(Avis t)
+        public Task<int> Add(Avis t, string token)
         {
             throw new NotImplementedException();
         }
 
-        public Task Delete(int id)
+        public Task Delete(int id, string token)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Avis> Get(int id)
+        public Task<Avis> Get(int id, string token)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<Avis>> GetAll()
+        public Task<List<Avis>> GetAll(string token)
         {
             throw new NotImplementedException();
         }
 
-        public Task Update(Avis avis)
+        public Task Update(Avis avis, string token)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<int> Add(Avis avis, int companyId)
+        public async Task<int> Add(Avis avis, int companyId, string token)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {

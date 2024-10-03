@@ -2,6 +2,8 @@
 using System.Web;
 using ScraperLibrary.Interfaces;
 using TilbudsAvisLibrary.Entities;
+using System.Collections;
+using System.Globalization;
 
 namespace ScraperLibrary
 {
@@ -82,8 +84,8 @@ namespace ScraperLibrary
                 catch (Exception e)
                 {
                     Console.WriteLine("Failed to save image number " + i + " " + e.Message);
-                    Console.WriteLine("Retry number " + retryCount+1);
-                    if(retryCount < 4) { i--; retryCount++; } 
+                    Console.WriteLine("Retry number " + retryCount + 1);
+                    if (retryCount < 4) { i--; retryCount++; }
                     else { Console.WriteLine("Too many attempts, skipping"); }
                 }
             }
@@ -120,12 +122,11 @@ namespace ScraperLibrary
             }
             return resultingPages;
         }
-
         private void SaveImage(string nextPageUrl, string imageUrl, int i)
         {
             string imageName = $"image{i}.jpg";
             string imagePath = Path.Combine(RemaImageFolder, imageName);
-
+        
             ImageDownloader.DownloadImage(imageUrl, imagePath);
 
             Console.WriteLine("Successfully saved page " + i);
@@ -144,6 +145,52 @@ namespace ScraperLibrary
             int lastPage = int.Parse(lastPageString);
 
             return lastPage;
+        }
+
+        public async Task<(DateTime, DateTime)> GetAvisDates(string url, string inputExternalAvisId)
+        {
+            IFormatProvider danishDateFormat = new CultureInfo("da-DK");
+            IFormatProvider americanDateFormat = new CultureInfo("en-US");
+
+            string startingHtml = await Scraper.CallUrl(url);
+            string cutDownHtml = startingHtml;
+
+            string searchString = "<a href=\"/avis/";
+            string endSearchKey = "\"";
+            string searchKey = searchString;
+
+            int currentIndex = 0;
+            while (currentIndex != url.Length)
+            {
+                string avisExternalId = GetInformationFromHtml<string>(cutDownHtml, searchString, searchKey, endSearchKey);
+
+                if (avisExternalId.Equals(inputExternalAvisId))
+                {
+                    searchString = "<div class=\"flex flex-col gap-0 text-center\">";
+                    searchKey = "base\">";
+                    endSearchKey = "</h4>";
+
+                    string dates = GetInformationFromHtml<string>(cutDownHtml, searchString, searchKey, endSearchKey);
+
+                    string[] dateParts = dates.Split(" - ");
+                    foreach (string datePart in dateParts)
+                    {
+                        Console.WriteLine(datePart);
+                    }
+                    return (ConvertStringToDate(dateParts[0], danishDateFormat, americanDateFormat), ConvertStringToDate(dateParts[1], danishDateFormat, americanDateFormat));
+                }
+                else
+                {
+                    int cutPoint = cutDownHtml.IndexOf(searchString);
+
+                    string tempString = cutDownHtml.Substring(cutPoint);
+
+                    int endIndex = tempString.IndexOf("</a>", currentIndex);
+
+                    cutDownHtml = cutDownHtml.Substring(cutPoint + endIndex);
+                }
+            }
+            throw new Exception("Avis not found");
         }
     }
 }

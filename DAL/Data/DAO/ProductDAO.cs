@@ -26,7 +26,7 @@ namespace DAL.Data.DAO
             Console.WriteLine("Connection closed");
         }
 
-        public Task Delete(int id)
+        public Task Delete(int id, int permissionLevel)
         {
             throw new NotImplementedException();
         }
@@ -73,7 +73,7 @@ namespace DAL.Data.DAO
             }
         }
 
-        public async Task<Product?> Get(int id)
+        public async Task<Product?> Get(int id, int permissionLevel)
         {
             using (SqlConnection connection = new(ConnectionString))
             {
@@ -144,17 +144,17 @@ namespace DAL.Data.DAO
             return prices;
         }
 
-        public Task<List<Product>> GetAll()
+        public Task<List<Product>> GetAll(int permissionLevel)
         {
             throw new NotImplementedException();
         }
 
-        public Task Update(Product product)
+        public Task Update(Product product, int permissionLevel)
         {
             throw new NotImplementedException();
         }
 
-        public Task<int> Add(Product product)
+        public Task<int> Add(Product product, int permissionLevel)
         {
             throw new NotImplementedException();
         }

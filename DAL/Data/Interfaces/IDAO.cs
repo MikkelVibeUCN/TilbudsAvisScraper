@@ -2,11 +2,10 @@
 {
     public interface IDAO<T>
     {
-
-        Task<T?> Get(int id);
-        Task<List<T>> GetAll();
-        Task<int> Add(T t);
-        Task Update(T t);
-        Task Delete(int id);
+        Task<T?> Get(int id, int permissionLevel);
+        Task<List<T>> GetAll(int permissionLevel);
+        Task<int> Add(T t, int permissionLevel);
+        Task Update(T t, int permissionLevel);
+        Task Delete(int id, int permissionLevel);
     }
 }

@@ -41,6 +41,10 @@ CREATE TABLE Price (
     CONSTRAINT FK_Price_Product FOREIGN KEY (ProductId) REFERENCES Product(Id)
 );
 
-insert into company(Name) values ('Rema1000');
+CREATE TABLE APIUser (
+	Id int identity(1, 1) primary key not null,
+	"Role" varchar(150) not null,
+	PermissionLevel int not null,
+	Token char(66) not null
+)
 
-alter table avis add ExternalId int
