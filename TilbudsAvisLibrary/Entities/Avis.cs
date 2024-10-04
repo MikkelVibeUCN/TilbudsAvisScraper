@@ -5,8 +5,8 @@ namespace TilbudsAvisLibrary.Entities
 {
     public class Avis
     {
-        public List<Page> Pages { get; set; } = new List<Page>();
-        public List<Product> Products { get; set; } = new List<Product>();
+        public List<Page> Pages { get; set; }
+        public List<Product> Products { get; set; }
         public DateTime ValidFrom { get; set; }
         public DateTime ValidTo { get; set; }
         public int Id { get; private set; }
@@ -18,15 +18,16 @@ namespace TilbudsAvisLibrary.Entities
             ExternalId = externalId;
             ValidFrom = validFrom;
             ValidTo = validTo;
-            Products = products ?? new List<Product>();
+            Products = new List<Product>(products);
         }
 
-        public Avis(string externalId, DateTime validFrom, DateTime validTo, List<Page> pages)
+        public Avis(string externalId, DateTime validFrom, DateTime validTo, List<Page> pages, List<Product> products)
         {
             ExternalId = externalId;
             ValidFrom = validFrom;
             ValidTo = validTo;
-            Pages = pages;
+            Pages = new List<Page>(pages);
+            Products = new List<Product>(products);
         }
         public void SetId(int id) => Id = id;
 

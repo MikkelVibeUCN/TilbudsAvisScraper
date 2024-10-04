@@ -18,11 +18,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DAL\DAL.csproj" />
+    <ProjectReference Include="..\ScraperLibrary\ScraperLibrary.csproj" />
     <ProjectReference Include="..\TilbudsAvisLibrary\TilbudsAvisLibrary.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="NUnit.Framework" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DALTests\Stubs\" />
   </ItemGroup>
 
 </Project>

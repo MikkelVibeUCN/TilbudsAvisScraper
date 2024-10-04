@@ -4,6 +4,7 @@ namespace ScraperLibrary
 {
     public abstract class Scraper
     {
+        protected HttpClient client = new HttpClient();
         public static async Task<string> CallUrl(string fullUrl)
         {
             // Download the browser if necessary

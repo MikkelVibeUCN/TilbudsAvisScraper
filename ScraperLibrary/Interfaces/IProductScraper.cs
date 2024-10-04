@@ -4,6 +4,6 @@ namespace ScraperLibrary.Interfaces
 {
     public interface IProductScraper
     {
-        Task<List<Product>> GetAllProductsFromPage(string url);
+        Task<List<Product>> GetAllProductsFromPage();
     }
 }

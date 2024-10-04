@@ -2,8 +2,10 @@
 using TilbudsAvisLibrary.Entities;
 namespace DAL.Data.Interfaces
 {
-    public interface IAvisDAO : IDAO<Avis>
+    public interface IAvisDAO
     {
         Task<int> Add(Avis avis, int companyId, int permissionLevel);
+        Task Delete(int id, int permissionLevel);
+        Task Get(int id, int permissionLevel);
     }
 }

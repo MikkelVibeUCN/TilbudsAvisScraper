@@ -17,13 +17,6 @@ namespace DAL.Data.DAO
 
         public ProductDAO()
         {
-            using (SqlConnection connection = new(ConnectionString))
-            {
-                connection.Open();
-                Console.WriteLine("Connection opened");
-
-            }
-            Console.WriteLine("Connection closed");
         }
 
         public Task Delete(int id, int permissionLevel)
@@ -33,43 +26,47 @@ namespace DAL.Data.DAO
 
         public async Task<Product?> GetProductFromExernalId(int inputExternalId)
         {
-            using (SqlConnection connection = new(ConnectionString))
+            try
             {
-                await connection.OpenAsync();
-
-                try
+                // Use a separate connection for the read-only query
+                using (SqlConnection connection = new SqlConnection(ConnectionString))
                 {
-                    SqlCommand command = new SqlCommand("SELECT * FROM Product WHERE ExternalId = @ExternalId", connection);
-                    command.Parameters.AddWithValue("@ExternalId", inputExternalId);
+                    await connection.OpenAsync();
 
-                    SqlDataReader reader = await command.ExecuteReaderAsync();
-
-                    if (reader.HasRows)
+                    using (SqlCommand command = new SqlCommand("SELECT * FROM Product WITH (NOLOCK) WHERE ExternalId = @ExternalId", connection))
                     {
-                        await reader.ReadAsync();
+                        command.Parameters.AddWithValue("@ExternalId", inputExternalId);
 
-                        int productId = reader.GetInt32(reader.GetOrdinal("Id"));
-                        string name = reader.GetString(reader.GetOrdinal("Name"));
-                        string description = reader.GetString(reader.GetOrdinal("Description"));
-                        string imageUrl = reader.GetString(reader.GetOrdinal("ImageUrl"));
-                        int externalId = reader.GetInt32(reader.GetOrdinal("ExternalId"));
+                        using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                        {
+                            if (reader.HasRows)
+                            {
+                                await reader.ReadAsync();
 
-                        List<Price> prices = await GetPricesForProduct(productId);
+                                int productId = reader.GetInt32(reader.GetOrdinal("Id"));
+                                string name = reader.GetString(reader.GetOrdinal("Name"));
+                                string description = reader.GetString(reader.GetOrdinal("Description"));
+                                string imageUrl = reader.GetString(reader.GetOrdinal("ImageUrl"));
+                                int externalId = reader.GetInt32(reader.GetOrdinal("ExternalId"));
 
-                        Product product = new Product(name, imageUrl, description, externalId, productId, prices);
+                                List<Price> prices = await GetPricesForProduct(productId);
 
-                        return product;
-                    }
-                    else
-                    {
-                        return null;
+                                Product product = new Product(name, imageUrl, description, externalId, productId, prices);
+
+                                return product;
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        }
                     }
                 }
-                catch (Exception ex)
-                {
-                    // Handle the exception
-                    throw ex;
-                }
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception
+                throw ex;
             }
         }
 
@@ -134,9 +131,9 @@ namespace DAL.Data.DAO
                             int id = reader.GetInt32(reader.GetOrdinal("Id"));
                             float price = (float)reader.GetDouble(reader.GetOrdinal("Price"));
                             int avidId = reader.GetInt32(reader.GetOrdinal("AvisId"));
-
-                            Price newPrice = new Price(id, price, avidId);
-                            prices.Add(newPrice);
+                            // Fix price here too
+                            //Price newPrice = new Price(id, price, avidId);
+                            //prices.Add(newPrice);
                         }
                     }
                 }
@@ -204,11 +201,17 @@ namespace DAL.Data.DAO
             {
                 await connection.OpenAsync();
 
-                string query = "SELECT a.id FROM Price p JOIN Avis a ON p.AvisId = a.Id WHERE p.ProductId = @ProductId AND a.ExternalId = @ExternalId;";
+                string query = @"
+                    SELECT a.Id 
+                    FROM Price p WITH (NOLOCK)
+                    JOIN Avis a WITH (NOLOCK) ON p.AvisId = a.Id 
+                    WHERE p.ProductId = @ProductId AND a.ExternalId = @ExternalId;";
+
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
+                    //TODO FIX to work with new price stuff
                     command.Parameters.AddWithValue("@ProductId", productId);
-                    command.Parameters.AddWithValue("@ExternalId", price.ExternalAvisId);
+                    //command.Parameters.AddWithValue("@ExternalId", price.ExternalAvisId);
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -224,13 +227,15 @@ namespace DAL.Data.DAO
             {
                 if (!await PriceAlreadyExists(price, (int)product.Id))
                 {
-                    SqlCommand priceCommand = new SqlCommand(priceQuery, connection, transaction);
+                    using (SqlCommand priceCommand = new SqlCommand(priceQuery, connection, transaction))
+                    {
+                        // TODO FIX
+                        priceCommand.Parameters.AddWithValue("@ProductId", product.Id);
+                        //priceCommand.Parameters.AddWithValue("@Price", price.PriceValue);
+                        priceCommand.Parameters.AddWithValue("@AvisId", avisId);
 
-                    priceCommand.Parameters.AddWithValue("@ProductId", product.Id);
-                    priceCommand.Parameters.AddWithValue("@Price", price.PriceValue);
-                    priceCommand.Parameters.AddWithValue("@AvisId", avisId);
-
-                    price.SetId(Convert.ToInt32(await priceCommand.ExecuteScalarAsync()));
+                        price.SetId(Convert.ToInt32(await priceCommand.ExecuteScalarAsync()));
+                    }
                 }
             }
         }

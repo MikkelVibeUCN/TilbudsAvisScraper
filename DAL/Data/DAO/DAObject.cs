@@ -13,8 +13,9 @@ namespace DAL.Data.DAO
 
         public DAObject()
         {
-            string currentDirectory = Directory.GetCurrentDirectory();
-            string filePath = Path.Combine(currentDirectory, "..", "databaselogin.txt");
+            string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string filePath = Path.Combine(userProfile, "source", "repos", "TilbudsAvisScraper", "databaselogin.txt");
+
             ConnectionString = File.ReadAllText(filePath);
         }
     }

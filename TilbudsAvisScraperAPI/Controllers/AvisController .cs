@@ -1,4 +1,5 @@
 using DAL.Data.DAO;
+using DAL.Data.Exceptions;
 using DAL.Data.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -27,19 +28,17 @@ namespace TIlbudsAvisScraperAPI.Controllers
         {
             try
             {
-                if(await _apiUserDAO.GetPermissionLevel(token) >= 2)
-                {
-                    int avisId = await _avisDAO.Add(avis, companyId);
-                    avis.SetId(avisId);
-                    return Created($"{baseURI}/{avis.Id}", avis);
-                }
-                else
-                {
-                    return Unauthorized();
-                }
+                int permissionLevel = await _apiUserDAO.GetPermissionLevel(token);
+                int avisId = await _avisDAO.Add(avis, companyId, permissionLevel);
+                avis.SetId(avisId);
+                return Created($"{baseURI}/{avis.Id}", avis);
+            }
+            catch (InsufficientTokenPermission e)
+            {
+                return Unauthorized(e.Message);
             }
             catch (Exception e)
-            {
+            { 
                 return Conflict(e.Message);
             }
         }

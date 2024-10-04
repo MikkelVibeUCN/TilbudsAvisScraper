@@ -10,15 +10,17 @@ namespace TilbudsAvisLibrary.Entities
         public string ImageUrl { get; set; }
         public string Description { get; set; }
         public int ExternalId { get; set; }
+        public NutritionInfo _NutritionInfo { get; set; }
 
         [JsonConstructor]
-        public Product(string name, string imageUrl, string description, int externalId, List<Price> prices)
+        public Product(string name, string imageUrl, string description, int externalId, List<Price> prices, NutritionInfo nutritionInfo)
         {
             Name = name;
             ImageUrl = imageUrl;
             Description = description;
             ExternalId = externalId;
             Prices = prices ?? new List<Price>();
+            _NutritionInfo = nutritionInfo;
         }
 
         public Product(string name, string imageUrl, string description, int externalId, int? id, List<Price> prices)
@@ -48,12 +50,6 @@ namespace TilbudsAvisLibrary.Entities
             return new List<Price>(Prices);
         }
 
-        public void RemovePrice(int id)
-        {
-            Price price = Prices.Find(p => p.Id == id);
-            if(price != null)
-                RemovePrice(price);
-        }
         public void RemovePrice(Price price)
         {
             Prices.Remove(price);

@@ -1,4 +1,5 @@
-﻿using DAL.Data.Interfaces;
+﻿using DAL.Data.Exceptions;
+using DAL.Data.Interfaces;
 using System.ComponentModel.Design;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -21,41 +22,67 @@ namespace DAL.Data.DAO
         {
             this._productDAO = productDAO;
         }
-        public Task<int> Add(Avis t, string token)
+
+        public Task Delete(int id, int permissionLevel)
         {
             throw new NotImplementedException();
         }
 
-        public Task Delete(int id, string token)
+        //public async Task<Avis?> Get(int id, int permissionLevel)
+        //{
+        //    using (SqlConnection connection = new SqlConnection(ConnectionString))
+        //    {
+        //        await connection.OpenAsync();
+        //
+        //        using (SqlCommand command = new SqlCommand("SELECT * FROM Avis WHERE Id = @Id", connection))
+        //        {
+        //            command.Parameters.AddWithValue("@Id", id);
+        //
+        //            using (SqlDataReader reader = await command.ExecuteReaderAsync())
+        //            {
+        //                if (await reader.ReadAsync())
+        //                {
+        //                    Avis avis = new Avis(
+        //                        reader.GetDateTime(reader.GetOrdinal("ValidFrom")),
+        //                        reader.GetDateTime(reader.GetOrdinal("ValidTo")),
+        //                        reader.GetString(reader.GetOrdinal("ExternalId"))
+        //                    );
+        //
+        //                    avis.SetId(id);
+        //
+        //                    return avis;
+        //                }
+        //                else
+        //                {
+        //                    throw new NotFoundException("Avis not found");
+        //                }
+        //            }
+        //        }
+        //
+        public Task<List<Avis>> GetAll(int permissionLevel)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Avis> Get(int id, string token)
+        public Task Update(Avis avis, int permissionLevel)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<Avis>> GetAll(string token)
+        public async Task<int> Add(Avis avis, int companyId, int permissionLevel)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task Update(Avis avis, string token)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<int> Add(Avis avis, int companyId, string token)
-        {
+            if (await DoesAvisWithExternalIdExist(avis.ExternalId))
+            {
+                throw new AlreadyExistsException("Avis with external ID already exists");
+            }
+            else if(permissionLevel < 2) 
+            {
+                throw new InsufficientTokenPermission("Permission level too low");
+            }
+            
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
                 await connection.OpenAsync();
-
-                if(await DoesAvisWithExternalIdExist(avis.ExternalId))
-                {
-                    throw new AlreadyExistsException("Avis with external ID already exists");
-                }
 
                 using (SqlTransaction transaction = connection.BeginTransaction())
                 {
@@ -120,6 +147,11 @@ namespace DAL.Data.DAO
                     page.SetId(Convert.ToInt32(await command.ExecuteScalarAsync()));
                 }
             }
+        }
+
+        public Task Get(int id, int permissionLevel)
+        {
+            throw new NotImplementedException();
         }
     }
 }

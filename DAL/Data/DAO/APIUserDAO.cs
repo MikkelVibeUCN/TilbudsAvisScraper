@@ -1,4 +1,5 @@
-﻿using DAL.Data.Interfaces;
+﻿using DAL.Data.Exceptions;
+using DAL.Data.Interfaces;
 using Emgu.CV.Features2D;
 using System;
 using System.Collections.Generic;

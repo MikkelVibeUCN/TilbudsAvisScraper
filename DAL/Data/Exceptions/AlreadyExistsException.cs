@@ -1,5 +1,4 @@
-﻿
-namespace DAL.Data.DAO
+﻿namespace DAL.Data.Exceptions
 {
     [Serializable]
     public class AlreadyExistsException : Exception

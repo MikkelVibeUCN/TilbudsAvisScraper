@@ -1,20 +1,25 @@
 ﻿using ScraperLibrary.Interfaces;
+using System.Net.Http.Headers;
+using System.Reflection.Metadata.Ecma335;
+using System.Text.Json;
 using TilbudsAvisLibrary.Entities;
 
 namespace ScraperLibrary
 {
-    public class RemaProductScraper : Scraper, IProductScraper
+    public class RemaProductScraper : RemaProductAPI, IProductScraper
     {
+        private const string _remaProductPageUrl = "https://shop.rema1000.dk/avisvarer";
+
         public RemaProductScraper()
         {
 
         }
 
-        public async Task<List<Product>> GetAllProductsFromPage(string url)
+        public async Task<List<Product>> GetAllProductsFromPage()
         {
-            string result = await Scraper.CallUrl(url);
+            string result = await Scraper.CallUrl(_remaProductPageUrl);
             List<Product> products = [];
-            
+
             int currentIndex = 0;
             bool reachedEnd = false;
             while (!reachedEnd)
@@ -32,7 +37,7 @@ namespace ScraperLibrary
                     startIndex += startPattern.Length;
 
                     // Extract the product from the html
-                    Product product = CreateProductFromHtml(result, startIndex, endIndex);
+                    Product product = await CreateProduct(result, startIndex, endIndex);
 
                     products.Add(product);
                     Console.WriteLine(product.ToString());
@@ -46,26 +51,21 @@ namespace ScraperLibrary
             return products;
         }
 
-        private Product CreateProductFromHtml(string result, int startIndex, int endIndex)
+        private async Task<Product> CreateProduct(string result, int startIndex, int endIndex)
         {
             string productHtml = result.Substring(startIndex, endIndex - startIndex);
 
-            return new(GetNameOfProduct(productHtml),
+            int externalProductId = GetExternalProductId(productHtml);
+
+            var productJson = await GetProductJson(externalProductId);
+
+            return new Product(GetNameOfProduct(productJson),
                 GetProductUrlFromHtml(productHtml),
-                GetDescriptionOfProduct(productHtml),
-                GetExternalProductId(productHtml),
-                [new Price(GetPriceOfProduct<float>(productHtml))]
+                GetDescriptionOfProduct(productJson),
+                externalProductId,
+                GetPricesOfProduct(productJson),
+                GetNutritionalInfo(productJson)
                 );
-        }
-
-        private dynamic GetPriceOfProduct<T>(string productHtml)
-        {
-            return GetInformationFromHtml<T>(productHtml, "price-normal-discount\"", ">", "<");
-        }
-
-        private string GetNameOfProduct(string productHtml)
-        {
-            return GetInformationFromHtml<string>(productHtml, "class=\"title\"", ">", "<");
         }
 
         private string GetProductUrlFromHtml(string productHtml)
@@ -73,14 +73,10 @@ namespace ScraperLibrary
             try { return GetInformationFromHtml<string>(productHtml, "product-grid-image", "src=\"", "\""); } catch { return ""; }
         }
 
-        private string GetDescriptionOfProduct(string productHtml)
-        {
-            return GetInformationFromHtml<string>(productHtml, "extra", "\"\">", "<");
-        }
-
         private int GetExternalProductId(string productHtml)
         {
             try { return GetInformationFromHtml<int>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/"); } catch { return -1; }
         }
-    }
+
+    }  
 }

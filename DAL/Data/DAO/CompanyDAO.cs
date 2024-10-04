@@ -5,27 +5,27 @@ namespace DAL.Data.DAO
 {
     public class CompanyDAO : ICompanyDAO
     {
-        public Task Delete(int id)
+        public Task<int> Add(Company t, int permissionLevel)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Company> Get(int id)
+        public Task Delete(int id, int permissionLevel)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<Company>> GetAll()
+        public Task<Company?> Get(int id, int permissionLevel)
         {
             throw new NotImplementedException();
         }
 
-        public Task Update(Company company)
+        public Task<List<Company>> GetAll(int permissionLevel)
         {
             throw new NotImplementedException();
         }
 
-        public Task<int> Add(Company company)
+        public Task Update(Company t, int permissionLevel)
         {
             throw new NotImplementedException();
         }

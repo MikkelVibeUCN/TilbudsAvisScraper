@@ -4,42 +4,57 @@ using ScraperLibrary.Interfaces;
 using TilbudsAvisLibrary.Entities;
 using System.Collections;
 using System.Globalization;
+using System.Collections.Generic;
 
 namespace ScraperLibrary
 {
     public class RemaAvisScraper : Scraper, IAvisScraper
     {
-        private const string RemaImageFolder = "RemaImages";
+        private const string _remaAvisPageUrl = "https://rema1000.dk/avis";
+        private const string _remaImageFolder = "RemaImages";
+        private RemaProductScraper _productScraper = new RemaProductScraper();
         public RemaAvisScraper()
         {
-            Directory.CreateDirectory(RemaImageFolder);
+            Directory.CreateDirectory(_remaImageFolder);
+        }
+
+        public async Task<string> FindExternalAvisId(string url)
+        {
+            var response = await Scraper.CallUrl(url);
+
+            string rarePatternAssosiatedWithComingAvis = "grid grid-cols-2";
+            string avisPattern = "a href=\"/avis/";
+
+            if (response.Contains(rarePatternAssosiatedWithComingAvis))
+            {
+                int indexOfKommendeAvis = response.IndexOf(avisPattern);
+
+                response = response.Substring(indexOfKommendeAvis + 50);
+            }
+            string externalId = GetInformationFromHtml<string>(response, avisPattern, avisPattern, "\"" );   
+
+            return externalId;
         }
 
         public async Task<string> FindAvisUrl(string url)
         {
-            var response = await Scraper.CallUrl(url);
-
-            string searchString = "href=\"/avis/";
-            int startIndex = response.IndexOf(searchString) + searchString.Length;
-            int endIndex = response.IndexOf("\"", startIndex);
-
-            string substring = response.Substring(startIndex, endIndex - startIndex);
-
-            return url + "/" + substring + "/1";
+            return url + "/" + await FindExternalAvisId(url) + "/1";
         }
 
-        public async Task<Avis> GetAvis(string input)
+        public async Task<Avis> GetAvis()
         {
-            string avisUrl = await FindAvisUrl(input);
+            string avisUrl = await FindAvisUrl(_remaAvisPageUrl);
 
-            string searchString = "avis";
-            string endSearchKey = "/";
+            string externalId = await FindExternalAvisId(avisUrl);
 
-            string externalId = GetInformationFromHtml<string>(avisUrl, searchString, endSearchKey, endSearchKey);
+            var getDatesTask = Task.Run(() => GetAvisDates("https://rema1000.dk/avis", externalId));
+            //var getPagesTask = Task.Run(() => GetPagesFromUrl(avisUrl));
+            var getProductsTask = Task.Run(() => _productScraper.GetAllProductsFromPage());
 
-            List<Page> pages = await GetPagesFromUrl(avisUrl);
+            await Task.WhenAll(getDatesTask, getProductsTask);
 
-            return new Avis(externalId, DateTime.MinValue, DateTime.MinValue, pages);
+            return new Avis(externalId, getDatesTask.Result.Item1, getDatesTask.Result.Item2, new List<Page>(), getProductsTask.Result);
+        
         }
 
         public string GetImageUrl(string input, int pageNumber)
@@ -125,7 +140,7 @@ namespace ScraperLibrary
         private void SaveImage(string nextPageUrl, string imageUrl, int i)
         {
             string imageName = $"image{i}.jpg";
-            string imagePath = Path.Combine(RemaImageFolder, imageName);
+            string imagePath = Path.Combine(_remaImageFolder, imageName);
         
             ImageDownloader.DownloadImage(imageUrl, imagePath);
 
@@ -147,7 +162,7 @@ namespace ScraperLibrary
             return lastPage;
         }
 
-        public async Task<(DateTime, DateTime)> GetAvisDates(string url, string inputExternalAvisId)
+        private async Task<(DateTime, DateTime)> GetAvisDates(string url, string inputExternalAvisId)
         {
             IFormatProvider danishDateFormat = new CultureInfo("da-DK");
             IFormatProvider americanDateFormat = new CultureInfo("en-US");
@@ -173,11 +188,13 @@ namespace ScraperLibrary
                     string dates = GetInformationFromHtml<string>(cutDownHtml, searchString, searchKey, endSearchKey);
 
                     string[] dateParts = dates.Split(" - ");
-                    foreach (string datePart in dateParts)
-                    {
-                        Console.WriteLine(datePart);
-                    }
-                    return (ConvertStringToDate(dateParts[0], danishDateFormat, americanDateFormat), ConvertStringToDate(dateParts[1], danishDateFormat, americanDateFormat));
+
+                    DateTime startDate = ConvertStringToDate(dateParts[0], danishDateFormat, americanDateFormat);
+                    DateTime endDate = ConvertStringToDate(dateParts[1], danishDateFormat, americanDateFormat);
+
+                    startDate = startDate.AddSeconds(1);
+                    endDate = endDate.AddDays(1).AddSeconds(-1);
+                    return (startDate, endDate);
                 }
                 else
                 {
