@@ -2,15 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace TilbudsAvisLibrary.Entities
 {
     public class NutritionInfo
     {
-        private float ConversionRate = 0.239006f;
+        private const float ConversionRate = 0.239006f;
 
         public float EnergyKJ { get; set; }
+        [JsonIgnore]
         public float EnergyKcal
         {
             get { return EnergyKJ * ConversionRate; }

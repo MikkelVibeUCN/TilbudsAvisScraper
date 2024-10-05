@@ -1,4 +1,5 @@
 ﻿using ScraperLibrary.Interfaces;
+using System.Diagnostics.Contracts;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
@@ -39,8 +40,16 @@ namespace ScraperLibrary
                     // Extract the product from the html
                     Product product = await CreateProduct(result, startIndex, endIndex);
 
-                    products.Add(product);
-                    Console.WriteLine(product.ToString());
+                    if(product == null)
+                    {
+                        Console.WriteLine("Failed to create product");
+                    }
+                    else
+                    {
+                        products.Add(product);
+                        Console.WriteLine(product.ToString());
+                    }
+                    
                     currentIndex = endIndex + endPattern.Length;
                 }
                 else
@@ -57,15 +66,33 @@ namespace ScraperLibrary
 
             int externalProductId = GetExternalProductId(productHtml);
 
-            var productJson = await GetProductJson(externalProductId);
+            int retryCount = 0;
+            while (retryCount < 5)
+            {
+                try
+                {
+                    var productJson = await GetProductJson(externalProductId);
 
-            return new Product(GetNameOfProduct(productJson),
-                GetProductUrlFromHtml(productHtml),
-                GetDescriptionOfProduct(productJson),
-                externalProductId,
-                GetPricesOfProduct(productJson),
-                GetNutritionalInfo(productJson)
-                );
+                    return new Product(GetPricesOfProduct(productJson),
+                        null,
+                        GetNameOfProduct(productJson),
+                        GetProductUrlFromHtml(productHtml),
+                        GetDescriptionOfProduct(productJson),
+                        externalProductId,
+                        GetNutritionalInfo(productJson)
+                        );
+                }
+                catch(Exception e)
+                {
+                    retryCount++;
+                    Console.WriteLine("Failed");
+                    await Task.Delay(7500);
+                    Console.WriteLine("Retrying");
+                }
+            }
+            Console.WriteLine("Gave up too many attempts");
+            return null;
+            
         }
 
         private string GetProductUrlFromHtml(string productHtml)

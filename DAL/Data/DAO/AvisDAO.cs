@@ -73,7 +73,7 @@ namespace DAL.Data.DAO
         {
             if (await DoesAvisWithExternalIdExist(avis.ExternalId))
             {
-                throw new AlreadyExistsException("Avis with external ID already exists");
+                throw new DALException("Avis with external ID already exists");
             }
             else if(permissionLevel < 2) 
             {
@@ -153,5 +153,6 @@ namespace DAL.Data.DAO
         {
             throw new NotImplementedException();
         }
+
     }
 }

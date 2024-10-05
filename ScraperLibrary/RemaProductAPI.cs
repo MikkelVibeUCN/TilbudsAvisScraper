@@ -21,6 +21,11 @@ namespace ScraperLibrary
             {
                 string name = item.GetProperty("name").GetString();
                 string value = item.GetProperty("value").GetString().Trim().Replace(",", ".");
+                if (value.StartsWith('<'))
+                {
+                    value = value.Substring(2);
+                }
+                value = value.Replace("Ca. ", ""); // Remove "Ca." from the value string  
 
                 switch (name)
                 {
@@ -50,6 +55,10 @@ namespace ScraperLibrary
                         break;
                 }
             }
+            if (energyKJ == 0f && fat == 0f && saturatedFat == 0f && carbohydrates == 0f && sugars == 0f && fiber == 0f && salt == 0f)
+            {
+                return null;
+            }
             return new NutritionInfo(energyKJ, fat, carbohydrates, sugars, fiber, protein, salt);
         }
 
@@ -74,12 +83,12 @@ namespace ScraperLibrary
 
             foreach (var priceItem in priceArray)
             {
-                priceValue = priceItem.GetProperty("price").GetSingle(); 
-                compareUnitPrice = priceItem.GetProperty("compare_unit_price").GetString(); 
+                priceValue = priceItem.GetProperty("price").GetSingle();
+                compareUnitPrice = priceItem.GetProperty("compare_unit").GetString();
 
-                bool basePrice = !priceItem.GetProperty("is_advertised").GetBoolean(); 
+                bool basePrice = !priceItem.GetProperty("is_advertised").GetBoolean();
 
-                if(basePrice)
+                if (basePrice)
                 {
                     prices.Add(new Price(priceValue, "base", compareUnitPrice));
                 }
@@ -91,19 +100,20 @@ namespace ScraperLibrary
             return prices;
         }
 
-        public async Task<dynamic?> GetProductJson(int externalId)
+        public async Task<dynamic> GetProductJson(int externalId)
         {
-            client.BaseAddress = new Uri("https://cphapp.rema1000.dk/api/v3/products/");
+            await Task.Delay(new Random().Next(200, 300));
+
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            HttpResponseMessage response = await client.GetAsync(externalId + "?include=declaration,nutrition_info,declaration,warnings");
+            
+            HttpResponseMessage response = await client.GetAsync("https://cphapp.rema1000.dk/api/v3/products/" + externalId + "?include=declaration,nutrition_info,declaration,warnings");
 
             if (response.IsSuccessStatusCode)
             {
                 return await JsonSerializer.DeserializeAsync<dynamic>(await response.Content.ReadAsStreamAsync());
             }
-            return null;
+            throw new Exception("Failed to get product json");
         }
     }
 }

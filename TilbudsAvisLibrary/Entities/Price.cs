@@ -9,30 +9,32 @@ namespace TilbudsAvisLibrary.Entities
 {
     public class Price
     {
-        public int _id { get; private set; }
-        public float _priceValue { get; set; }
-        public string _externalAvisId { get; set; }
-        public string _compareUnitPrice { get; set; }
-        
+        public int Id { get; private set; } 
+        public float PriceValue { get; set; }
+        public string ExternalAvisId { get; set; } 
+        public string CompareUnitPrice { get; set; }
+
         [JsonConstructor]
-        public Price(float priceValue)
+        public Price(int id, float priceValue, string externalAvisId, string compareUnitPrice)
         {
-            this._priceValue = priceValue;
-        }
-        public Price(float priceValue, string compareUnitPrice)
-        {
-            this._priceValue = priceValue;
-            this._compareUnitPrice = compareUnitPrice;
+            this.PriceValue = priceValue;
+            this.Id = id;
+            this.ExternalAvisId = externalAvisId;
+            this.CompareUnitPrice = compareUnitPrice;
         }
         // Base price generation
         public Price(float priceValue, string externalAvisId, string compareUnitPrice)
         {
-            _priceValue = priceValue;
-            _externalAvisId = externalAvisId;
-            _compareUnitPrice = compareUnitPrice;
+            PriceValue = priceValue;
+            ExternalAvisId = externalAvisId;
+            CompareUnitPrice = compareUnitPrice;
         }
-
-        public void SetId(int id) => _id = id;
+        public Price(float priceValue, string compareUnitPrice)
+        { 
+            this.PriceValue = priceValue;
+            this.CompareUnitPrice = compareUnitPrice;
+        }
+        public void SetId(int id) => Id = id;
 
 
     }

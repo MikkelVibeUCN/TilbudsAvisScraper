@@ -48,3 +48,18 @@ CREATE TABLE APIUser (
 	Token char(66) not null
 )
 
+CREATE TABLE NutritionInfo (
+    productId INT PRIMARY KEY,
+
+    EnergyKJ FLOAT NOT NULL,        
+    FatPer100G FLOAT NULL,           
+    SaturatedFatPer100G FLOAT NULL,  
+    CarbohydratesPer100G FLOAT NULL, 
+    SugarsPer100G FLOAT NULL,         
+    FiberPer100G FLOAT NULL,          
+    ProteinPer100G FLOAT NULL,        
+    SaltPer100G FLOAT NULL,           
+
+	CONSTRAINT FK_Product_Nutrition FOREIGN KEY (productId) REFERENCES Product(Id)
+);
+
