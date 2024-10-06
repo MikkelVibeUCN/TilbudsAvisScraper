@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Dynamic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
@@ -11,7 +13,7 @@ namespace ScraperLibrary
 {
     public abstract class RemaProductAPI : Scraper
     {
-        public NutritionInfo GetNutritionalInfo(dynamic jsonResponse)
+        public NutritionInfo? GetNutritionalInfo(dynamic jsonResponse)
         {
             float energyKJ = 0, fat = 0, saturatedFat = 0, carbohydrates = 0, sugars = 0, fiber = 0, protein = 0, salt = 0;
 
@@ -21,7 +23,7 @@ namespace ScraperLibrary
             {
                 string name = item.GetProperty("name").GetString();
                 string value = item.GetProperty("value").GetString().Trim().Replace(",", ".");
-                if (value.StartsWith('<'))
+                if (value.StartsWith('<') || value.StartsWith('>'))
                 {
                     value = value.Substring(2);
                 }
@@ -62,6 +64,48 @@ namespace ScraperLibrary
             return new NutritionInfo(energyKJ, fat, carbohydrates, sugars, fiber, protein, salt);
         }
 
+        public float GetAmountInProduct(dynamic jsonResponse, List<Price> pricesAssosiated)
+        {
+            string data = jsonResponse.GetProperty("data").GetProperty("underline");
+
+            var firstPart = data.Split('/')[0].Replace(" ", string.Empty);
+
+            string[] units = { "GR.", "STK.", "KG.", "ML.", "CL.", "L." };
+            string unitOfMeasurement = "";
+
+            foreach (string unit in units)
+            {
+                if (firstPart.Contains(unit))
+                {
+                    unitOfMeasurement = unit;
+                }
+                firstPart = firstPart.Replace(unit, string.Empty);
+            }
+
+            foreach (Price price in pricesAssosiated)
+            {
+                // Get the unit of measurement from the price
+                // Convert the possible units to the format from the price
+                // Calculate the UnitPrice
+                string comparableUnitString = price.CompareUnitString;
+                switch(comparableUnitString)
+                {
+                    case ""
+                }
+            }
+
+
+
+            if (float.TryParse(firstPart, out float result))
+            {
+                return result;
+            }
+            else
+            {
+                throw new Exception("Failed to parse float from underline string");
+            }
+        }
+
         public string GetNameOfProduct(dynamic jsonResponse)
         {
             return jsonResponse.GetProperty("data").GetProperty("name").GetString();
@@ -77,24 +121,24 @@ namespace ScraperLibrary
             List<Price> prices = new List<Price>();
 
             float priceValue = 0;
-            string compareUnitPrice = "";
+            string compareUnitString = "";
 
             var priceArray = jsonResponse.GetProperty("data").GetProperty("prices").EnumerateArray();
 
             foreach (var priceItem in priceArray)
             {
                 priceValue = priceItem.GetProperty("price").GetSingle();
-                compareUnitPrice = priceItem.GetProperty("compare_unit").GetString();
+                compareUnitString = priceItem.GetProperty("compare_unit").GetString();
 
                 bool basePrice = !priceItem.GetProperty("is_advertised").GetBoolean();
 
                 if (basePrice)
                 {
-                    prices.Add(new Price(priceValue, "base", compareUnitPrice));
+                    prices.Add(new Price(priceValue, "base", compareUnitString));
                 }
                 else
                 {
-                    prices.Add(new Price(priceValue, compareUnitPrice));
+                    prices.Add(new Price(priceValue, compareUnitString));
                 }
             }
             return prices;

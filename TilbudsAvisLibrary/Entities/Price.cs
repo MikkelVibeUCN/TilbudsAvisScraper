@@ -12,27 +12,28 @@ namespace TilbudsAvisLibrary.Entities
         public int Id { get; private set; } 
         public float PriceValue { get; set; }
         public string ExternalAvisId { get; set; } 
-        public string CompareUnitPrice { get; set; }
+        public float UnitPrice { get; set; }
+        public string CompareUnitString { get; set; }
 
         [JsonConstructor]
-        public Price(int id, float priceValue, string externalAvisId, string compareUnitPrice)
+        public Price(int id, float priceValue, string externalAvisId,string compareUnitString)
         {
             this.PriceValue = priceValue;
             this.Id = id;
             this.ExternalAvisId = externalAvisId;
-            this.CompareUnitPrice = compareUnitPrice;
+            this.CompareUnitString = compareUnitString;
         }
         // Base price generation
-        public Price(float priceValue, string externalAvisId, string compareUnitPrice)
+        public Price(float priceValue, string externalAvisId, string compareUnitString)
         {
             PriceValue = priceValue;
             ExternalAvisId = externalAvisId;
-            CompareUnitPrice = compareUnitPrice;
+            CompareUnitString = compareUnitString;
         }
-        public Price(float priceValue, string compareUnitPrice)
+        public Price(float priceValue, string compareUnitString)
         { 
             this.PriceValue = priceValue;
-            this.CompareUnitPrice = compareUnitPrice;
+            this.CompareUnitString = compareUnitString;
         }
         public void SetId(int id) => Id = id;
 

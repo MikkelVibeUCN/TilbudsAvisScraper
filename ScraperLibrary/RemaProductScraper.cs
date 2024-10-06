@@ -79,7 +79,8 @@ namespace ScraperLibrary
                         GetProductUrlFromHtml(productHtml),
                         GetDescriptionOfProduct(productJson),
                         externalProductId,
-                        GetNutritionalInfo(productJson)
+                        GetNutritionalInfo(productJson),
+                        GetAmountInProduct(productJson)
                         );
                 }
                 catch(Exception e)

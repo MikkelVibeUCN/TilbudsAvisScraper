@@ -12,45 +12,47 @@ namespace ScraperConsole
         {
             using (HttpClient client = new())
             {
-                Avis avis;
+                Avis avis = await new RemaAvisScraper().GetAvis();
+
+                await new AvisDAO(new ProductDAO()).Add(avis, 1, 3);
 
                 // Check if the JSON file exists
-                if (File.Exists("avis.json"))
-                {
-                    // Read the JSON file
-                    string json = File.ReadAllText("avis.json");
-
-                    var options = new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                        IncludeFields = false
-                    };
-
-                    // Deserialize the JSON to avis object
-                    avis = JsonSerializer.Deserialize<Avis>(json, options);
-                }
-                else
-                {
-                    // Fetch the avis from the scraper
-                    avis = await new RemaAvisScraper().GetAvis();
-
-                    string writeJson = JsonSerializer.Serialize(avis);
-
-                    // Save JSON to file
-                    File.WriteAllText("avis.json", writeJson);
-                }
-
-                while (true)
-                {
-                    try
-                    {
-                        await new AvisDAO(new ProductDAO()).Add(avis, 1, 3);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                }
+                //if (File.Exists("avis.json"))
+                //{
+                //    // Read the JSON file
+                //    string json = File.ReadAllText("avis.json");
+                //
+                //    var options = new JsonSerializerOptions
+                //    {
+                //        PropertyNameCaseInsensitive = true,
+                //        IncludeFields = false
+                //    };
+                //
+                //    // Deserialize the JSON to avis object
+                //    avis = JsonSerializer.Deserialize<Avis>(json, options);
+                //}
+                //else
+                //{
+                //    // Fetch the avis from the scraper
+                //    avis = await new RemaAvisScraper().GetAvis();
+                //
+                //    string writeJson = JsonSerializer.Serialize(avis);
+                //
+                //    // Save JSON to file
+                //    File.WriteAllText("avis.json", writeJson);
+                //}
+                //
+                //while (true)
+                //{
+                //    try
+                //    {
+                //        await new AvisDAO(new ProductDAO()).Add(avis, 1, 3);
+                //    }
+                //    catch (Exception e)
+                //    {
+                //        Console.WriteLine(e);
+                //    }
+                //}
             }
         }
     }
