@@ -25,7 +25,7 @@ namespace DAL.Data.DAO
             throw new NotImplementedException();
         }
 
-        public Task Update(Company t, int permissionLevel)
+        public Task<bool> Update(Company t, int permissionLevel)
         {
             throw new NotImplementedException();
         }

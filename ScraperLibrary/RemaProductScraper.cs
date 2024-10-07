@@ -72,15 +72,16 @@ namespace ScraperLibrary
                 try
                 {
                     var productJson = await GetProductJson(externalProductId);
+                    List<Price> prices = GetPricesOfProduct(productJson);
 
-                    return new Product(GetPricesOfProduct(productJson),
+                    return new Product(prices,
                         null,
                         GetNameOfProduct(productJson),
                         GetProductUrlFromHtml(productHtml),
                         GetDescriptionOfProduct(productJson),
                         externalProductId,
                         GetNutritionalInfo(productJson),
-                        GetAmountInProduct(productJson)
+                        GetAmountInProduct(productJson, prices)
                         );
                 }
                 catch(Exception e)

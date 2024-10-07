@@ -5,7 +5,7 @@
         Task<T?> Get(int id, int permissionLevel);
         Task<List<T>> GetAll(int permissionLevel);
         Task<int> Add(T t, int permissionLevel);
-        Task Update(T t, int permissionLevel);
+        Task<bool> Update(T t, int permissionLevel);
         Task Delete(int id, int permissionLevel);
     }
 }

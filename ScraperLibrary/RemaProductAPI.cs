@@ -64,14 +64,13 @@ namespace ScraperLibrary
             return new NutritionInfo(energyKJ, fat, carbohydrates, sugars, fiber, protein, salt);
         }
 
-        public float GetAmountInProduct(dynamic jsonResponse, List<Price> pricesAssosiated)
+        public float GetAmountInProduct(string description, List<Price> pricesAssosiated)
         {
-            string data = jsonResponse.GetProperty("data").GetProperty("underline");
+            var firstPart = description.Split('/')[0].Replace(" ", string.Empty);
 
-            var firstPart = data.Split('/')[0].Replace(" ", string.Empty);
-
-            string[] units = { "GR.", "STK.", "KG.", "ML.", "CL.", "L." };
+            string[] units = { "GR.", "STK.", "KG.", "ML.", "CL.", "LTR." };
             string unitOfMeasurement = "";
+
 
             foreach (string unit in units)
             {
@@ -79,8 +78,10 @@ namespace ScraperLibrary
                 {
                     unitOfMeasurement = unit;
                 }
-                firstPart = firstPart.Replace(unit, string.Empty);
+                firstPart = firstPart.Replace(unit, "");
+
             }
+            float amount = (float)Math.Round(float.Parse(firstPart), 3);
 
             foreach (Price price in pricesAssosiated)
             {
@@ -90,7 +91,26 @@ namespace ScraperLibrary
                 string comparableUnitString = price.CompareUnitString;
                 switch(comparableUnitString)
                 {
-                    case ""
+                    case "kg":
+                        if (unitOfMeasurement.Equals(units[0]))
+                        {
+                            return amount / 1000;
+                        }
+                        return amount;
+                    case "ltr":
+                        if (unitOfMeasurement.Equals(units[3]))
+                        {
+                            return amount / 1000;
+                        }
+                        else if (unitOfMeasurement.Equals(units[4]))
+                        {
+                            return amount / 100;
+                        }
+                        return amount;
+                    case "stk":
+                        return amount;
+                    default:
+                        throw new Exception($"Unit of measurement {comparableUnitString} is not supported in GetAmountInProduct");
                 }
             }
 

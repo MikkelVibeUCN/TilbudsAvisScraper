@@ -79,7 +79,7 @@ namespace DAL.Data.DAO
             throw new NotImplementedException();
         }
 
-        public Task Update(APIUser t, int permissionLevel)
+        public Task<bool> Update(APIUser t, int permissionLevel)
         {
             throw new NotImplementedException();
         }

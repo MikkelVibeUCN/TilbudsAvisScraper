@@ -12,9 +12,9 @@ namespace ScraperConsole
         {
             using (HttpClient client = new())
             {
-                Avis avis = await new RemaAvisScraper().GetAvis();
+                //Avis avis = await new RemaAvisScraper().GetAvis();
 
-                await new AvisDAO(new ProductDAO()).Add(avis, 1, 3);
+                //await new AvisDAO(new ProductDAO()).Add(avis, 1, 3);
 
                 // Check if the JSON file exists
                 //if (File.Exists("avis.json"))
@@ -53,6 +53,19 @@ namespace ScraperConsole
                 //        Console.WriteLine(e);
                 //    }
                 //}
+
+
+                ProductDAO productDAO = new();
+                RemaProductScraper scraper = new();
+                Console.WriteLine("get products");
+                List<Product> products = await productDAO.GetAll(3);
+                Console.WriteLine("got products");
+                Console.WriteLine("Updating products");
+                foreach (Product product in products)
+                {
+                    product.Amount = scraper.GetAmountInProduct(product.Description, product.Prices);
+                    await productDAO.Update(product, 3);
+                }
             }
         }
     }
