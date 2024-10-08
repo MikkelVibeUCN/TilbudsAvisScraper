@@ -13,7 +13,7 @@ namespace TIlbudsAvisScraperAPI.Properties
 
             builder.Services.AddControllers();
 
-            builder.Services.AddScoped<IAvisDAO>(provider => new AvisDAO(new ProductDAO()));
+            builder.Services.AddScoped<IAvisDAO>(provider => new AvisDAO(new ProductDAO(new NutritionInfoDAO(), new PriceDAO())));
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

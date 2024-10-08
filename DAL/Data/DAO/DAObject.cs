@@ -12,7 +12,7 @@ namespace DAL.Data.DAO
     public abstract class DAObject
     {
         protected string ConnectionString;
-        private readonly int maxBatchSize = 200;
+        private readonly int maxBatchSize = 100;
 
         public DAObject()
         {
@@ -49,7 +49,5 @@ namespace DAL.Data.DAO
             }
             return result;
         }
-
-        
     }
 }

@@ -12,50 +12,63 @@ namespace TestNUnit.DALTests.Tests
         string avisBaseExternalId = "testBase";
 
         IProductDAO _productDAO;
-
         IAvisDAO _avisDAO;
 
-        Avis baseAvis;
-        Avis avis;
+        int baseAvisId;
+        int avisId;
 
         [OneTimeSetUp]
-        public void Setup()
+        public async Task Setup()
         {
-            _productDAO = new ProductDAO();
-            _avisDAO = new AvisDAO(_productDAO);
-
-            for (int i = 0; i < productAmount; i++)
+            try
             {
-                List<Price> pricesInProduct = new();
-                for (int j = 0; j < 5; j++)
-                {
-                    string compareUnitString = "kg";
-                    if(i < productAmount/2)
-                    {
-                        compareUnitString = "stk";
-                    }
-                    Price price;
-                    if (j == 0)
-                    {
-                        price = new Price(i, avisBaseExternalId, compareUnitString);
-                    }
-                    else
-                    {
-                        price = new Price(i, avisExternalId, compareUnitString);
-                    }
-                    pricesInProduct.Add(price);
-                }
+                _productDAO = new ProductDAO(new NutritionInfoDAO(), new PriceDAO());
+                _avisDAO = new AvisDAO(_productDAO);
 
-                NutritionInfo? nutritionInfo = null;
-                if (i < productAmount / 2)
+                for (int i = 0; i < productAmount; i++)
                 {
-                    nutritionInfo = new(100, 20, 20, 20, 20, 20, 20);
+                    List<Price> pricesInProduct = new();
+                    for (int j = 0; j < 2; j++)
+                    {
+                        string compareUnitString = "kg";
+                        if (i < productAmount / 2)
+                        {
+                            compareUnitString = "stk";
+                        }
+                        Price price;
+                        if (j == 0)
+                        {
+                            price = new Price(i, avisBaseExternalId, compareUnitString);
+                        }
+                        else
+                        {
+                            price = new Price(i, avisExternalId, compareUnitString);
+                        }
+                        pricesInProduct.Add(price);
+                    }
+
+                    NutritionInfo? nutritionInfo = null;
+                    if (i < productAmount / 2)
+                    {
+                        nutritionInfo = new(100, 20, 20, 20, 20, 20, 20);
+                    }
+                    Product product = new Product(pricesInProduct, null, "Cool name", "url", "cool product", -i - 10, nutritionInfo, 5);
+                    productsTestList.Add(product);
                 }
-                Product product = new Product(pricesInProduct, null, "Cool name", "url", "cool product", -i-10, nutritionInfo, 5);
-                productsTestList.Add(product);
+                Avis baseAvis = new(avisBaseExternalId, DateTime.Now, DateTime.Now, new());
+                Avis avis = new(avisExternalId, DateTime.Now, DateTime.Now, new());
+
+                baseAvisId = await _avisDAO.Add(baseAvis, 1, 3);
+                avisId = await _avisDAO.Add(avis, 1, 3);
+
+                baseAvis.SetId(baseAvisId);
+                avis.SetId(avisId);
             }
-            baseAvis = new(avisBaseExternalId, DateTime.Now, DateTime.Now, new());
-            avis = new(avisExternalId, DateTime.Now, DateTime.Now, new());
+            catch
+            {
+                Assert.Fail("Setup failed");
+            }
+            
         }
 
         [Test]
@@ -63,11 +76,6 @@ namespace TestNUnit.DALTests.Tests
         {
             try
             {
-                int baseAvisId = await _avisDAO.Add(baseAvis, 1, 3);
-                int avisId = await _avisDAO.Add(avis, 1, 3);
-                baseAvis.SetId(baseAvisId);
-                avis.SetId(avisId);
-                
                 List<Product> productsWithIds = await _productDAO.AddProducts(productsTestList, baseAvisId, avisId, avisBaseExternalId);
 
                 foreach (var product in productsWithIds)
@@ -77,7 +85,6 @@ namespace TestNUnit.DALTests.Tests
                         Assert.Fail("Product ID is null");
                     }
                 }
-
             }
             catch (Exception e)
             {
@@ -85,13 +92,40 @@ namespace TestNUnit.DALTests.Tests
             }
         }
 
+        [Test]
+        public async Task AddingSingleProductTest()
+        {
+            int productId = 0;
+            try
+            {
+                List<Price> prices = new List<Price>();
+                prices.Add(new Price(20, "testBase", "kg"));
+                prices.Add(new Price(30, "abcdef", "kg"));
+
+                Product product = new(prices, null, "swag", "url", "sej produkt", -5000, new NutritionInfo(20, 20, 20, 20, 20, 20, 20), null);
+                productId = await _productDAO.Add(product, 3, baseAvisId, avisId, avisBaseExternalId);
+            }
+            catch (Exception e)
+            {
+                Assert.Fail(e.ToString());
+            }
+            Assert.That(productId != 0);
+        }
+
         [OneTimeTearDown]
         public async Task TearDown()
         {
-            await _avisDAO.Delete(baseAvis.Id, 3);
-            await _avisDAO.Delete(avis.Id, 3);
+            try
+            {
+                await _productDAO.DeleteNegativeExternalIds();
 
-            await _productDAO.DeleteNegativeExternalIds();
+                await _avisDAO.Delete(baseAvisId, 3);
+                await _avisDAO.Delete(avisId, 3);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }

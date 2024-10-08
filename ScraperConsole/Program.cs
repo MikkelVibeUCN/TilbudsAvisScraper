@@ -1,4 +1,5 @@
 ﻿using DAL.Data.DAO;
+using DAL.Data.Interfaces;
 using Newtonsoft.Json.Linq;
 using ScraperLibrary;
 using System.Net.Http.Headers;
@@ -55,7 +56,7 @@ namespace ScraperConsole
                 //}
 
 
-                ProductDAO productDAO = new();
+                ProductDAO productDAO = new(new NutritionInfoDAO(), new PriceDAO());
                 RemaProductScraper scraper = new();
                 Console.WriteLine("get products");
                 List<Product> products = await productDAO.GetAll(3);

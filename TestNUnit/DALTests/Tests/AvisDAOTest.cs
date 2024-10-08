@@ -12,7 +12,7 @@ namespace TestNUnit.DALTests.Tests
 {
     public class AvisDAOTest
     {
-        IAvisDAO _avisDAO = new AvisDAO(new ProductDAO());
+        IAvisDAO _avisDAO = new AvisDAO(new ProductDAO(new NutritionInfoDAO(), new PriceDAO()));
 
         //[Test]
         //public async Task AddingAvisToDBTest()
