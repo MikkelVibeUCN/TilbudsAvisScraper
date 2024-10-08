@@ -18,5 +18,9 @@ namespace DAL.Data.DAO
 
             ConnectionString = File.ReadAllText(filePath);
         }
+        protected string GetAllFromTableQuery(string tableName, string identifer)
+        {
+            return $"SELECT * FROM {tableName} where {identifer} = @{identifer};";
+        }
     }
 }

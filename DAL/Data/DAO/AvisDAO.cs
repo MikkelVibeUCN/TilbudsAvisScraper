@@ -9,6 +9,10 @@ namespace DAL.Data.DAO
 {
     public class AvisDAO : DAObject, IAvisDAO
     {
+        private Dictionary<string, int> CachedExtIdToAvisIdRequests = new();
+
+        private readonly string BaseAvisExternalId = "base";
+
         private IProductDAO _productDAO;
 
         private const string avisQuery = @"
@@ -59,7 +63,36 @@ namespace DAL.Data.DAO
         //            }
         //        }
         //
-        public Task<List<Avis>> GetAll(int permissionLevel)
+
+        private async Task<int> GetIdOfAvisFromExternalId(string externalId)
+        {
+            if (CachedExtIdToAvisIdRequests.ContainsKey(externalId))
+            {
+                return CachedExtIdToAvisIdRequests[externalId];
+            }
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand("Select Id from avis with (NOLOCK) where ExternalId = @ExternalId", connection))
+                {
+                    command.Parameters.AddWithValue("@ExternalId", externalId);
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        await reader.ReadAsync();
+                        if (reader.HasRows)
+                        {
+                            int id = reader.GetInt32(reader.GetOrdinal("Id"));
+                            CachedExtIdToAvisIdRequests.Add(externalId, id);
+                            return id;
+                        }
+                        else { return -1; }
+                    }
+                }
+            }
+        }
+    
+    public Task<List<Avis>> GetAll(int permissionLevel)
         {
             throw new NotImplementedException();
         }
@@ -101,7 +134,9 @@ namespace DAL.Data.DAO
 
                             avis.SetId(generatedId);
 
-                            await _productDAO.AddProducts(avis.Products, avis, transaction, connection);
+                            int baseAvisId = await GetIdOfAvisFromExternalId(BaseAvisExternalId);
+
+                            await _productDAO.AddProductsInBatch(avis.Products, avis, connection,transaction, baseAvisId);
 
                             transaction.Commit();
 
@@ -112,6 +147,26 @@ namespace DAL.Data.DAO
                     {
                         transaction.Rollback();
                         throw ex;
+                    }
+                }
+            }
+        }
+        private async Task<string> GetAvisExternalIdFromId(int id)
+        {
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand("select ExternalId from avis where Id = @Id", connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            return reader.GetString(reader.GetOrdinal("ExternalId"));
+                        }
+                        throw new Exception("Avis not found");
                     }
                 }
             }
@@ -148,11 +203,9 @@ namespace DAL.Data.DAO
                 }
             }
         }
-
         public Task Get(int id, int permissionLevel)
         {
             throw new NotImplementedException();
         }
-
     }
 }
