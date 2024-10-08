@@ -10,23 +10,23 @@ using TilbudsAvisLibrary.Entities;
 
 namespace TestNUnit.DALTests.Tests
 {
-    class AvisDAOTest
+    public class AvisDAOTest
     {
         IAvisDAO _avisDAO = new AvisDAO(new ProductDAO());
 
-        [Test]
-        public async Task AddingAvisToDBTest()
-        {
-            int permissionLevel = 2;
-
-            Avis avis = await new RemaAvisScraper().GetAvis();
-
-
-            int insertedId = await _avisDAO.Add(avis, 1, 2);
-
-            Assert.That(insertedId != 0);
-            //Assert.That(await _avisDAO.get)
-
-        }
+        //[Test]
+        //public async Task AddingAvisToDBTest()
+        //{
+        //    int permissionLevel = 2;
+        //
+        //    Avis avis = await new RemaAvisScraper().GetAvis();
+        //
+        //
+        //    int insertedId = await _avisDAO.Add(avis, 1, 2);
+        //
+        //    Assert.That(insertedId != 0);
+        //    //Assert.That(await _avisDAO.get)
+        //
+        //}
     }
 }

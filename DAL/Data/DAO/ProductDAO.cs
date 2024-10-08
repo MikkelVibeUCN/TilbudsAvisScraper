@@ -253,7 +253,7 @@ namespace DAL.Data.DAO
             throw new NotImplementedException();
         }
 
-        public async Task<List<Product>> AddProductsInBatch(List<Product> products, Avis avis, SqlConnection connection, SqlTransaction transaction, int baseAvisId)
+        public async Task<List<Product>> AddProductsInBatch(List<Product> products, SqlConnection connection, SqlTransaction transaction, int baseAvisId, int avisId)
         {
             List<Product> addedProducts = new();
             List<string> rows = new();
@@ -305,10 +305,25 @@ namespace DAL.Data.DAO
                     }
                 }
             }
-            await InsertPricesInBatch(avis, addedProducts, connection, transaction, baseAvisId);
 
             return addedProducts;
         }
+
+        public async Task<List<Product>> AddProductsInBatch(List<Product> products, int baseAvisId, int avisId)
+        {
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlTransaction transaction = connection.BeginTransaction())
+                {
+                    List<Product> addedProducts = await AddProductsInBatch(products, connection, transaction, baseAvisId, avisId);
+                    transaction.Commit();
+                    return addedProducts;
+                }
+            }
+        }
+
 
         private async Task InsertPricesInBatch(Avis avis, List<Product> products, SqlConnection connection, SqlTransaction transaction, int baseAvisId)
         {

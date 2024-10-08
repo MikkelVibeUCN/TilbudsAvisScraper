@@ -8,6 +8,7 @@ namespace DAL.Data.Interfaces
     {
         Task<List<Product>> AddProducts(IEnumerable<Product> products, Avis avis, SqlTransaction transaction, SqlConnection connection, int baseAvisId);
 
-        Task<List<Product>> AddProductsInBatch(List<Product> products, Avis avis, SqlConnection connection, SqlTransaction transaction, int baseAvisId);
+        Task<List<Product>> AddProductsInBatch(List<Product> products, SqlConnection connection, SqlTransaction transaction, int baseAvisId, int avisId);
+        Task<List<Product>> AddProductsInBatch(List<Product> products, int baseAvisId, int avisId);
     }
 }
