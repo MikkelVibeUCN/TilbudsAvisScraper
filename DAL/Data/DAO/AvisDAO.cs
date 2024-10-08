@@ -27,9 +27,21 @@ namespace DAL.Data.DAO
             this._productDAO = productDAO;
         }
 
-        public Task Delete(int id, int permissionLevel)
+        public async Task<bool> Delete(int id, int permissionLevel)
         {
-            throw new NotImplementedException();
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand("delete from avis where Id = @Id", connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+
+                    int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                    return rowsAffected > 0;
+                }
+            }
         }
 
         //public async Task<Avis?> Get(int id, int permissionLevel)
@@ -136,7 +148,10 @@ namespace DAL.Data.DAO
 
                             int baseAvisId = await GetIdOfAvisFromExternalId(BaseAvisExternalId);
 
-                            await _productDAO.AddProductsInBatch(avis.Products, connection,transaction, baseAvisId, avis.Id);
+                            if(avis.Products.Count > 0)
+                            {
+                                await _productDAO.AddProducts(avis.Products, transaction, connection, baseAvisId, avis.Id, BaseAvisExternalId);
+                            }
 
                             transaction.Commit();
 

@@ -38,6 +38,7 @@ CREATE TABLE Price (
     Id int identity(1,1) primary key not null, 
     ProductId INT, 
     Price FLOAT, 
+    CONSTRAINT UQ_Product_Avis UNIQUE (productid, avisid)
     CONSTRAINT FK_Price_Product FOREIGN KEY (ProductId) REFERENCES Product(Id)
 );
 

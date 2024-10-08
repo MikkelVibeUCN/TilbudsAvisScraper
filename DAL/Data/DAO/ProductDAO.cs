@@ -7,6 +7,7 @@ using DAL.Data.Exceptions;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Text;
+using DAL.Data.DataTransferObject;
 
 namespace DAL.Data.DAO
 {
@@ -22,7 +23,7 @@ namespace DAL.Data.DAO
                          VALUES {0};";
 
         private readonly string _addPriceQuery = "INSERT INTO Price (ProductId, Price, AvisId, CompareUnitString) " +
-                   "VALUES (@ProductId, @Price, @AvisId, @CompareUnitString)";
+                        "VALUES (@ProductId, @Price, @AvisId, @CompareUnitString)";
         private readonly string _getPriceAndExternalAvisIdquery = @"SELECT p.*, a.ExternalId FROM Price p JOIN Avis a ON p.AvisId = a.Id WHERE p.ProductId = @ProductId;";
 
 
@@ -31,16 +32,48 @@ namespace DAL.Data.DAO
                     "SELECT SCOPE_IDENTITY();";
 
         private readonly string _priceAlreadyExistsQuery = @"
-            SELECT a.ExternalId 
-            FROM Price p WITH (NOLOCK)
-            JOIN Avis a WITH (NOLOCK) ON p.AvisId = a.Id 
-            WHERE p.ProductId = @ProductId AND a.ExternalId = @ExternalId;";
+                    SELECT a.ExternalId 
+                    FROM Price p WITH (NOLOCK)
+                    JOIN Avis a WITH (NOLOCK) ON p.AvisId = a.Id 
+                    WHERE p.ProductId = @ProductId AND a.ExternalId = @ExternalId;";
 
 
 
-        
+
         public ProductDAO()
         {
+        }
+
+        public async Task<bool> DeleteNegativeExternalIds()
+        {
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand("delete from product where ExternalId < 0", connection))
+                {
+                    int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                    return rowsAffected > 0;
+                }
+            }
+        }
+
+        public async Task<bool> DeleteOnExternalId(int externalId)
+        {
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand(DeleteFromTableQueryWhereCondition("product", "ExternalId"), connection))
+                {
+                    command.Parameters.AddWithValue("@ExternalId", externalId);
+
+                    int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                    return rowsAffected > 0;
+                }
+            }
         }
 
         public Task Delete(int id, int permissionLevel)
@@ -153,7 +186,7 @@ namespace DAL.Data.DAO
 
                 try
                 {
-                    SqlCommand command = new SqlCommand(GetAllFromTableQuery("Product", "Id"), connection);
+                    SqlCommand command = new SqlCommand(GetAllFromTableQueryOnCondition("Product", "Id"), connection);
                     command.Parameters.AddWithValue("@Id", id);
 
                     SqlDataReader reader = await command.ExecuteReaderAsync();
@@ -253,9 +286,27 @@ namespace DAL.Data.DAO
             throw new NotImplementedException();
         }
 
-        public async Task<List<Product>> AddProductsInBatch(List<Product> products, SqlConnection connection, SqlTransaction transaction, int baseAvisId, int avisId)
+        public class BatchParameters
+        {
+            public int FirstValue { get; set; }
+            public int SecondValue { get; set; }
+
+            public BatchParameters(int firstValue = 0, int secondValue = 0)
+            {
+                FirstValue = firstValue;
+                SecondValue = secondValue;
+            }
+        }
+        
+        private async Task<List<Product>> AddProductsInBatch(List<Product> products, SqlConnection connection, SqlTransaction transaction, BatchContext context)
+        {
+            return await AddTInBatch(products, connection, transaction, AddProductsBatchInternal);
+        }
+        private async Task<List<Product>> AddProductsBatchInternal(List<Product> products, SqlConnection connection, SqlTransaction transaction, BatchContext context)
         {
             List<Product> addedProducts = new();
+            // Collect products with nutrition info
+            List<(int productId, NutritionInfo nutritionInfo)> productsWithNutrition = new();
             List<string> rows = new();
 
             using (SqlCommand command = new SqlCommand())
@@ -263,7 +314,7 @@ namespace DAL.Data.DAO
                 command.Connection = connection;
                 command.Transaction = transaction;
 
-                // Create the values and parameters for each product
+                // Create the values and parameters for each product in the batch
                 for (int i = 0; i < products.Count; i++)
                 {
                     var product = products[i];
@@ -277,10 +328,11 @@ namespace DAL.Data.DAO
                     command.Parameters.AddWithValue($"@Amount{i}", product.Amount);
                 }
 
-                // Set the query and execute
+                // Set the query for the batch
                 string query = string.Format(_addProductBatchQuery, string.Join(", ", rows));
-                command.CommandText = query; // Set the full query on the command
+                command.CommandText = query;
 
+                // Execute the query
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     Dictionary<int, Product> productMap = products.ToDictionary(p => p.ExternalId);
@@ -296,20 +348,34 @@ namespace DAL.Data.DAO
                             product.SetId(insertedId); // Set the inserted ID on the product
                             addedProducts.Add(product);
 
-                            // Add NutritionInfo if exists
+                            // Collect the product's nutrition info to be inserted later
                             if (product.NutritionInfo != null)
                             {
-                                await AddNutritionInfo(product.NutritionInfo, insertedId, connection, transaction);
+                                productsWithNutrition.Add((insertedId, product.NutritionInfo));
                             }
                         }
                     }
                 }
             }
 
+            // Now that the reader is closed, you can add the nutrition info
+            foreach (var (productId, nutritionInfo) in productsWithNutrition)
+            {
+                await AddNutritionInfo(nutritionInfo, productId, connection, transaction);
+            }
             return addedProducts;
         }
+        public async Task<List<Price>> AddPricesInBatch(List<Price> prices, SqlConnection connection, SqlTransaction transaction, int baseAvisId, int avisId, string avisExternalId)
+        {
+            return await AddTInBatch(prices, connection, transaction, AddPricesInBatchInternal, new BatchContext(baseAvisId, avisId, avisExternalId));
+        }
 
-        public async Task<List<Product>> AddProductsInBatch(List<Product> products, int baseAvisId, int avisId)
+        private async Task<List<Price>> AddPricesInBatchInternal(List<Price> prices, SqlConnection connection, SqlTransaction transaction, BatchContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<Product>> AddProducts(List<Product> products, int baseAvisId, int avisId, string avisExternalId)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
@@ -317,21 +383,23 @@ namespace DAL.Data.DAO
 
                 using (SqlTransaction transaction = connection.BeginTransaction())
                 {
-                    List<Product> addedProducts = await AddProductsInBatch(products, connection, transaction, baseAvisId, avisId);
+                    BatchContext context = new(baseAvisId, avisId, avisExternalId);
+                    List<Product> addedProducts = await AddProducts(products, transaction, connection, baseAvisId, avisId, avisExternalId);
                     transaction.Commit();
                     return addedProducts;
                 }
             }
         }
 
-
-        private async Task InsertPricesInBatch(Avis avis, List<Product> products, SqlConnection connection, SqlTransaction transaction, int baseAvisId)
+        public async Task<List<Product>> AddProducts(List<Product> products, SqlTransaction transaction, SqlConnection connection, int baseAvisId, int avisId, string avisExternalId)
         {
-            // implement
-        }
+            // Use batch insert if there are more than 30 products
+            if (products.Count() > 30)
+            {
+                var batchContext = new BatchContext(baseAvisId, avisId, avisExternalId);
+                return await AddProductsInBatch(products, connection, transaction, batchContext);
+            }
 
-        public async Task<List<Product>> AddProducts(IEnumerable<Product> products, Avis avis, SqlTransaction transaction, SqlConnection connection, int baseAvisId)
-        {
             List<Product> addedProducts = new();
 
             foreach (Product product in products)
@@ -355,7 +423,7 @@ namespace DAL.Data.DAO
                         {
                             await AddNutritionInfo(product.NutritionInfo, generatedId, connection, transaction);
                         }
-                        await CreatePrices(avis, connection, transaction, product, baseAvisId);
+                        await CreatePrices(connection, transaction, product, baseAvisId, avisId, avisExternalId);
                     }
                     catch (Exception ex)
                     {
@@ -364,7 +432,7 @@ namespace DAL.Data.DAO
                 }
                 else
                 {
-                    await CreatePrices(avis, connection, transaction, product, baseAvisId);
+                    await CreatePrices(connection, transaction, product, baseAvisId, avisId, avisExternalId);
 
                     product.SetId((int)checkProduct.Id);
                 }
@@ -373,53 +441,31 @@ namespace DAL.Data.DAO
             return addedProducts;
         }
 
-        private async Task<bool> PriceAlreadyExists(string avisExternalId, Price price, int productId)
-        {
-            using (SqlConnection connection = new(ConnectionString))
-            {
-                await connection.OpenAsync();
 
-                using (SqlCommand command = new SqlCommand(_priceAlreadyExistsQuery, connection))
-                {
-                    command.Parameters.AddWithValue("@ProductId", productId);
-                    command.Parameters.AddWithValue("@ExternalId", avisExternalId);
-
-                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
-                    {
-                        return reader.HasRows;
-                    }
-                }
-            }
-        }
-
-        private async Task CreatePrices(Avis avis, SqlConnection connection, SqlTransaction transaction, Product product, int baseAvisId)
+        private async Task CreatePrices(SqlConnection connection, SqlTransaction transaction, Product product, int baseAvisId, int avisId, string avisExternalId)
         {
             foreach (Price price in product.GetPrices())
             {
-                string externalIdToUse = avis.ExternalId;
+                string externalIdToUse = avisExternalId;
                 if (price.ExternalAvisId != null)
                 {
                     externalIdToUse = price.ExternalAvisId;
                 }
 
-                if (!await PriceAlreadyExists(externalIdToUse, price, (int)product.Id))
+                using (SqlCommand priceCommand = new SqlCommand(_addPriceQuery, connection, transaction))
                 {
-                    using (SqlCommand priceCommand = new SqlCommand(_addPriceQuery, connection, transaction))
+                    priceCommand.Parameters.AddWithValue("@ProductId", product.Id);
+                    priceCommand.Parameters.AddWithValue("@Price", price.PriceValue);
+                    if (externalIdToUse == "base")
                     {
-                        priceCommand.Parameters.AddWithValue("@ProductId", product.Id);
-                        priceCommand.Parameters.AddWithValue("@Price", price.PriceValue);
-                        int avisId = avis.Id;
-                        if (externalIdToUse == "base")
-                        {
-                            avisId = baseAvisId;
-                        }
-
-                        priceCommand.Parameters.AddWithValue("@AvisId", avisId);
-
-                        priceCommand.Parameters.AddWithValue("@CompareUnitString", price.CompareUnitString);
-
-                        price.SetId(Convert.ToInt32(await priceCommand.ExecuteScalarAsync()));
+                        avisId = baseAvisId;
                     }
+
+                    priceCommand.Parameters.AddWithValue("@AvisId", avisId);
+
+                    priceCommand.Parameters.AddWithValue("@CompareUnitString", price.CompareUnitString);
+
+                    price.SetId(Convert.ToInt32(await priceCommand.ExecuteScalarAsync()));
                 }
             }
         }

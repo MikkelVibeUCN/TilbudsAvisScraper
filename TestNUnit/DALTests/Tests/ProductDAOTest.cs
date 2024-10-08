@@ -51,11 +51,11 @@ namespace TestNUnit.DALTests.Tests
                 {
                     nutritionInfo = new(100, 20, 20, 20, 20, 20, 20);
                 }
-                Product product = new Product(pricesInProduct, null, "Cool name", "url", "cool product", i, nutritionInfo, 5);
+                Product product = new Product(pricesInProduct, null, "Cool name", "url", "cool product", -i-10, nutritionInfo, 5);
                 productsTestList.Add(product);
             }
-            baseAvis = new(avisBaseExternalId, DateTime.MinValue, DateTime.MaxValue, new());
-            avis = new(avisExternalId, DateTime.MinValue, DateTime.MaxValue, new());
+            baseAvis = new(avisBaseExternalId, DateTime.Now, DateTime.Now, new());
+            avis = new(avisExternalId, DateTime.Now, DateTime.Now, new());
         }
 
         [Test]
@@ -68,8 +68,16 @@ namespace TestNUnit.DALTests.Tests
                 baseAvis.SetId(baseAvisId);
                 avis.SetId(avisId);
                 
-                await _productDAO.AddProductsInBatch(productsTestList, baseAvisId, avisId);
-                Assert.Pass();
+                List<Product> productsWithIds = await _productDAO.AddProducts(productsTestList, baseAvisId, avisId, avisBaseExternalId);
+
+                foreach (var product in productsWithIds)
+                {
+                    if(product.Id == null)
+                    {
+                        Assert.Fail("Product ID is null");
+                    }
+                }
+
             }
             catch (Exception e)
             {
@@ -82,6 +90,8 @@ namespace TestNUnit.DALTests.Tests
         {
             await _avisDAO.Delete(baseAvis.Id, 3);
             await _avisDAO.Delete(avis.Id, 3);
+
+            await _productDAO.DeleteNegativeExternalIds();
         }
     }
 }
