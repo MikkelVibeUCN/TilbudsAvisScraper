@@ -10,7 +10,7 @@ namespace TilbudsAvisLibrary.Entities
     public class NutritionInfo
     {
         private const float ConversionRate = 0.239006f;
-
+        public int? Id { get; set; }
         public float EnergyKJ { get; set; }
         [JsonIgnore]
         public float EnergyKcal

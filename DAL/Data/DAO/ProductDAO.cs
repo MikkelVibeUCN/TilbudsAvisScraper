@@ -286,18 +286,6 @@ namespace DAL.Data.DAO
             throw new NotImplementedException();
         }
 
-        public class BatchParameters
-        {
-            public int FirstValue { get; set; }
-            public int SecondValue { get; set; }
-
-            public BatchParameters(int firstValue = 0, int secondValue = 0)
-            {
-                FirstValue = firstValue;
-                SecondValue = secondValue;
-            }
-        }
-        
         private async Task<List<Product>> AddProductsInBatch(List<Product> products, SqlConnection connection, SqlTransaction transaction, BatchContext context)
         {
             return await AddTInBatch(products, connection, transaction, AddProductsBatchInternal);
@@ -305,20 +293,22 @@ namespace DAL.Data.DAO
         private async Task<List<Product>> AddProductsBatchInternal(List<Product> products, SqlConnection connection, SqlTransaction transaction, BatchContext context)
         {
             List<Product> addedProducts = new();
-            // Collect products with nutrition info
             List<(int productId, NutritionInfo nutritionInfo)> productsWithNutrition = new();
-            List<string> rows = new();
 
             using (SqlCommand command = new SqlCommand())
             {
                 command.Connection = connection;
                 command.Transaction = transaction;
 
-                // Create the values and parameters for each product in the batch
+                command.CommandText = string.Format(_addProductBatchQuery, "{0}");
+
+                List<string> rows = new();
+
                 for (int i = 0; i < products.Count; i++)
                 {
                     var product = products[i];
 
+                    // Construct the parameterized value string
                     rows.Add($"(@ExternalId{i}, @Name{i}, @Description{i}, @ImageUrl{i}, @Amount{i})");
 
                     command.Parameters.AddWithValue($"@ExternalId{i}", product.ExternalId);
@@ -328,24 +318,25 @@ namespace DAL.Data.DAO
                     command.Parameters.AddWithValue($"@Amount{i}", product.Amount);
                 }
 
-                // Set the query for the batch
-                string query = string.Format(_addProductBatchQuery, string.Join(", ", rows));
-                command.CommandText = query;
+                // Finalize the command text with the constructed rows
+                command.CommandText = string.Format(_addProductBatchQuery, string.Join(", ", rows));
 
-                // Execute the query
+                // Execute the command and read the inserted IDs
                 using (var reader = await command.ExecuteReaderAsync())
                 {
+                    // Create a dictionary to map external IDs to products
                     Dictionary<int, Product> productMap = products.ToDictionary(p => p.ExternalId);
 
+                    // Read the inserted IDs and map them back to the products
                     while (await reader.ReadAsync())
                     {
                         int insertedId = reader.GetInt32(0);
                         int externalId = reader.GetInt32(1);
 
-                        // Find the corresponding product using the dictionary
+                        // Map the inserted ID back to the original product
                         if (productMap.TryGetValue(externalId, out var product))
                         {
-                            product.SetId(insertedId); // Set the inserted ID on the product
+                            product.SetId(insertedId);
                             addedProducts.Add(product);
 
                             // Collect the product's nutrition info to be inserted later
@@ -357,14 +348,67 @@ namespace DAL.Data.DAO
                     }
                 }
             }
+            await AddNutritionInfosInBatch(products, connection, transaction);
 
-            // Now that the reader is closed, you can add the nutrition info
-            foreach (var (productId, nutritionInfo) in productsWithNutrition)
-            {
-                await AddNutritionInfo(nutritionInfo, productId, connection, transaction);
-            }
             return addedProducts;
         }
+        private async Task<List<Product>> AddNutritionInfosInBatch(List<Product> products, SqlConnection connection, SqlTransaction transaction)
+        {
+            return await AddTInBatch(products, connection, transaction, AddNutritionInfoBatchInternal);
+        }
+
+        private async Task<List<Product>> AddNutritionInfoBatchInternal(List<Product> products, SqlConnection connection, SqlTransaction transaction, BatchContext context)
+        {
+            var commandText = new StringBuilder();
+            commandText.AppendLine("INSERT INTO NutritionInfo (ProductId, EnergyKJ, FatPer100G, SaturatedFatPer100G, CarbohydratesPer100G, SugarsPer100G, FiberPer100G, ProteinPer100G, SaltPer100G) VALUES ");
+
+            var parameters = new List<string>();
+            int parameterIndex = 0;
+
+            foreach (var product in products)
+            {
+                var nutritionInfo = product.NutritionInfo;
+                if (nutritionInfo != null)
+                {
+                    parameters.Add($"(@ProductId{parameterIndex}, @EnergyKJ{parameterIndex}, @FatPer100G{parameterIndex}, @SaturatedFatPer100G{parameterIndex}, @CarbohydratesPer100G{parameterIndex}, @SugarsPer100G{parameterIndex}, @FiberPer100G{parameterIndex}, @ProteinPer100G{parameterIndex}, @SaltPer100G{parameterIndex})");
+                    parameterIndex++;
+                }
+            }
+
+            if (parameters.Count > 0)
+            {
+                commandText.AppendLine(string.Join(", ", parameters));
+                commandText.AppendLine(";");
+
+                // Create the SqlCommand object here
+                using (SqlCommand command = new SqlCommand(commandText.ToString(), connection, transaction))
+                {
+                    parameterIndex = 0; // Reset the parameter index for adding parameters
+                    foreach (var product in products)
+                    {
+                        var nutritionInfo = product.NutritionInfo;
+                        if (nutritionInfo != null)
+                        {
+                            // Add parameters to command
+                            command.Parameters.AddWithValue($"@ProductId{parameterIndex}", product.Id);
+                            command.Parameters.AddWithValue($"@EnergyKJ{parameterIndex}", nutritionInfo.EnergyKJ);
+                            command.Parameters.AddWithValue($"@FatPer100G{parameterIndex}", nutritionInfo.FatPer100G);
+                            command.Parameters.AddWithValue($"@SaturatedFatPer100G{parameterIndex}", nutritionInfo.SaturatedFatPer100G);
+                            command.Parameters.AddWithValue($"@CarbohydratesPer100G{parameterIndex}", nutritionInfo.CarbohydratesPer100G);
+                            command.Parameters.AddWithValue($"@SugarsPer100G{parameterIndex}", nutritionInfo.SugarsPer100G);
+                            command.Parameters.AddWithValue($"@FiberPer100G{parameterIndex}", nutritionInfo.FiberPer100G);
+                            command.Parameters.AddWithValue($"@ProteinPer100G{parameterIndex}", nutritionInfo.ProteinPer100G);
+                            command.Parameters.AddWithValue($"@SaltPer100G{parameterIndex}", nutritionInfo.SaltPer100G);
+                            parameterIndex++;
+                        }
+                    }
+                    // Execute the command
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+            return products;
+        }
+
         public async Task<List<Price>> AddPricesInBatch(List<Price> prices, SqlConnection connection, SqlTransaction transaction, int baseAvisId, int avisId, string avisExternalId)
         {
             return await AddTInBatch(prices, connection, transaction, AddPricesInBatchInternal, new BatchContext(baseAvisId, avisId, avisExternalId));
