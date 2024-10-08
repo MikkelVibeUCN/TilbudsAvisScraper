@@ -1,11 +1,5 @@
 ﻿using DAL.Data.DAO;
-using DAL.Data.Exceptions;
 using DAL.Data.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TilbudsAvisLibrary.Entities;
 
 namespace TestNUnit.DALTests.Tests
@@ -17,7 +11,7 @@ namespace TestNUnit.DALTests.Tests
         string avisExternalId = "abcdef";
         string avisBaseExternalId = "testBase";
 
-        IProductDAO _productDAO = new ProductDAO();
+        IProductDAO _productDAO;
 
         IAvisDAO _avisDAO;
 
@@ -27,6 +21,7 @@ namespace TestNUnit.DALTests.Tests
         [OneTimeSetUp]
         public void Setup()
         {
+            _productDAO = new ProductDAO();
             _avisDAO = new AvisDAO(_productDAO);
 
             for (int i = 0; i < productAmount; i++)
@@ -35,14 +30,18 @@ namespace TestNUnit.DALTests.Tests
                 for (int j = 0; j < 5; j++)
                 {
                     string compareUnitString = "kg";
+                    if(i < productAmount/2)
+                    {
+                        compareUnitString = "stk";
+                    }
                     Price price;
                     if (j == 0)
                     {
-                        price = new Price(i, avisBaseExternalId, "kg");
+                        price = new Price(i, avisBaseExternalId, compareUnitString);
                     }
                     else
                     {
-                        price = new Price(i, avisExternalId, "kg");
+                        price = new Price(i, avisExternalId, compareUnitString);
                     }
                     pricesInProduct.Add(price);
                 }

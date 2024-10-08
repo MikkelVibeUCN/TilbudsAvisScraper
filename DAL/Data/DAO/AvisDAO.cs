@@ -136,7 +136,7 @@ namespace DAL.Data.DAO
 
                             int baseAvisId = await GetIdOfAvisFromExternalId(BaseAvisExternalId);
 
-                            await _productDAO.AddProductsInBatch(avis.Products, avis, connection,transaction, baseAvisId);
+                            await _productDAO.AddProductsInBatch(avis.Products, connection,transaction, baseAvisId, avis.Id);
 
                             transaction.Commit();
 
