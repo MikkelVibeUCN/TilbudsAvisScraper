@@ -7,7 +7,7 @@ using DAL.Data.Exceptions;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Text;
-using DAL.Data.DataTransferObject;
+using DAL.Data.Batch;
 using System.Transactions;
 using System.Data.Common;
 

@@ -1,4 +1,4 @@
-﻿using DAL.Data.DataTransferObject;
+﻿using DAL.Data.Batch;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Entities;

@@ -1,4 +1,4 @@
-﻿using DAL.Data.DataTransferObject;
+﻿using DAL.Data.Batch;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;

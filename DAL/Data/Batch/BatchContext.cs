@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DAL.Data.DataTransferObject
+namespace DAL.Data.Batch
 {
     public class BatchContext
     {

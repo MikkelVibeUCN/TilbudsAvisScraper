@@ -1,4 +1,4 @@
-﻿using DAL.Data.DataTransferObject;
+﻿using DAL.Data.Batch;
 using DAL.Data.Exceptions;
 using DAL.Data.Interfaces;
 using System;
