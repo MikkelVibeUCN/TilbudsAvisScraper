@@ -13,7 +13,6 @@ namespace DAL.Data.DAO
     public abstract class DAObject
     {
         protected string ConnectionString;
-        private readonly int maxBatchSize = 100;
 
         public DAObject()
         {
@@ -35,12 +34,12 @@ namespace DAL.Data.DAO
             List<T> batch,
             SqlConnection connection,
             SqlTransaction transaction,
-            Func<List<T>, SqlConnection, SqlTransaction, BatchContext, Task<List<T>>> addBatchMethod,
-            BatchContext? context = null)
+                Func<List<T>, SqlConnection, SqlTransaction, BatchContext, Task<List<T>>> internalAddBatchMethod,
+                BatchContext? context = null)
         {
             List<T> result = new List<T>();
 
-            result.AddRange(await addBatchMethod(batch, connection, transaction, context));
+            result.AddRange(await internalAddBatchMethod(batch, connection, transaction, context));
 
             return result;
         }
@@ -54,21 +53,27 @@ namespace DAL.Data.DAO
             {
                 var element = elements[i];
 
-                int totalParametersForProduct = element.TotalParameterAmount();
+                int totalParametersForElement = element.TotalParameterAmount();
 
-                if (totalParameters + totalParametersForProduct > 2100)
+                if (totalParameters + totalParametersForElement > 2100)
                 {
                     break;
                 }
 
-                totalParameters += totalParametersForProduct;
+                totalParameters += totalParametersForElement;
                 currentBatchSize++;
             }
-
             return currentBatchSize;
         }
 
-        protected async Task<List<T>> AddElementsWithMaxBatchSize<T>(List<T> elements, SqlConnection connection, SqlTransaction transaction, BatchContext context, Func<List<T>, SqlConnection, SqlTransaction, BatchContext, Task<List<T>>> addBatchMethod) where T : IParameters
+        protected async Task<List<T>> AddElementsWithMaxBatchSize<T>(
+            List<T> elements,
+            SqlConnection connection,
+            SqlTransaction transaction,
+            BatchContext context, Func<List<T>,
+                SqlConnection, SqlTransaction,
+                BatchContext,
+                Task<List<T>>> addBatchMethod) where T : IParameters
         {
             List<T> result = new List<T>();
 
