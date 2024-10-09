@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Entities;
 
-namespace ScraperLibrary
+namespace ScraperLibrary.Rema
 {
     public abstract class RemaProductAPI : Scraper
     {
@@ -89,7 +89,7 @@ namespace ScraperLibrary
                 // Convert the possible units to the format from the price
                 // Calculate the UnitPrice
                 string comparableUnitString = price.CompareUnitString;
-                switch(comparableUnitString)
+                switch (comparableUnitString)
                 {
                     case "kg":
                         if (unitOfMeasurement.Equals(units[0]))
@@ -170,7 +170,7 @@ namespace ScraperLibrary
 
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            
+
             HttpResponseMessage response = await client.GetAsync("https://cphapp.rema1000.dk/api/v3/products/" + externalId + "?include=declaration,nutrition_info,declaration,warnings");
 
             if (response.IsSuccessStatusCode)

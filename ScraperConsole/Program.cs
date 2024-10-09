@@ -1,7 +1,6 @@
 ﻿using DAL.Data.DAO;
-using DAL.Data.Interfaces;
 using Newtonsoft.Json.Linq;
-using ScraperLibrary;
+using ScraperLibrary.Rema;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using TilbudsAvisLibrary.Entities;
@@ -56,17 +55,22 @@ namespace ScraperConsole
                 //}
 
 
-                ProductDAO productDAO = new(new NutritionInfoDAO(), new PriceDAO());
-                RemaProductScraper scraper = new();
-                Console.WriteLine("get products");
-                List<Product> products = await productDAO.GetAll(3);
-                Console.WriteLine("got products");
-                Console.WriteLine("Updating products");
-                foreach (Product product in products)
-                {
-                    product.Amount = scraper.GetAmountInProduct(product.Description, product.Prices);
-                    await productDAO.Update(product, 3);
-                }
+                var html = await RemaAvisScraper.CallUrl("https://rema1000.dk/avis");
+                
+                File.WriteAllText("avisWithKommende.html", html);
+
+
+                //ProductDAO productDAO = new(new NutritionInfoDAO(), new PriceDAO());
+                //RemaProductScraper scraper = new();
+                //Console.WriteLine("get products");
+                //List<Product> products = await productDAO.GetAll(3);
+                //Console.WriteLine("got products");
+                //Console.WriteLine("Updating products");
+                //foreach (Product product in products)
+                //{
+                //    product.Amount = scraper.GetAmountInProduct(product.Description, product.Prices);
+                //    await productDAO.Update(product, 3);
+                //}
             }
         }
     }

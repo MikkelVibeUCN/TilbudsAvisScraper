@@ -5,7 +5,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using TilbudsAvisLibrary.Entities;
 
-namespace ScraperLibrary
+namespace ScraperLibrary.Rema
 {
     public class RemaProductScraper : RemaProductAPI, IProductScraper
     {
@@ -18,7 +18,7 @@ namespace ScraperLibrary
 
         public async Task<List<Product>> GetAllProductsFromPage()
         {
-            string result = await Scraper.CallUrl(_remaProductPageUrl);
+            string result = await CallUrl(_remaProductPageUrl);
             List<Product> products = [];
 
             int currentIndex = 0;
@@ -40,7 +40,7 @@ namespace ScraperLibrary
                     // Extract the product from the html
                     Product product = await CreateProduct(result, startIndex, endIndex);
 
-                    if(product == null)
+                    if (product == null)
                     {
                         Console.WriteLine("Failed to create product");
                     }
@@ -49,7 +49,7 @@ namespace ScraperLibrary
                         products.Add(product);
                         Console.WriteLine(product.ToString());
                     }
-                    
+
                     currentIndex = endIndex + endPattern.Length;
                 }
                 else
@@ -84,7 +84,7 @@ namespace ScraperLibrary
                         GetAmountInProduct(productJson, prices)
                         );
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     retryCount++;
                     Console.WriteLine("Failed");
@@ -94,7 +94,7 @@ namespace ScraperLibrary
             }
             Console.WriteLine("Gave up too many attempts");
             return null;
-            
+
         }
 
         private string GetProductUrlFromHtml(string productHtml)
@@ -107,5 +107,5 @@ namespace ScraperLibrary
             try { return GetInformationFromHtml<int>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/"); } catch { return -1; }
         }
 
-    }  
+    }
 }

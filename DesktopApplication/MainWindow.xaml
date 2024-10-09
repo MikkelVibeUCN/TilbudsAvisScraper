@@ -1,0 +1,34 @@
+﻿<Window x:Class="DesktopApplication.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DesktopApplication"
+        mc:Ignorable="d"
+        Title="TilbudsFinder.dk Admin Panel" Height="450" Width="800">
+    <Grid>
+        <Label FontSize="20" 
+               HorizontalAlignment="Center" 
+               Height="41" 
+               VerticalAlignment="Top" 
+               Width="562" 
+               HorizontalContentAlignment="Center" 
+               VerticalContentAlignment="Center">
+            PrisFinder.dk Admin Panel
+        </Label>
+        <Grid x:Name="OptionsGrid" Margin="5, 2, 2, 2">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Rectangle Grid.Row="0" Grid.Column="0" Fill="Red"/>
+            <Rectangle Grid.Row="0" Grid.Column="1" Fill="Blue"/>
+            <Rectangle Grid.Row="1" Grid.Column="0" Fill="Green"/>
+            <Rectangle Grid.Row="1" Grid.Column="1" Fill="Yellow"/>
+        </Grid>
+    </Grid>
+</Window>

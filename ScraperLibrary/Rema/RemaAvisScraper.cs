@@ -6,7 +6,7 @@ using System.Collections;
 using System.Globalization;
 using System.Collections.Generic;
 
-namespace ScraperLibrary
+namespace ScraperLibrary.Rema
 {
     public class RemaAvisScraper : Scraper, IAvisScraper
     {
@@ -20,7 +20,7 @@ namespace ScraperLibrary
 
         public async Task<string> FindExternalAvisId(string url)
         {
-            var response = await Scraper.CallUrl(url);
+            var response = await CallUrl(url);
 
             string rarePatternAssosiatedWithComingAvis = "grid grid-cols-2";
             string avisPattern = "a href=\"/avis/";
@@ -31,7 +31,7 @@ namespace ScraperLibrary
 
                 response = response.Substring(indexOfKommendeAvis + 50);
             }
-            string externalId = GetInformationFromHtml<string>(response, avisPattern, avisPattern, "\"" );   
+            string externalId = GetInformationFromHtml<string>(response, avisPattern, avisPattern, "\"");
 
             return externalId;
         }
@@ -54,7 +54,6 @@ namespace ScraperLibrary
             await Task.WhenAll(getDatesTask, getProductsTask);
 
             return new Avis(externalId, getDatesTask.Result.Item1, getDatesTask.Result.Item2, new List<Page>(), getProductsTask.Result);
-        
         }
 
         public string GetImageUrl(string input, int pageNumber)
@@ -79,7 +78,7 @@ namespace ScraperLibrary
 
         public async Task DownloadAllPagesAsImages(string url)
         {
-            var response = await Scraper.CallUrl(url);
+            var response = await CallUrl(url);
 
             int lastPage = FindTotalPagesInPaper(response);
 
@@ -89,7 +88,7 @@ namespace ScraperLibrary
             {
                 string nextPageUrl = url.Substring(0, url.Length - 1) + i;
 
-                response = await Scraper.CallUrl(nextPageUrl);
+                response = await CallUrl(nextPageUrl);
 
                 try
                 {
@@ -110,7 +109,7 @@ namespace ScraperLibrary
         {
             List<Page> resultingPages = new List<Page>();
 
-            var response = await Scraper.CallUrl(url);
+            var response = await CallUrl(url);
 
             int lastPage = FindTotalPagesInPaper(response);
 
@@ -122,7 +121,7 @@ namespace ScraperLibrary
 
                 try
                 {
-                    response = await Scraper.CallUrl(nextPageUrl);
+                    response = await CallUrl(nextPageUrl);
                     resultingPages.Add(new Page(GetImageUrl(response, i), i));
                     Console.WriteLine("Added page " + i);
                     retryCount = 0;
@@ -141,7 +140,7 @@ namespace ScraperLibrary
         {
             string imageName = $"image{i}.jpg";
             string imagePath = Path.Combine(_remaImageFolder, imageName);
-        
+
             ImageDownloader.DownloadImage(imageUrl, imagePath);
 
             Console.WriteLine("Successfully saved page " + i);
@@ -167,7 +166,7 @@ namespace ScraperLibrary
             IFormatProvider danishDateFormat = new CultureInfo("da-DK");
             IFormatProvider americanDateFormat = new CultureInfo("en-US");
 
-            string startingHtml = await Scraper.CallUrl(url);
+            string startingHtml = await CallUrl(url);
             string cutDownHtml = startingHtml;
 
             string searchString = "<a href=\"/avis/";

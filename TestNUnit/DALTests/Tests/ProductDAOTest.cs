@@ -134,8 +134,6 @@ namespace TestNUnit.DALTests.Tests
 
                 await _avisDAO.Delete(avisId, 3);
                 await _avisDAO.Delete(baseAvisId, 3);
-
-
             }
             catch (Exception e)
             {
