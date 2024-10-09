@@ -18,7 +18,7 @@ namespace TestNUnit.DALTests.Tests
         int avisId;
 
         [OneTimeSetUp]
-        public async Task Setup()
+        public async Task OneTimeSetup()
         {
             try
             {
@@ -63,12 +63,12 @@ namespace TestNUnit.DALTests.Tests
 
                 baseAvis.SetId(baseAvisId);
                 avis.SetId(avisId);
+
             }
             catch
             {
                 Assert.Fail("Setup failed");
             }
-            
         }
 
         [Test]
@@ -99,10 +99,10 @@ namespace TestNUnit.DALTests.Tests
             try
             {
                 List<Price> prices = new List<Price>();
-                prices.Add(new Price(20, "testBase", "kg"));
-                prices.Add(new Price(30, "abcdef", "kg"));
+                prices.Add(new Price(20, avisBaseExternalId, "kg"));
+                prices.Add(new Price(30, avisExternalId, "kg"));
 
-                Product product = new(prices, null, "swag", "url", "sej produkt", -5000, new NutritionInfo(20, 20, 20, 20, 20, 20, 20), null);
+                Product product = new(prices, null, "swag", "url", "sej produkt", -5000, new NutritionInfo(20, 20, 20, 20, 20, 20, 20), 5);
                 productId = await _productDAO.Add(product, 3, baseAvisId, avisId, avisBaseExternalId);
             }
             catch (Exception e)
@@ -112,19 +112,34 @@ namespace TestNUnit.DALTests.Tests
             Assert.That(productId != 0);
         }
 
-        [OneTimeTearDown]
+        [TearDown]
         public async Task TearDown()
         {
             try
             {
                 await _productDAO.DeleteNegativeExternalIds();
-
-                await _avisDAO.Delete(baseAvisId, 3);
-                await _avisDAO.Delete(avisId, 3);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                throw e;
+            }
+        }
+
+        [OneTimeTearDown]
+        public async Task OneTimeTearDown()
+        {
+            try
+            {
+                await _productDAO.DeleteNegativeExternalIds();
+
+                await _avisDAO.Delete(avisId, 3);
+                await _avisDAO.Delete(baseAvisId, 3);
+
+
+            }
+            catch (Exception e)
+            {
+                throw e;
             }
         }
     }

@@ -184,6 +184,7 @@ namespace DAL.Data.DAO
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
+                await connection.OpenAsync();
                 using (SqlTransaction transaction = connection.BeginTransaction())
                 {
                     using (SqlCommand command = new SqlCommand(_addProductQuery, connection, transaction))
@@ -192,6 +193,7 @@ namespace DAL.Data.DAO
                         command.Parameters.AddWithValue("@Name", product.Name);
                         command.Parameters.AddWithValue("@Description", product.Description);
                         command.Parameters.AddWithValue("@ImageUrl", product.ImageUrl);
+                        command.Parameters.AddWithValue("@Amount", product.Amount);
 
                         int generatedId = Convert.ToInt32(await command.ExecuteScalarAsync());
                         product.SetId(generatedId);
@@ -211,7 +213,7 @@ namespace DAL.Data.DAO
 
         private async Task<List<Product>> AddProductsInBatch(List<Product> products, SqlConnection connection, SqlTransaction transaction, BatchContext context)
         {
-            return await AddTInBatch(products, connection, transaction, AddProductsBatchInternal, context);
+            return await AddElementsWithMaxBatchSize(products, connection, transaction, context, AddProductsBatchInternal);
         }
         private async Task<List<Product>> AddProductsBatchInternal(List<Product> products, SqlConnection connection, SqlTransaction transaction, BatchContext context)
         {
@@ -342,9 +344,6 @@ namespace DAL.Data.DAO
             return addedProducts;
         }
 
-
-
-
         private async Task<Product> CreateProductObjectFromReader(SqlDataReader reader)
         {
             int productId = reader.GetInt32(reader.GetOrdinal("Id"));
@@ -359,5 +358,6 @@ namespace DAL.Data.DAO
 
             return new Product(prices, productId, name, imageUrl, description, externalId, nutritionInfo, amount);
         }
+
     }
 }

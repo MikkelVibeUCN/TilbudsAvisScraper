@@ -214,12 +214,14 @@ namespace DAL.Data.DAO
                 {
                     priceCommand.Parameters.AddWithValue("@ProductId", product.Id);
                     priceCommand.Parameters.AddWithValue("@Price", price.PriceValue);
+
+                    int idToUse = avisId;
+
                     if (externalIdToUse.Equals(avisBaseExternalId))
                     {
-                        avisId = baseAvisId;
+                        idToUse = baseAvisId;
                     }
-
-                    priceCommand.Parameters.AddWithValue("@AvisId", avisId);
+                    priceCommand.Parameters.AddWithValue("@AvisId", idToUse);
 
                     priceCommand.Parameters.AddWithValue("@CompareUnitString", price.CompareUnitString);
 

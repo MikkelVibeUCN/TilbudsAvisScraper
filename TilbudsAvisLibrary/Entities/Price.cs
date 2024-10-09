@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TilbudsAvisLibrary.Entities
 {
-    public class Price
+    public class Price : IParameters
     {
         public int Id { get; private set; } 
         public float PriceValue { get; set; }
@@ -37,6 +37,9 @@ namespace TilbudsAvisLibrary.Entities
         }
         public void SetId(int id) => Id = id;
 
-
+        public int TotalParameterAmount()
+        {
+            return 4;
+        }
     }
 }

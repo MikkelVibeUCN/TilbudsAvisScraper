@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TilbudsAvisLibrary.Entities
 {
-    public class NutritionInfo
+    public class NutritionInfo : IParameters
     {
         private const float ConversionRate = 0.239006f;
         public int? Id { get; set; }
@@ -40,6 +40,11 @@ namespace TilbudsAvisLibrary.Entities
         {
             return $"Energy: {EnergyKJ} KJ / {EnergyKcal} Kcal\nFat: {FatPer100G} g\nSaturated Fat: {SaturatedFatPer100G} g\n" +
                    $"Carbohydrates: {CarbohydratesPer100G} g\nSugars: {SugarsPer100G} g\nFiber: {FiberPer100G} g\nProtein: {ProteinPer100G} g\nSalt: {SaltPer100G} g";
+        }
+
+        public int TotalParameterAmount()
+        {
+            return 9;
         }
     }
 }

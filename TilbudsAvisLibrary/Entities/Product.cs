@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace TilbudsAvisLibrary.Entities
 {
-    public class Product
+    public class Product : IParameters
     {
         public List<Price> Prices { get; set; }
         public int? Id { get; private set; }
@@ -56,6 +56,20 @@ namespace TilbudsAvisLibrary.Entities
         public void RemovePrice(Price price)
         {
             Prices.Remove(price);
+        }
+
+        public int TotalParameterAmount()
+        {
+            int amount = 5;
+            if(Prices.Count > 0)
+            {
+                amount += Prices.Count * Prices[0].TotalParameterAmount();
+            }
+            if (NutritionInfo != null)
+            {
+                amount += NutritionInfo.TotalParameterAmount();
+            }
+            return amount;
         }
     }
 }
