@@ -58,8 +58,8 @@ namespace TestNUnit.DALTests.Tests
                 Avis baseAvis = new(avisBaseExternalId, DateTime.Now, DateTime.Now, new());
                 Avis avis = new(avisExternalId, DateTime.Now, DateTime.Now, new());
 
-                baseAvisId = await _avisDAO.Add(baseAvis, 1, 3);
-                avisId = await _avisDAO.Add(avis, 1, 3);
+                baseAvisId = await _avisDAO.Add(baseAvis, 1);
+                avisId = await _avisDAO.Add(avis, 1);
 
                 baseAvis.SetId(baseAvisId);
                 avis.SetId(avisId);
@@ -132,8 +132,8 @@ namespace TestNUnit.DALTests.Tests
             {
                 await _productDAO.DeleteNegativeExternalIds();
 
-                await _avisDAO.Delete(avisId, 3);
-                await _avisDAO.Delete(baseAvisId, 3);
+                await _avisDAO.Delete(avisId);
+                await _avisDAO.Delete(baseAvisId);
             }
             catch (Exception e)
             {

@@ -100,9 +100,15 @@ namespace DAL.Data.DAO
 
                         SqlDataReader reader = await command.ExecuteReaderAsync();
 
-                        int permissionLevel = reader.GetInt32(reader.GetOrdinal("PermissionLevel"));
-
-                        return permissionLevel;
+                        if (reader.HasRows)
+                        {
+                            int permissionLevel = reader.GetInt32(reader.GetOrdinal("PermissionLevel"));
+                            return permissionLevel;
+                        }
+                        else
+                        {
+                            return -1;
+                        }
                     }
                 }
                 catch (Exception ex)

@@ -1,5 +1,6 @@
 using DAL.Data.DAO;
 using DAL.Data.Interfaces;
+using TIlbudsAvisScraperAPI.Services;
 
 namespace TIlbudsAvisScraperAPI.Properties
 {
@@ -10,10 +11,9 @@ namespace TIlbudsAvisScraperAPI.Properties
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers();
-
             builder.Services.AddScoped<IAvisDAO>(provider => new AvisDAO(new ProductDAO(new NutritionInfoDAO(), new PriceDAO())));
+            builder.Services.AddScoped<APIUserService>(provider => new APIUserService(new APIUserDAO())); 
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -31,7 +31,6 @@ namespace TIlbudsAvisScraperAPI.Properties
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

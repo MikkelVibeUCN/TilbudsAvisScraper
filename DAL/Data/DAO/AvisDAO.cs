@@ -27,7 +27,7 @@ namespace DAL.Data.DAO
             this._productDAO = productDAO;
         }
 
-        public async Task<bool> Delete(int id, int permissionLevel)
+        public async Task<bool> Delete(int id)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
@@ -104,25 +104,21 @@ namespace DAL.Data.DAO
             }
         }
     
-    public Task<List<Avis>> GetAll(int permissionLevel)
+    public Task<List<Avis>> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public Task Update(Avis avis, int permissionLevel)
+        public Task Update(Avis avis)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<int> Add(Avis avis, int companyId, int permissionLevel)
+        public async Task<int> Add(Avis avis, int companyId)
         {
             if (await DoesAvisWithExternalIdExist(avis.ExternalId))
             {
                 throw new DALException("Avis with external ID already exists");
-            }
-            else if(permissionLevel < 2) 
-            {
-                throw new InsufficientTokenPermission("Permission level too low");
             }
             
             using (SqlConnection connection = new SqlConnection(ConnectionString))
@@ -218,7 +214,7 @@ namespace DAL.Data.DAO
                 }
             }
         }
-        public Task Get(int id, int permissionLevel)
+        public Task Get(int id)
         {
             throw new NotImplementedException();
         }
