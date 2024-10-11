@@ -1,4 +1,5 @@
 ﻿using ScraperLibrary.Interfaces;
+using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
@@ -19,17 +20,20 @@ namespace ScraperLibrary.Rema
         public async Task<List<Product>> GetAllProductsFromPage()
         {
             string result = await CallUrl(_remaProductPageUrl);
-            List<Product> products = [];
+            int lengthOfResult = result.Length;
+            List<Product> products = new List<Product>();
 
             int currentIndex = 0;
             bool reachedEnd = false;
-            while (!reachedEnd)
+             while (!reachedEnd)
             {
                 string startPattern = "product-grid-container\"";
                 string endPattern = "class=\"add-mobile-btn\"";
 
                 int startIndex = result.IndexOf(startPattern, currentIndex);
-                int endIndex = int.MaxValue;
+                 int endIndex = int.MaxValue;
+
+                //progressCallback((int)(((double)startIndex / lengthOfResult) * 100));
 
                 if (startIndex != -1 && endIndex != -1 && endIndex > startIndex)
                 {
@@ -38,25 +42,25 @@ namespace ScraperLibrary.Rema
                     startIndex += startPattern.Length;
 
                     // Extract the product from the html
-                    Product product = await CreateProduct(result, startIndex, endIndex);
+                      Product product = await CreateProduct(result, startIndex, endIndex);
 
                     if (product == null)
                     {
-                        Console.WriteLine("Failed to create product");
+                        Debug.WriteLine("Failed to create product");
                     }
                     else
                     {
                         products.Add(product);
-                        Console.WriteLine(product.ToString());
+                        Debug.WriteLine(product.ToString());
                     }
 
                     currentIndex = endIndex + endPattern.Length;
-                }
+                 }
                 else
                 {
                     reachedEnd = true;
                 }
-            }
+             }
             return products;
         }
 
@@ -72,27 +76,28 @@ namespace ScraperLibrary.Rema
                 try
                 {
                     var productJson = await GetProductJson(externalProductId);
+                    string description = GetDescriptionOfProduct(productJson);
                     List<Price> prices = GetPricesOfProduct(productJson);
 
                     return new Product(prices,
                         null,
                         GetNameOfProduct(productJson),
                         GetProductUrlFromHtml(productHtml),
-                        GetDescriptionOfProduct(productJson),
+                        description,
                         externalProductId,
-                        GetNutritionalInfo(productJson),
-                        GetAmountInProduct(productJson, prices)
+                        GetNutritionalInfo(productJson),    
+                        GetAmountInProduct(description, prices)
                         );
                 }
                 catch (Exception e)
                 {
                     retryCount++;
-                    Console.WriteLine("Failed");
+                    Debug.WriteLine("Failed");
                     await Task.Delay(7500);
-                    Console.WriteLine("Retrying");
+                    Debug.WriteLine("Retrying");
                 }
             }
-            Console.WriteLine("Gave up too many attempts");
+            Debug.WriteLine("Gave up too many attempts");
             return null;
 
         }

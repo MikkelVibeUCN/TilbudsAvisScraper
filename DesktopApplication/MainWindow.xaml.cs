@@ -4,7 +4,7 @@ namespace DesktopApplication
 {
     public partial class MainWindow : Window
     {
-        private InfoWrapper _infoWrapper = InfoWrapper.GetInstance();
+        private string Token;
         private TokenValidation _tokenValidation;
         private int permissionLevel = 0;
         public MainWindow()
@@ -21,6 +21,13 @@ namespace DesktopApplication
 
         private async Task SubmitToken()
         {
+            // Hardcoded for testing replace
+            EnableButtons();
+            tokenInput.Visibility = Visibility.Collapsed;
+            buttonGrid.Visibility = Visibility.Visible;
+            return;
+
+
             string token = tokenInput.Text;
             if (token == string.Empty)
             {
@@ -41,7 +48,7 @@ namespace DesktopApplication
                     tokenInput.Visibility = Visibility.Collapsed;
                     buttonGrid.Visibility = Visibility.Visible;
 
-                    _infoWrapper.Token = token;
+                    Token = token;
                 }
                 else
                 {
@@ -71,7 +78,9 @@ namespace DesktopApplication
 
         private void btnClick_Scrape(object sender, RoutedEventArgs e)
         {
-
+            this.IsEnabled = false;
+            ScrapeAviser scrapeWindow = new ScrapeAviser();
+            scrapeWindow.Show();
         }
         private void btnClick_UpdateProducts(object sender, RoutedEventArgs e)
         {

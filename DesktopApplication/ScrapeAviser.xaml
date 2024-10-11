@@ -1,0 +1,68 @@
+﻿<Window x:Class="DesktopApplication.ScrapeAviser"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DesktopApplication"
+        mc:Ignorable="d"
+        Title="ScrapeAviser" Height="450" Width="800" ResizeMode="CanResizeWithGrip">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ComboBox for Grocers -->
+        <ComboBox Name="GrocerComboBox" Grid.Column="0" Width="150" Margin="5" VerticalAlignment="Center"></ComboBox>
+
+        <!-- Start Button -->
+        <Button Name="StartButton" Content="Start" Grid.Column="1" Margin="5" VerticalAlignment="Center" Width="80" Click="StartButton_Click"/>
+
+        <!-- Start All Button -->
+        <Button Name="StartAllButton" Content="Start All" Grid.Column="2" Margin="5" VerticalAlignment="Center" Width="80" Click="StartAllButton_Click"/>
+
+        <!-- Progress Queue DataGrid -->
+        <DataGrid Name="ProgressGrid" Grid.Row="2" Grid.ColumnSpan="3" Margin="5" AutoGenerateColumns="False" CanUserAddRows="False">
+            <DataGrid.Resources>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Background" Value="White"/>
+                    <!-- Default background color -->
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsProcessing}" Value="True">
+                            <Setter Property="Background" Value="LightGreen"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsProcessing}" Value="False">
+                            <Setter Property="Background" Value="White"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
+
+
+            <DataGrid.Columns>
+                <!-- Column for Grocer Name -->
+                <DataGridTextColumn Header="Grocer" Binding="{Binding GrocerName}" Width="*"/>
+
+                <!-- Column for Progress -->
+                <DataGridTextColumn Header="Progress" Binding="{Binding Progress}" Width="100"/>
+
+                <!-- Column for Remove Button -->
+                <DataGridTemplateColumn Header="Actions" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Remove" Click="RemoveButton_Click" CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>

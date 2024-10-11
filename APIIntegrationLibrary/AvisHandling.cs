@@ -17,15 +17,6 @@ namespace APIIntegrationLibrary
         {
             _remaAvisScraper = new RemaAvisScraper();
         }
-        public async Task<List<Avis>> GetAviser()
-        {
-            List<Avis> aviser = new();
-
-            Avis remaAvis = await _remaAvisScraper.GetAvis();
-            aviser.Add(remaAvis);
-
-            return aviser;
-        }
         
         public async Task<bool> SubmitAvis(Avis avis, string token)
         {

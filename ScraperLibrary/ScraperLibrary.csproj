@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="PuppeteerSharp" Version="20.0.2" />
-    <PackageReference Include="PuppeteerSharp.AspNetFramework" Version="2.0.3" />
   </ItemGroup>
 
   <ItemGroup>
