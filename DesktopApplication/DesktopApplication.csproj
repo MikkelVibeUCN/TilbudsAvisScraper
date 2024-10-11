@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ScraperLibrary\ScraperLibrary.csproj" />
+    <ProjectReference Include="..\APIIntegrationLibrary\APIIntegrationLibrary.csproj" />
     <ProjectReference Include="..\TilbudsAvisLibrary\TilbudsAvisLibrary.csproj" />
   </ItemGroup>
 

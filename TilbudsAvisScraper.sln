@@ -5,8 +5,6 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TilbudsAvisLibrary", "TilbudsAvisLibrary\TilbudsAvisLibrary.csproj", "{889B5AFD-CD49-480A-B8B9-E3C98562BA50}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScraperConsole", "ScraperConsole\ScraperConsole.csproj", "{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScraperLibrary", "ScraperLibrary\ScraperLibrary.csproj", "{8EC6BCBA-3ABD-475A-998B-8143D3C23852}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TIlbudsAvisScraperAPI", "TIlbudsAvisScraperAPI\TIlbudsAvisScraperAPI.csproj", "{C6F168A4-D7DB-4C57-9034-FCE11D7034EE}"
@@ -17,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TilbudsAvisWeb", "TilbudsAv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestNUnit", "TestNUnit\TestNUnit.csproj", "{EA75FB88-05CF-45C3-BB57-E4B9A0C81604}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesktopApplication", "DesktopApplication\DesktopApplication.csproj", "{4E72A440-2133-4368-A3C5-F405B965BD0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesktopApplication", "DesktopApplication\DesktopApplication.csproj", "{4E72A440-2133-4368-A3C5-F405B965BD0F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIIntegrationLibrary", "APIIntegrationLibrary\APIIntegrationLibrary.csproj", "{E6D9D2C8-A071-45A8-984B-88AEB3443D62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,6 @@ Global
 		{889B5AFD-CD49-480A-B8B9-E3C98562BA50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{889B5AFD-CD49-480A-B8B9-E3C98562BA50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{889B5AFD-CD49-480A-B8B9-E3C98562BA50}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EB9295DA-AD6B-4F5E-A500-FC5FAE599B44}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8EC6BCBA-3ABD-475A-998B-8143D3C23852}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8EC6BCBA-3ABD-475A-998B-8143D3C23852}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8EC6BCBA-3ABD-475A-998B-8143D3C23852}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -57,6 +53,10 @@ Global
 		{4E72A440-2133-4368-A3C5-F405B965BD0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E72A440-2133-4368-A3C5-F405B965BD0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E72A440-2133-4368-A3C5-F405B965BD0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6D9D2C8-A071-45A8-984B-88AEB3443D62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6D9D2C8-A071-45A8-984B-88AEB3443D62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6D9D2C8-A071-45A8-984B-88AEB3443D62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6D9D2C8-A071-45A8-984B-88AEB3443D62}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

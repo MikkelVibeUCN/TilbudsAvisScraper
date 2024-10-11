@@ -16,13 +16,11 @@ namespace TIlbudsAvisScraperAPI.Controllers
     {
         const string baseURI = "api/v1/[controller]";
         private readonly IAvisDAO _avisDAO;
-        private readonly IAPIUserDAO _apiUserDAO;
         private readonly APIUserService _apiUserService;
 
-        public AvisController(IAvisDAO avisDAO, IAPIUserDAO apiUserDAO, APIUserService apiUserService)
+        public AvisController(IAvisDAO avisDAO, APIUserService apiUserService)
         {
             this._avisDAO = avisDAO;
-            this._apiUserDAO = apiUserDAO;
             this._apiUserService = apiUserService;
         }
 

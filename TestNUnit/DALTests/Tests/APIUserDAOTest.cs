@@ -65,6 +65,5 @@ namespace TestNUnit.DALTests.Tests
         {
             await apiUserDAO.DeleteAllWithSpecificRole("TestUser");
         }
-
     } 
 }

@@ -318,6 +318,7 @@ namespace DAL.Data.DAO
                         command.Parameters.AddWithValue("@Name", product.Name);
                         command.Parameters.AddWithValue("@Description", product.Description);
                         command.Parameters.AddWithValue("@ImageUrl", product.ImageUrl);
+                        command.Parameters.AddWithValue("@Amount", product.Amount);
 
                         int generatedId = Convert.ToInt32(await command.ExecuteScalarAsync());
                         product.SetId(generatedId);

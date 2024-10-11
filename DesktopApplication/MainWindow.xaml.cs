@@ -1,83 +1,60 @@
-﻿using System.Net.Http;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-
+﻿using System.Windows;
+using APIIntegrationLibrary;
 namespace DesktopApplication
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly HttpClient _httpClient;
-
+        private InfoWrapper _infoWrapper = InfoWrapper.GetInstance();
+        private TokenValidation _tokenValidation;
         private int permissionLevel = 0;
         public MainWindow()
         {
             InitializeComponent();
-            _httpClient = new HttpClient();
+            _tokenValidation = new TokenValidation();
         }
 
 
         private async void SubmitToken_Click(object sender, RoutedEventArgs e)
         {
-            string token = tokenInput.Text;
-
-            // Simulate token verification (replace with actual verification logic)
-            if (await VerifyToken())
-            {
-                EnableButtons();
-
-                // Hide the token input area
-                tokenInput.Visibility = Visibility.Collapsed;
-                buttonGrid.Visibility = Visibility.Visible; // Show buttons
-            }
-            else
-            {
-                MessageBox.Show("Invalid token. Please try again.");
-            }
+            await SubmitToken();
         }
 
-        private async Task<bool> VerifyToken()
+        private async Task SubmitToken()
         {
             string token = tokenInput.Text;
-            int permissionLevel = 3; // Adjust based on your logic
-
+            if (token == string.Empty)
+            {
+                MessageBox.Show("Please enter a token.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            if (token.Length != 66)
+            {
+                MessageBox.Show("Please enter a token with valid format", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             try
             {
-                // Call the API to validate the token
-                HttpResponseMessage response = await _httpClient.GetAsync($"https://localhost:7133/api/v1/APIUser?token={token}&permissionLevel={permissionLevel}");
+                if (await _tokenValidation.VerifyToken(token, 3))
+                {
+                    EnableButtons();
 
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    return false;
+                    tokenInput.Visibility = Visibility.Collapsed;
+                    buttonGrid.Visibility = Visibility.Visible;
+
+                    _infoWrapper.Token = token;
                 }
                 else
                 {
-                    MessageBox.Show($"An error occurred: {response.ReasonPhrase}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return false;
+                    MessageBox.Show("Invalid token. Please try again.");
                 }
-
             }
-            catch (Exception ex)
+            catch (Exception e) 
             {
-                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
+                MessageBox.Show("Internal error: " + e.ToString());
             }
+            
         }
+
 
 
         private void EnableButtons()

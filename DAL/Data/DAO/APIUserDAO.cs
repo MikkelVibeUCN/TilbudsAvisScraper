@@ -119,7 +119,7 @@ namespace DAL.Data.DAO
                         }
                         else
                         {
-                            return -1;
+                            return 1;
                         }
                     }
                 }
