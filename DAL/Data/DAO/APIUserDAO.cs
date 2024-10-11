@@ -22,13 +22,8 @@ namespace DAL.Data.DAO
         private const string APIUserPermissionQuery = @"
             SELECT PermissionLevel FROM APIUser WHERE Token = @Token";
 
-        public async Task<int> Add(APIUser user, int permissionLevel)
+        public async Task<int> Add(APIUser user)
         {
-            if (permissionLevel >= 3)
-            {
-                throw new InsufficientTokenPermission("Access denied");
-            }
-
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
                 await connection.OpenAsync();
@@ -64,22 +59,39 @@ namespace DAL.Data.DAO
             throw new NotImplementedException();
         }
 
-        public Task Delete(int id, int permissionLevel)
+        public Task Delete(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<APIUser?> Get(int id, int permissionLevel)
+        public async Task<bool> DeleteAllWithSpecificRole(string role)
+        {
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand(DeleteFromTableQueryWhereCondition("APIUser", "Role"), connection))
+                {
+                    command.Parameters.AddWithValue("@Role", role);
+
+                    int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                    return rowsAffected > 0;
+                }
+            }
+        }
+
+        public Task<APIUser?> Get(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<APIUser>> GetAll(int permissionLevel)
+        public Task<List<APIUser>> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> Update(APIUser t, int permissionLevel)
+        public Task<bool> Update(APIUser apiUser)
         {
             throw new NotImplementedException();
         }
@@ -100,7 +112,7 @@ namespace DAL.Data.DAO
 
                         SqlDataReader reader = await command.ExecuteReaderAsync();
 
-                        if (reader.HasRows)
+                        if (await reader.ReadAsync())
                         {
                             int permissionLevel = reader.GetInt32(reader.GetOrdinal("PermissionLevel"));
                             return permissionLevel;

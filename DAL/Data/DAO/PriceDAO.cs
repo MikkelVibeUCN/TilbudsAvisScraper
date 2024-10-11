@@ -16,27 +16,27 @@ namespace DAL.Data.DAO
 
         private readonly string _addPriceQuery = "INSERT INTO Price (ProductId, Price, AvisId, CompareUnitString) " +
                         "VALUES (@ProductId, @Price, @AvisId, @CompareUnitString)";
-        public Task<int> Add(Price price, int permissionLevel)
+        public Task<int> Add(Price pricel)
         {
             throw new NotImplementedException();
         }
 
-        public Task Delete(int id, int permissionLevel)
+        public Task Delete(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Price?> Get(int id, int permissionLevel)
+        public Task<Price?> Get(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<Price>> GetAll(int permissionLevel)
+        public Task<List<Price>> GetAll()
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> Update(Price price, int permissionLevel)
+        public Task<bool> Update(Price pricel)
         {
             throw new NotImplementedException();
         }

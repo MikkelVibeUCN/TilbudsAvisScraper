@@ -9,6 +9,7 @@ namespace DAL.Data.Interfaces
 {
     public interface IAPIUserDAO : IDAO<APIUser>
     {
-        public Task<int> GetPermissionLevel(string token);
+        Task<int> GetPermissionLevel(string token);
+        Task<bool> DeleteAllWithSpecificRole(string role);
     }
 }
