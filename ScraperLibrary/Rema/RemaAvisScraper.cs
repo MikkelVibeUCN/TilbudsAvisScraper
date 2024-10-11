@@ -49,7 +49,7 @@ namespace ScraperLibrary.Rema
 
             var getDatesTask = GetAvisDates("https://rema1000.dk/avis", externalId);
             //var getPagesTask = Task.Run(() => GetPagesFromUrl(avisUrl));
-            var getProductsTask = _productScraper.GetAllProductsFromPage(/*progressCallback*/);
+            var getProductsTask = await _productScraper.GetAllProductsFromPage(/*progressCallback*/);
 
             return new Avis(externalId, getDatesTask.Result.Item1, getDatesTask.Result.Item2, new List<Page>(), getProductsTask.Result);
         }
