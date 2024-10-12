@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DesktopApplication"
         mc:Ignorable="d"
-        Title="ScrapeAviser" Height="450" Width="800" ResizeMode="CanResizeWithGrip">
+        Title="ScrapeAviser" Height="450" Width="550" ResizeMode="CanResizeWithGrip">
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -20,21 +20,20 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <!-- ComboBox for Grocers -->
+        <!-- ComboBox for Grocers (Aligned to the left) -->
         <ComboBox Name="GrocerComboBox" Grid.Column="0" Width="150" Margin="5" VerticalAlignment="Center"></ComboBox>
 
-        <!-- Start Button -->
-        <Button Name="StartButton" Content="Start" Grid.Column="1" Margin="5" VerticalAlignment="Center" Width="80" Click="StartButton_Click"/>
+        <!-- Start Button (Aligned to the right) -->
+        <Button Name="StartButton" Content="Start" Grid.Column="1" Margin="5" VerticalAlignment="Center" Width="80" Click="StartButton_Click" HorizontalAlignment="Right"/>
 
-        <!-- Start All Button -->
-        <Button Name="StartAllButton" Content="Start All" Grid.Column="2" Margin="5" VerticalAlignment="Center" Width="80" Click="StartAllButton_Click"/>
+        <!-- Start All Button (Aligned to the right) -->
+        <Button Name="StartAllButton" Content="Start All" Grid.Column="2" Margin="5" VerticalAlignment="Center" Width="80" Click="StartAllButton_Click" HorizontalAlignment="Right"/>
 
         <!-- Progress Queue DataGrid -->
         <DataGrid Name="ProgressGrid" Grid.Row="2" Grid.ColumnSpan="3" Margin="5" AutoGenerateColumns="False" CanUserAddRows="False">
             <DataGrid.Resources>
                 <Style TargetType="DataGridRow">
                     <Setter Property="Background" Value="White"/>
-                    <!-- Default background color -->
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsProcessing}" Value="True">
                             <Setter Property="Background" Value="LightGreen"/>
@@ -46,22 +45,31 @@
                 </Style>
             </DataGrid.Resources>
 
-
             <DataGrid.Columns>
                 <!-- Column for Grocer Name -->
-                <DataGridTextColumn Header="Grocer" Binding="{Binding GrocerName}" Width="*"/>
+                <DataGridTextColumn Header="Grocer" Binding="{Binding GrocerName}" Width="200" />
 
-                <!-- Column for Progress -->
-                <DataGridTextColumn Header="Progress" Binding="{Binding Progress}" Width="100"/>
-
-                <!-- Column for Remove Button -->
-                <DataGridTemplateColumn Header="Actions" Width="Auto">
+                <!-- View Button Column with fixed width and aligned to right -->
+                <DataGridTemplateColumn Header="" Width="100">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="Remove" Click="RemoveButton_Click" CommandParameter="{Binding}"/>
+                            <Button x:Name="ViewButton" Content="View" Click="ViewButton_Click" CommandParameter="{Binding}" Width="80" HorizontalAlignment="Center" VerticalAlignment="Stretch" IsEnabled="{Binding IsViewEnabled}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+
+                <!-- Remove Button Column with fixed width and aligned to right -->
+                <DataGridTemplateColumn Header="" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Remove" Click="RemoveButton_Click" CommandParameter="{Binding}" Width="80" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Column for Progress -->
+                <DataGridTextColumn Header="Progress" Binding="{Binding Progress}" Width="100"/>
+                
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

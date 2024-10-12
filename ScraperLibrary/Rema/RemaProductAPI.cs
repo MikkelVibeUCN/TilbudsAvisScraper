@@ -32,6 +32,7 @@ namespace ScraperLibrary.Rema
                 switch (name)
                 {
                     case "Energi":
+                        value = value.Replace(".", string.Empty);
                         energyKJ = float.Parse(value.Split(' ')[0]);
                         break;
                     case "Fedt":

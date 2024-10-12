@@ -17,7 +17,7 @@ namespace ScraperLibrary.Rema
 
         }
 
-        public async Task<List<Product>> GetAllProductsFromPage()
+        public async Task<List<Product>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token)
         {
             string result = await CallUrl(_remaProductPageUrl);
             int lengthOfResult = result.Length;
@@ -25,15 +25,22 @@ namespace ScraperLibrary.Rema
 
             int currentIndex = 0;
             bool reachedEnd = false;
-             while (!reachedEnd)
+            while (!reachedEnd)
             {
+                if(token.IsCancellationRequested)
+                {
+                    Debug.WriteLine("Cancel requested");
+
+                    token.ThrowIfCancellationRequested();
+                }
+
                 string startPattern = "product-grid-container\"";
                 string endPattern = "class=\"add-mobile-btn\"";
 
                 int startIndex = result.IndexOf(startPattern, currentIndex);
-                 int endIndex = int.MaxValue;
+                int endIndex = int.MaxValue;
 
-                //progressCallback((int)(((double)startIndex / lengthOfResult) * 100));
+                progressCallback((int)(((double)startIndex / lengthOfResult) * 100));
 
                 if (startIndex != -1 && endIndex != -1 && endIndex > startIndex)
                 {
@@ -60,7 +67,7 @@ namespace ScraperLibrary.Rema
                 {
                     reachedEnd = true;
                 }
-             }
+            }
             return products;
         }
 

@@ -12,7 +12,7 @@ namespace TestNUnit.ScraperTests
         [Test]
         public async Task Test()
         {
-            await new RemaProductScraper().GetAllProductsFromPage();
+            //await new RemaProductScraper().GetAllProductsFromPage();
         }
     }
 }

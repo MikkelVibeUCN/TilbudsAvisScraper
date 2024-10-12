@@ -12,7 +12,15 @@ namespace DesktopApplication
         public Queue<GrocerProgress> GrocerQueue { get; set; }
         private bool QueueIsProcessing = false;
         // List of all possible grocers
-        private readonly string[] allGrocers = { "Rema", "365 Discount", "Kvickly", "Netto" };
+        private readonly string[] allGrocers = { "Rema" };
+
+        private void PopulateComboBox()
+        {
+            foreach (var grocer in allGrocers)
+            {
+                GrocerComboBox.Items.Add(grocer);
+            }
+        }
 
         public ScrapeAviser()
         {
@@ -39,11 +47,21 @@ namespace DesktopApplication
             StartAllGrocers();
         }
 
-        private void PopulateComboBox()
+        private void ViewButton_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var grocer in allGrocers)
+            ViewAvis(sender);
+        }
+
+        private void ViewAvis(object sender)
+        {
+            var button = sender as Button;
+
+            var grocerProgress = button?.CommandParameter as GrocerProgress;
+            if (grocerProgress != null)
             {
-                GrocerComboBox.Items.Add(grocer);
+                this.IsEnabled = false;
+                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis);
+                avisDetailsWindow.Show();
             }
         }
 
@@ -65,12 +83,12 @@ namespace DesktopApplication
 
                 if (grocerInList == null)
                 {
-                    var newGrocerProgress = new GrocerProgress { GrocerName = selectedGrocer, Progress = "0%", IsProcessing = false};
+                    var newGrocerProgress = new GrocerProgress { GrocerName = selectedGrocer, Progress = "0%", IsProcessing = false, CancellationToken = new CancellationTokenSource()};
 
                     switch (newGrocerProgress.GrocerName)
                     {
                         case "Rema":
-                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeRemaAvis(progressCallback);
+                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeRemaAvis(progressCallback, newGrocerProgress.CancellationToken.Token);
                             break;
                         default:
                             break;
@@ -90,11 +108,10 @@ namespace DesktopApplication
         private async Task ProcessNextGrocer()
         {
             GrocerProgress grocerProgress = GrocerQueue.Dequeue();
-            await grocerProgress.Process(); 
-            GrocerProgressList.Remove(grocerProgress);
+            grocerProgress.avis = await grocerProgress.Process(); 
         }
 
-        private async Task ProcessQueue()
+        private async void ProcessQueue()
         {
             QueueIsProcessing = true;
             while (GrocerQueue.Count > 0)
@@ -111,18 +128,15 @@ namespace DesktopApplication
             }
         }
 
-        // Event handler for Remove button
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
         {
-            // Get the clicked button
             var button = sender as Button;
 
-            // Get the GrocerProgress object from the button's DataContext
             var grocerProgress = button?.CommandParameter as GrocerProgress;
 
             if (grocerProgress != null)
             {
-                // Remove the selected grocer progress from the collection
+                grocerProgress.CancellationToken.Cancel();
                 GrocerProgressList.Remove(grocerProgress);
             }
         }

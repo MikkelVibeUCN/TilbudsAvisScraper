@@ -41,17 +41,21 @@ namespace ScraperLibrary.Rema
             return url + "/" + await FindExternalAvisId(url) + "/1";
         }
 
-        public async Task<Avis> GetAvis(/*(Action<int> progressCallback*/)
+        public async Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token)
         {
             string avisUrl = await FindAvisUrl(_remaAvisPageUrl);
+            progressCallback(4);
 
             string externalId = await FindExternalAvisId(avisUrl);
+            progressCallback(6);
 
             var getDatesTask = GetAvisDates("https://rema1000.dk/avis", externalId);
+            progressCallback(12);
             //var getPagesTask = Task.Run(() => GetPagesFromUrl(avisUrl));
-            var getProductsTask = await _productScraper.GetAllProductsFromPage(/*progressCallback*/);
+            var getProductsTask = await _productScraper.GetAllProductsFromPage(progressCallback, token);
+            progressCallback(100);
 
-            return new Avis(externalId, getDatesTask.Result.Item1, getDatesTask.Result.Item2, new List<Page>(), getProductsTask.Result);
+            return new Avis(externalId, getDatesTask.Result.Item1, getDatesTask.Result.Item2, new List<Page>(), getProductsTask);
         }
 
         public string GetImageUrl(string input, int pageNumber)
