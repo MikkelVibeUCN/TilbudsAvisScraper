@@ -81,8 +81,7 @@ namespace DesktopApplication
             {
                 // Filter products based on the search term
                 var filtered = SelectedAvis.Products
-                    .Where(p => p.Name.IndexOf(SearchTerm, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                 p.Description.IndexOf(SearchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .Where(p => p.Name.IndexOf(SearchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
                     .ToList();
 
                 FilteredProducts = new ObservableCollection<Product>(filtered);

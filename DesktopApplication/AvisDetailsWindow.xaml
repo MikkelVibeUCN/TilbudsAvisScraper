@@ -5,8 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DesktopApplication"
         mc:Ignorable="d"
-        Title="Avis Details" Height="800
-" Width="800">
+        Title="Avis Details" Height="800" Width="800">
 
     <Grid Margin="10">
         <!-- Define rows for the grid -->
@@ -46,10 +45,9 @@
             <TextBox Width="200" Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
 
-
         <!-- Products List -->
         <GroupBox Grid.Row="2" Header="Products" Margin="0,10,0,10">
-            <DataGrid ItemsSource="{Binding SelectedAvis.Products}" AutoGenerateColumns="False" 
+            <DataGrid ItemsSource="{Binding FilteredProducts}" AutoGenerateColumns="False" 
                       SelectedItem="{Binding SelectedProduct}" Height="150" Margin="0">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
@@ -81,5 +79,14 @@
                 <TextBlock Text="{Binding SelectedProduct.NutritionInfo}" TextWrapping="Wrap" Padding="5"/>
             </GroupBox>
         </Grid>
+
+        <!-- Save Button at the bottom right -->
+        <Button Content="Save"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Width="100"
+                Height="40"
+                Margin="0,10,10,10"
+                Click="btnSave_Click" />
     </Grid>
 </Window>

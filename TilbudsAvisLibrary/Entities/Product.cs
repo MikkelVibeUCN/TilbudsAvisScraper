@@ -12,11 +12,11 @@ namespace TilbudsAvisLibrary.Entities
         
         public string Description { get; set; }
         public int ExternalId { get; set; }
-        public float? Amount { get; set; } 
-        public NutritionInfo NutritionInfo { get; set; }
+        public float? Amount { get; set; }  
+        public NutritionInfo? NutritionInfo { get; set; }
 
         [JsonConstructor]
-        public Product(List<Price> prices, int? id, string name, string imageUrl, string description, int externalId, NutritionInfo nutritionInfo, float? amount)
+        public Product(List<Price> prices, int? id, string name, string imageUrl, string description, int externalId, NutritionInfo? nutritionInfo, float? amount)
         {
             Id = id;
             Name = name;

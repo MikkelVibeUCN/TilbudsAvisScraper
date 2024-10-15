@@ -1,4 +1,5 @@
-﻿using ScraperLibrary.Rema;
+﻿using ScraperLibrary._365_Discount;
+using ScraperLibrary.Rema;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,9 +23,16 @@ namespace DesktopApplication
             }
         }
 
-        public async Task<Avis> Scrape365Avis(Action<int> progressCallback)
+        public async Task<Avis?> Scrape365Avis(Action<int> progressCallback)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return await new _365AvisScraper().GetAvis(progressCallback, new CancellationToken());
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

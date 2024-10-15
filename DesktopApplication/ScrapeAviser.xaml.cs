@@ -8,11 +8,12 @@ namespace DesktopApplication
 {
     public partial class ScrapeAviser : Window
     {
+        private string Token;
         public ObservableCollection<GrocerProgress> GrocerProgressList { get; set; }
         public Queue<GrocerProgress> GrocerQueue { get; set; }
         private bool QueueIsProcessing = false;
         // List of all possible grocers
-        private readonly string[] allGrocers = { "Rema" };
+        private readonly string[] allGrocers = { "Rema", "365 Discount"};
 
         private void PopulateComboBox()
         {
@@ -22,7 +23,7 @@ namespace DesktopApplication
             }
         }
 
-        public ScrapeAviser()
+        public ScrapeAviser(string token)
         {
             InitializeComponent();
 
@@ -35,6 +36,8 @@ namespace DesktopApplication
             ProgressGrid.ItemsSource = GrocerProgressList;
 
             PopulateComboBox();
+
+            Token = token;
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
@@ -60,7 +63,7 @@ namespace DesktopApplication
             if (grocerProgress != null)
             {
                 this.IsEnabled = false;
-                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis);
+                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis, Token);
                 avisDetailsWindow.Show();
             }
         }
@@ -89,6 +92,9 @@ namespace DesktopApplication
                     {
                         case "Rema":
                             newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeRemaAvis(progressCallback, newGrocerProgress.CancellationToken.Token);
+                            break;
+                        case "365 Discount":
+                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().Scrape365Avis(progressCallback);
                             break;
                         default:
                             break;

@@ -1,4 +1,6 @@
-﻿namespace ScraperLibrary.Interfaces
+﻿using TilbudsAvisLibrary.Entities;
+
+namespace ScraperLibrary.Interfaces
 {
     public interface IAvisScraper
     {
@@ -7,5 +9,7 @@
         string GetImageUrl(string input, int pageNumber);
 
         Task DownloadAllPagesAsImages(string url);
+
+        Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token);
     }
 }

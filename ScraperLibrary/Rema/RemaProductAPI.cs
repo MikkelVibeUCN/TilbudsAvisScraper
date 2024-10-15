@@ -13,7 +13,7 @@ namespace ScraperLibrary.Rema
 {
     public abstract class RemaProductAPI : Scraper
     {
-        public NutritionInfo? GetNutritionalInfo(dynamic jsonResponse)
+        public static NutritionInfo? GetNutritionalInfo(dynamic jsonResponse)
         {
             float energyKJ = 0, fat = 0, saturatedFat = 0, carbohydrates = 0, sugars = 0, fiber = 0, protein = 0, salt = 0;
 
@@ -65,7 +65,7 @@ namespace ScraperLibrary.Rema
             return new NutritionInfo(energyKJ, fat, carbohydrates, sugars, fiber, protein, salt);
         }
 
-        public float GetAmountInProduct(string description, List<Price> pricesAssosiated)
+        public static float GetAmountInProduct(string description, List<Price> pricesAssosiated)
         {
             var firstPart = description.Split('/')[0].Replace(" ", string.Empty);
 
@@ -127,17 +127,17 @@ namespace ScraperLibrary.Rema
             }
         }
 
-        public string GetNameOfProduct(dynamic jsonResponse)
+        public static string GetNameOfProduct(dynamic jsonResponse)
         {
             return jsonResponse.GetProperty("data").GetProperty("name").GetString();
         }
 
-        public string GetDescriptionOfProduct(dynamic jsonResponse)
+        public static string GetDescriptionOfProduct(dynamic jsonResponse)
         {
             return jsonResponse.GetProperty("data").GetProperty("underline").GetString();
         }
 
-        public List<Price> GetPricesOfProduct(dynamic jsonResponse)
+        public static List<Price> GetPricesOfProduct(dynamic jsonResponse, string avisExternalId)
         {
             List<Price> prices = new List<Price>();
 
@@ -159,7 +159,7 @@ namespace ScraperLibrary.Rema
                 }
                 else
                 {
-                    prices.Add(new Price(priceValue, compareUnitString));
+                    prices.Add(new Price(priceValue, avisExternalId, compareUnitString));
                 }
             }
             return prices;

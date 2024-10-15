@@ -25,7 +25,7 @@ namespace TIlbudsAvisScraperAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddAvis(Avis avis, int companyId, string token)
+        public async Task<IActionResult> AddAvis([FromBody] Avis avis, [FromQuery] int companyId, [FromQuery] string token)
         {
             int permissionLevelRequired = 2;
             try

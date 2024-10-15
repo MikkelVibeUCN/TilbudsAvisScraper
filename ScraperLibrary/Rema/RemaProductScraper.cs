@@ -1,6 +1,7 @@
 ﻿using ScraperLibrary.Interfaces;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
@@ -17,7 +18,7 @@ namespace ScraperLibrary.Rema
 
         }
 
-        public async Task<List<Product>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token)
+        public async Task<List<Product>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId)
         {
             string result = await CallUrl(_remaProductPageUrl);
             int lengthOfResult = result.Length;
@@ -49,7 +50,7 @@ namespace ScraperLibrary.Rema
                     startIndex += startPattern.Length;
 
                     // Extract the product from the html
-                      Product product = await CreateProduct(result, startIndex, endIndex);
+                      Product product = await CreateProduct(result, startIndex, endIndex, avisExternalId);
 
                     if (product == null)
                     {
@@ -62,7 +63,14 @@ namespace ScraperLibrary.Rema
                     }
 
                     currentIndex = endIndex + endPattern.Length;
-                 }
+
+
+                    //// HARDCODED STOP FOR TESTING REMOVE FOR PROD
+                    //if(products.Count > 15)
+                    //{
+                    //    reachedEnd = true;
+                    //}
+                }
                 else
                 {
                     reachedEnd = true;
@@ -71,7 +79,7 @@ namespace ScraperLibrary.Rema
             return products;
         }
 
-        private async Task<Product> CreateProduct(string result, int startIndex, int endIndex)
+        private async Task<Product> CreateProduct(string result, int startIndex, int endIndex, string avisExternalId)
         {
             string productHtml = result.Substring(startIndex, endIndex - startIndex);
 
@@ -84,7 +92,7 @@ namespace ScraperLibrary.Rema
                 {
                     var productJson = await GetProductJson(externalProductId);
                     string description = GetDescriptionOfProduct(productJson);
-                    List<Price> prices = GetPricesOfProduct(productJson);
+                    List<Price> prices = GetPricesOfProduct(productJson, avisExternalId);
 
                     return new Product(prices,
                         null,
@@ -98,6 +106,7 @@ namespace ScraperLibrary.Rema
                 }
                 catch (Exception e)
                 {
+                    Debug.WriteLine(e);
                     retryCount++;
                     Debug.WriteLine("Failed");
                     await Task.Delay(7500);

@@ -22,10 +22,10 @@ namespace DesktopApplication
         private async Task SubmitToken()
         {
             // Hardcoded for testing replace
-            EnableButtons();
-            tokenInput.Visibility = Visibility.Collapsed;
-            buttonGrid.Visibility = Visibility.Visible;
-            return;
+            //EnableButtons();
+            //tokenInput.Visibility = Visibility.Collapsed;
+            //buttonGrid.Visibility = Visibility.Visible;
+            //return;
 
 
             string token = tokenInput.Text;
@@ -79,7 +79,7 @@ namespace DesktopApplication
         private void btnClick_Scrape(object sender, RoutedEventArgs e)
         {
             this.IsEnabled = false;
-            ScrapeAviser scrapeWindow = new ScrapeAviser();
+            ScrapeAviser scrapeWindow = new ScrapeAviser(Token);
             scrapeWindow.Show();
         }
         private void btnClick_UpdateProducts(object sender, RoutedEventArgs e)

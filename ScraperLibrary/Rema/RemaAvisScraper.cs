@@ -22,7 +22,10 @@ namespace ScraperLibrary.Rema
         {
             var response = await CallUrl(url);
 
-            string rarePatternAssosiatedWithComingAvis = "grid grid-cols-2";
+            File.WriteAllText("resultNoKommende.html", response);
+
+
+            string rarePatternAssosiatedWithComingAvis = "Kommende";
             string avisPattern = "a href=\"/avis/";
 
             if (response.Contains(rarePatternAssosiatedWithComingAvis))
@@ -52,7 +55,7 @@ namespace ScraperLibrary.Rema
             var getDatesTask = GetAvisDates("https://rema1000.dk/avis", externalId);
             progressCallback(12);
             //var getPagesTask = Task.Run(() => GetPagesFromUrl(avisUrl));
-            var getProductsTask = await _productScraper.GetAllProductsFromPage(progressCallback, token);
+            var getProductsTask = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalId);
             progressCallback(100);
 
             return new Avis(externalId, getDatesTask.Result.Item1, getDatesTask.Result.Item2, new List<Page>(), getProductsTask);
