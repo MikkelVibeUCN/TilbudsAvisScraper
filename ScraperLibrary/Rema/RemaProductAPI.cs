@@ -69,7 +69,7 @@ namespace ScraperLibrary.Rema
         {
             var firstPart = description.Split('/')[0].Replace(" ", string.Empty);
 
-            string[] units = { "GR.", "STK.", "KG.", "ML.", "CL.", "LTR." };
+            string[] units = { "GR.", "STK.", "KG.", "ML.", "CL.", "LTR.", "BAKKE" };
             string unitOfMeasurement = "";
 
 
@@ -109,6 +109,8 @@ namespace ScraperLibrary.Rema
                         }
                         return amount;
                     case "stk":
+                        return amount;
+                    case "bakke":
                         return amount;
                     default:
                         throw new Exception($"Unit of measurement {comparableUnitString} is not supported in GetAmountInProduct");
