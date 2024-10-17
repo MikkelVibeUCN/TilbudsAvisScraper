@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Entities;
+using TilbudsAvisLibrary.Exceptions;
 
 namespace ScraperLibrary._365_Discount
 {
@@ -35,7 +36,7 @@ namespace ScraperLibrary._365_Discount
             string externalAvisId = await FindAvisUrl(AvisUrl);
 
             List<Product> products = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalAvisId);
-
+            
             throw new NotImplementedException();
         }
 

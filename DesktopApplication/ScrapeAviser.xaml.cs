@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using TilbudsAvisLibrary.Exceptions;
 
 namespace DesktopApplication
 {
@@ -94,7 +95,7 @@ namespace DesktopApplication
                             newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeRemaAvis(progressCallback, newGrocerProgress.CancellationToken.Token);
                             break;
                         case "365 Discount":
-                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().Scrape365Avis(progressCallback);
+                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().Scrape365Avis(progressCallback, newGrocerProgress.CancellationToken.Token);
                             break;
                         default:
                             break;
@@ -113,8 +114,17 @@ namespace DesktopApplication
 
         private async Task ProcessNextGrocer()
         {
-            GrocerProgress grocerProgress = GrocerQueue.Dequeue();
-            grocerProgress.avis = await grocerProgress.Process(); 
+            try
+            {
+                GrocerProgress grocerProgress = GrocerQueue.Dequeue();
+                grocerProgress.avis = await grocerProgress.Process();
+            }
+            catch (CannotReachWebsiteException e)
+            {
+
+
+            }
+            
         }
 
         private async void ProcessQueue()
@@ -142,9 +152,14 @@ namespace DesktopApplication
 
             if (grocerProgress != null)
             {
-                grocerProgress.CancellationToken.Cancel();
-                GrocerProgressList.Remove(grocerProgress);
+                CancelProgress(grocerProgress);
             }
+        }
+
+        private void CancelProgress(GrocerProgress grocerProgress)
+        {
+            grocerProgress.CancellationToken.Cancel();
+            GrocerProgressList.Remove(grocerProgress);
         }
     }
 }
