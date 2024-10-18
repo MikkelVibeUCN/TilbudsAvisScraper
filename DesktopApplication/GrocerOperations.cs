@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Entities;
+using TilbudsAvisLibrary.Exceptions;
 
 namespace DesktopApplication
 {
@@ -23,11 +24,15 @@ namespace DesktopApplication
             }
         }
 
-        public async Task<Avis?> Scrape365Avis(Action<int> progressCallback)
+        public async Task<Avis?> Scrape365Avis(Action<int> progressCallback, CancellationToken token)
         {
             try
             {
-                return await new _365AvisScraper().GetAvis(progressCallback, new CancellationToken());
+                return await new _365AvisScraper().GetAvis(progressCallback, token);
+            }
+            catch (CannotReachWebsiteException e)
+            {
+                throw e;
             }
             catch
             {
