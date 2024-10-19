@@ -27,7 +27,7 @@ namespace APIIntegrationLibrary
             var byteContent = new StringContent(content, Encoding.UTF8, "application/json");
 
             // Send the POST request
-            HttpResponseMessage response = await _httpClient.PostAsync($"https://localhost:7133/api/v1/Avis?companyId={1}&token={token}", byteContent);
+            HttpResponseMessage response = await _httpClient.PostAsync($"https://localhost:5001/api/v1/Avis?companyId={1}&token={token}", byteContent);
 
             if(response.IsSuccessStatusCode)
             {

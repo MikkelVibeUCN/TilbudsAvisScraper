@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestNUnit", "TestNUnit\Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesktopApplication", "DesktopApplication\DesktopApplication.csproj", "{4E72A440-2133-4368-A3C5-F405B965BD0F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APIIntegrationLibrary", "APIIntegrationLibrary\APIIntegrationLibrary.csproj", "{E6D9D2C8-A071-45A8-984B-88AEB3443D62}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APIIntegrationLibrary", "APIIntegrationLibrary\APIIntegrationLibrary.csproj", "{E6D9D2C8-A071-45A8-984B-88AEB3443D62}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{E584CA8A-4017-4ACE-B3D2-C9FE937E8B17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{E6D9D2C8-A071-45A8-984B-88AEB3443D62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E6D9D2C8-A071-45A8-984B-88AEB3443D62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E6D9D2C8-A071-45A8-984B-88AEB3443D62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E584CA8A-4017-4ACE-B3D2-C9FE937E8B17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E584CA8A-4017-4ACE-B3D2-C9FE937E8B17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E584CA8A-4017-4ACE-B3D2-C9FE937E8B17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E584CA8A-4017-4ACE-B3D2-C9FE937E8B17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

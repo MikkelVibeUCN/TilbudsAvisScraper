@@ -11,7 +11,7 @@ namespace APIIntegrationLibrary
             try
             {
                 // Call the API to validate the token
-                HttpResponseMessage response = await _httpClient.GetAsync($"https://localhost:7133/api/v1/APIUser?token={token}&permissionLevel={permissionLevel}");
+                HttpResponseMessage response = await _httpClient.GetAsync($"https://localhost:5001/api/v1/APIUser?token={token}&permissionLevel={permissionLevel}");
 
                 if (response.IsSuccessStatusCode)
                 {

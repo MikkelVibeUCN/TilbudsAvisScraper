@@ -36,7 +36,9 @@
         "ASPNETCORE_HTTPS_PORTS": "8081",
         "ASPNETCORE_HTTP_PORTS": "8080"
       },
-      "publishAllPorts": true,
+      "publishAllPorts": false,
+      "httpPort": 5000,
+      "httpsPort": 5001,
       "useSSL": true
     }
   },
@@ -46,7 +48,7 @@
     "anonymousAuthentication": true,
     "iisExpress": {
       "applicationUrl": "http://localhost:28480",
-      "sslPort": 44332
+      "sslPort": 5001
     }
   }
 }

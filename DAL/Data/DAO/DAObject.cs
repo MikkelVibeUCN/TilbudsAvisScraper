@@ -16,11 +16,10 @@ namespace DAL.Data.DAO
 
         public DAObject()
         {
-            string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            string filePath = Path.Combine(userProfile, "source", "repos", "TilbudsAvisScraper", "databaselogin.txt");
-
+            string filePath = "/src/databaselogin.txt";
             ConnectionString = File.ReadAllText(filePath);
         }
+
         protected string GetAllFromTableQueryOnCondition(string tableName, string identifer)
         {
             return $"SELECT * FROM {tableName} where {identifer} = @{identifer};";
@@ -30,8 +29,5 @@ namespace DAL.Data.DAO
         {
             return $"DELETE FROM {tableName} WHERE {identifier} = @{identifier};";
         }
-        
-
-        
     }
 }

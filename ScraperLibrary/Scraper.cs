@@ -42,12 +42,12 @@ namespace ScraperLibrary
                 return content;
             }
         }
-        protected static dynamic GetInformationFromHtml<T>(string html, string searchPattern, string startSearchKey, string endSearchKey)
+        protected static dynamic GetInformationFromHtml<T>(string html, string searchPattern, string startSearchKey, string endSearchKey, int startIndexModifier = 0)
         {
             int startIndex = html.IndexOf(searchPattern);
             if (startIndex != -1 && html.Contains(startSearchKey))
             {
-                startIndex = html.IndexOf(startSearchKey, startIndex) + startSearchKey.Length; // Move past the startSearchKey
+                startIndex = html.IndexOf(startSearchKey, startIndex) + startSearchKey.Length + startIndexModifier; // Move past the startSearchKey
                 int endIndex = html.IndexOf(endSearchKey, startIndex); // Find the closing tag
                 string information = html.Substring(startIndex, endIndex - startIndex).Trim();
                 if (typeof(T) == typeof(float)) { return float.Parse(information); }

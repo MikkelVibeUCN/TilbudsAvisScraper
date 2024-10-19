@@ -1,0 +1,21 @@
+services:
+  tilbudsavisscraperapi:
+    image: ${DOCKER_REGISTRY-}tilbudsavisscraperapi
+    build:
+      context: .
+      dockerfile: TIlbudsAvisScraperAPI/Dockerfile
+    ports:
+      - "8080:8080"  # Map port 8080 (host) to 8080 (container) for HTTP
+      - "8081:8081"  # Map port 8081 (host) to 8081 (container) for HTTPS
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"  # Set the environment
+      ASPNETCORE_HTTP_PORTS: "5000"          # Configure HTTP ports
+      ASPNETCORE_HTTPS_PORTS: "5001"         # Configure HTTPS ports
+    volumes:
+      - .:/app  # Mount the current directory to /app in the container
+    networks:
+      - my-dotnet-api-network  # Use a specific network
+
+networks:
+  my-dotnet-api-network:
+    driver: bridge  # Use the default bridge network

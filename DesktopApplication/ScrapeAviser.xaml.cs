@@ -114,17 +114,16 @@ namespace DesktopApplication
 
         private async Task ProcessNextGrocer()
         {
+            GrocerProgress grocerProgress = GrocerQueue.Dequeue();
             try
             {
-                GrocerProgress grocerProgress = GrocerQueue.Dequeue();
                 grocerProgress.avis = await grocerProgress.Process();
             }
             catch (CannotReachWebsiteException e)
             {
-
-
+                CancelProgress(grocerProgress);
+                MessageBox.Show(e.Message);
             }
-            
         }
 
         private async void ProcessQueue()
