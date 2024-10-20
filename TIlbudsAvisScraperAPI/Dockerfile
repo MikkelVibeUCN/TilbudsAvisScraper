@@ -15,7 +15,7 @@ WORKDIR /src
 COPY ["TIlbudsAvisScraperAPI/TIlbudsAvisScraperAPI.csproj", "TIlbudsAvisScraperAPI/"]
 COPY ["DAL/DAL.csproj", "DAL/"]
 COPY ["TilbudsAvisLibrary/TilbudsAvisLibrary.csproj", "TilbudsAvisLibrary/"]
-COPY ["databaselogin.txt"]  # Updated copy command
+COPY ["databaselogin.txt", "TIlbudsAvisScraperAPI/"]  # Updated copy command
 RUN dotnet restore "./TIlbudsAvisScraperAPI/TIlbudsAvisScraperAPI.csproj"
 COPY . .
 WORKDIR "/src/TIlbudsAvisScraperAPI"
