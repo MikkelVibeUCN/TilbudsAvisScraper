@@ -47,7 +47,7 @@ namespace ScraperLibrary
             int startIndex = html.IndexOf(searchPattern);
             if (startIndex != -1 && html.Contains(startSearchKey))
             {
-                startIndex = html.IndexOf(startSearchKey, startIndex) + startSearchKey.Length + startIndexModifier; // Move past the startSearchKey
+                startIndex = html.IndexOf(startSearchKey, startIndex + startIndexModifier) + startSearchKey.Length; // Move past the startSearchKey
                 int endIndex = html.IndexOf(endSearchKey, startIndex); // Find the closing tag
                 string information = html.Substring(startIndex, endIndex - startIndex).Trim();
                 if (typeof(T) == typeof(float)) { return float.Parse(information); }
