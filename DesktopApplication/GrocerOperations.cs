@@ -1,4 +1,5 @@
 ﻿using ScraperLibrary._365_Discount;
+using ScraperLibrary.COOP.Kvickly;
 using ScraperLibrary.Rema;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,22 @@ namespace DesktopApplication
             }
             catch (CannotReachWebsiteException e)
             {
+                throw e;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        public async Task<Avis?> ScrapeKvicklyAvis(Action<int> progressCallback, CancellationToken token)
+        {
+            try
+            {   
+                return await new KvicklyAvisScraper().GetAvis(progressCallback, token);
+            }
+            catch (CannotReachWebsiteException e)
+            {
+
                 throw e;
             }
             catch

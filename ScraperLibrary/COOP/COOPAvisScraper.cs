@@ -1,15 +1,39 @@
 ﻿using PuppeteerSharp;
+using ScraperLibrary.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TilbudsAvisLibrary.Entities;
 using TilbudsAvisLibrary.Exceptions;
 
 namespace ScraperLibrary.COOP
 {
-    public class COOPAvisScraper : Scraper
+    public abstract class COOPAvisScraper : Scraper, IAvisScraper
     {
+        public string AvisUrl { get; set; }
+        private IProductScraper _productScraper;
+        protected COOPAvisScraper(string avisUrl, IProductScraper productScraper)
+        {
+            this.AvisUrl = avisUrl;
+            _productScraper = productScraper;
+        }
+        public Task DownloadAllPagesAsImages(string url)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<string> FindAvisUrl(string url)
+        {
+            return await GetCurrentAvisExternalId(url);
+        }
+
+        public string GetImageUrl(string input, int pageNumber)
+        {
+            throw new NotImplementedException();
+        }
+
         protected async Task<string> GetCurrentAvisExternalId(string url, int timeoutMs = 10000)
         {
             try
@@ -55,7 +79,15 @@ namespace ScraperLibrary.COOP
             {
                 throw new CannotReachWebsiteException("Failed to get external avis id", e);
             }
+        }
 
+        public async Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token)
+        {
+            string externalAvisId = await FindAvisUrl(AvisUrl);
+
+            List<Product> products = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalAvisId);
+
+            throw new NotImplementedException();
         }
     }
 }

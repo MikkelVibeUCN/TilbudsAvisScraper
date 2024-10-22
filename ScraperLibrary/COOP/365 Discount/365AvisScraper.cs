@@ -13,36 +13,10 @@ using TilbudsAvisLibrary.Exceptions;
 
 namespace ScraperLibrary._365_Discount
 {
-    public class _365AvisScraper : COOPAvisScraper, IAvisScraper
+    public class _365AvisScraper : COOPAvisScraper
     {
-        private string AvisUrl = "https://365discount.coop.dk/365avis/";
-        private _365ProductScraper _productScraper;
-
-        public _365AvisScraper()
+        public _365AvisScraper() : base("https://365discount.coop.dk/365avis/", new _365ProductScraper())
         {
-            _productScraper = new _365ProductScraper();
-        }
-        public Task DownloadAllPagesAsImages(string url)
-        {
-            throw new NotImplementedException();
-        }
-        public async Task<string> FindAvisUrl(string url)
-        {
-            return await GetCurrentAvisExternalId(url);
-        }
-
-        public async Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token)
-        {
-            string externalAvisId = await FindAvisUrl(AvisUrl);
-
-            List<Product> products = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalAvisId);
-            
-            throw new NotImplementedException();
-        }
-
-        public string GetImageUrl(string input, int pageNumber)
-        {
-            throw new NotImplementedException();
         }
     }
 }

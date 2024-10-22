@@ -76,7 +76,8 @@ namespace ScraperLibrary
                 description = description.Remove(locationToTakeAverage - 1, 1);
                 description = description.Remove(locationToTakeAverage, 1);
 
-                locationToTakeAverage = description.IndexOf(searchChar);
+                locationToTakeAverage = description.IndexOf(searchChar, StringComparison.OrdinalIgnoreCase);
+                searchChar = description[locationToTakeAverage];
             }
 
             float firstNumber = GetValidNumber(locationToTakeAverage - 1, description, true);
@@ -86,7 +87,7 @@ namespace ScraperLibrary
             {
                 float result = operation(firstNumber, secondNumber);
 
-                description = description.Replace($"{firstNumber}-{secondNumber}", result.ToString());
+                description = description.Replace($"{firstNumber}{searchChar}{secondNumber.ToString().Replace('.', ',')}", result.ToString());
             }
             return description;
         }
@@ -115,6 +116,8 @@ namespace ScraperLibrary
             int start = isFirstNumber ? currentIndex + 1 : startIndex;
             string numberString = description.Substring(start, length);
 
+            numberString = numberString.Replace(',', '.');
+
             return float.Parse(numberString);
         }
 
@@ -130,7 +133,7 @@ namespace ScraperLibrary
 
         private static bool CheckCharIsValidNumber(char charToCheck)
         {
-            return float.TryParse(charToCheck.ToString(), out _) && charToCheck != ' ';
+            return (float.TryParse(charToCheck.ToString(), out _) && charToCheck != ' ') || charToCheck.Equals(',');
         }
     }
 }

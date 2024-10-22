@@ -14,7 +14,7 @@ namespace DesktopApplication
         public Queue<GrocerProgress> GrocerQueue { get; set; }
         private bool QueueIsProcessing = false;
         // List of all possible grocers
-        private readonly string[] allGrocers = { "Rema", "365 Discount"};
+        private readonly string[] allGrocers = { "Rema", "365 Discount", "Kvickly"};
 
         private void PopulateComboBox()
         {
@@ -98,6 +98,8 @@ namespace DesktopApplication
                             newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().Scrape365Avis(progressCallback, newGrocerProgress.CancellationToken.Token);
                             break;
                         default:
+                            case "Kvickly":
+                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeKvicklyAvis(progressCallback, newGrocerProgress.CancellationToken.Token);
                             break;
                     }
 
