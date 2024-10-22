@@ -30,9 +30,9 @@ namespace TestNUnit.ScraperTests
         }
 
         [Test]
-        public async Task GetAvisProductTest()
+        public async Task GetAvisProductsTest()
         {
-            
+            var response = await _365AvisScraper.GetAvis(null, CancellationToken.None);
         }
     }
 }

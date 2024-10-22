@@ -20,16 +20,8 @@ namespace ScraperLibrary.COOP._365_Discount
             List<Product> products = new List<Product>();
             List<string> productStrings = GetProductStrings(response);
 
-            File.WriteAllText("response.text", response);
-            //int i = 0;
-            //foreach (var productString in productStrings)
-            //{
-            //    string fileName = $"{productString.Length} count {i}.text";
-            //    Debug.WriteLine(fileName);
-            //    File.WriteAllText(fileName, productString);
-            //    i++;
-            //}
-            // TODO: ProductString seems to be double of the same product sometimes cant debug website is down
+            // File.WriteAllText("response.text", response);
+
             foreach (var productString in productStrings)
             {
                 //Product product = CreateProduct(productString);
@@ -70,12 +62,39 @@ namespace ScraperLibrary.COOP._365_Discount
 
         private string GetDescriptionFromHtml(string productInformation)
         {
+            // Mulige identifiers: cl, liter, stk, g, kg, ml, 
+            // > stk, altid gang to tal sammen hvis der er et x imellem to tal
+            // hvis der er - så tag gennemsnittet og brug det DONE
+            // Hvis der er / er der tale om to produkter og context er derfor nødtvendigt
+            // det ligner at hvis der står to produktnavne i navnefældet så står de i rækkefølge.
+            // Tå tjek hvor mange navne der er ved at lede efter "eller", hvis der ikke er nogen eller så gem to produkter en med hver mængde
+            // altid fjern "min" fra description DONE
+
             string searchString = "class=\"incito__view incito__text-view\">";
             int firstInformationIndex = productInformation.IndexOf(searchString);
             string description = "";
             try
             {
-                description = GetInformationFromHtml<string>(productInformation, "class=\"incito__view incito__text-view\"", ">", ".", firstInformationIndex);
+                description = GetInformationFromHtml<string>(productInformation, "class=\"incito__view incito__text-view\"", ">", "<", firstInformationIndex);
+
+                // remove min
+                description.Replace("Min.", string.Empty);
+
+                // Check if there is a "-" in the description
+                int locationToTakeAverage = description.IndexOf("-");
+                if(locationToTakeAverage != -1)
+                {
+                    // If there is update the estimates to averages
+                    description = ChangeEstimatesToAverage(description, locationToTakeAverage, '-');
+                }
+
+                // Check if there is a "x" in the description
+                int locationToTakeProduct = description.IndexOf("x");
+                if(locationToTakeProduct != -1)
+                {
+                    // If there is update multiply to one value
+                    description = ChangeMultiplyToOneValue(description, locationToTakeProduct, 'x');
+                }
             }
             catch
             {
@@ -83,6 +102,10 @@ namespace ScraperLibrary.COOP._365_Discount
             }
             return description;
         }
+
+        
+
+        
 
         private float GetPriceFromHtml(string productContainedHtml)
         {
@@ -120,16 +143,14 @@ namespace ScraperLibrary.COOP._365_Discount
 
         private List<string> GetProductStrings(string html)
         {
-            // Start looking for the coop-nav header to ensure we are within the correct section
             int currentIndex = html.IndexOf("<header id=\"coop-nav");
-            if (currentIndex == -1) throw new Exception("Error retrieving product string - cannot find the header id");
+            if (currentIndex == -1) throw new Exception("Error retrieving product strings - cannot find the header id");
 
             List<string> productStrings = new List<string>();
 
-            // Start looking for "data-role=\"offer\"" from the current index
             while (true)
             {
-                // Find the next occurrence of the offer block
+                // Find the next occurrence
                 int offerIndex = html.IndexOf("data-role=\"offer\"", currentIndex);
                 if (offerIndex == -1)
                 {
@@ -137,7 +158,6 @@ namespace ScraperLibrary.COOP._365_Discount
                     break;
                 }
 
-                // Now we need to find the starting <div that has the "data-role=\"offer\""
                 int startingDivIndex = html.LastIndexOf("<div", offerIndex);
                 if (startingDivIndex == -1)
                 {
@@ -156,11 +176,8 @@ namespace ScraperLibrary.COOP._365_Discount
                 // Move current index past this product for the next iteration
                 currentIndex = startingDivIndex + productString.Length;
             }
-
             return productStrings;
         }
-
-
 
         private string GetOnlyProductString(string productString)
         {

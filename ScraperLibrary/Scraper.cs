@@ -1,4 +1,5 @@
 ﻿using PuppeteerSharp;
+using System.Diagnostics;
 
 namespace ScraperLibrary
 {
@@ -64,6 +65,72 @@ namespace ScraperLibrary
             DateTime convertedDateTime = DateTime.Parse(dateTime.ToString(newDateFormat), newDateFormat);
 
             return convertedDateTime;
+        }
+
+        // Changes any estimates in the string to their average. If the estimate check was faulty (fx sometimes they use "-" in kg-pris) it will just return the original string
+        private static string ChangeDescriptionAccordingToOperation(string description, int locationToTakeAverage, char searchChar, Func<float, float, float> operation)
+        {
+            // Remove empty strings before the numbers if they exist
+            if (description[locationToTakeAverage + 1].Equals(' ') && description[locationToTakeAverage - 1].Equals(' '))
+            {
+                description = description.Remove(locationToTakeAverage - 1, 1);
+                description = description.Remove(locationToTakeAverage, 1);
+
+                locationToTakeAverage = description.IndexOf(searchChar);
+            }
+
+            float firstNumber = GetValidNumber(locationToTakeAverage - 1, description, true);
+            float secondNumber = GetValidNumber(locationToTakeAverage + 1, description, false);
+
+            if (firstNumber != 0 && secondNumber != 0)
+            {
+                float result = operation(firstNumber, secondNumber);
+
+                description = description.Replace($"{firstNumber}-{secondNumber}", result.ToString());
+            }
+            return description;
+        }
+
+        protected static string ChangeMultiplyToOneValue(string description, int location, char searchChar)
+        {
+            return ChangeDescriptionAccordingToOperation(description, location, searchChar, (x, y) => x * y);
+        }
+
+        protected static string ChangeEstimatesToAverage(string description, int location, char searchChar)
+        {
+            return ChangeDescriptionAccordingToOperation(description, location, searchChar, (x, y) => (x + y) / 2);
+        }
+
+        private static float GetNumber(int startIndex, string description, bool isFirstNumber)
+        {
+            int length = 0;
+            int currentIndex = startIndex;
+
+            while (currentIndex >= 0 && currentIndex < description.Length && CheckCharIsValidNumber(description[currentIndex]))
+            {
+                length++;
+                currentIndex = isFirstNumber ? currentIndex - 1 : currentIndex + 1;
+            }
+
+            int start = isFirstNumber ? currentIndex + 1 : startIndex;
+            string numberString = description.Substring(start, length);
+
+            return float.Parse(numberString);
+        }
+
+        private static float GetValidNumber(int index, string description, bool isFirstNumber)
+        {
+            char currentChar = description[index];
+            if (CheckCharIsValidNumber(currentChar))
+            {
+                return GetNumber(index, description, isFirstNumber);
+            }
+            return 0;
+        }
+
+        private static bool CheckCharIsValidNumber(char charToCheck)
+        {
+            return float.TryParse(charToCheck.ToString(), out _) && charToCheck != ' ';
         }
     }
 }
