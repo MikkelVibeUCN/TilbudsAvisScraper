@@ -27,33 +27,91 @@ namespace ScraperLibrary.COOP
 
             foreach (var productString in productStrings)
             {
-                Product product = CreateProduct(productString);
-                products.Add(product);
-                //string productInformation = GetInformationFromHtml<string>(productString, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
-                //Debug.WriteLine(GetDescriptionFromHtml(productInformation));
+                //List<Product> innerProducts = CreateProducts(productString);
+                //foreach (var product in innerProducts)
+                //{
+                //    products.Add(product);
+                //}
+                string productInformation = GetInformationFromHtml<string>(productString, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
+                Debug.WriteLine("Name: " + GetNameFromHtml(productString));
+                Debug.WriteLine("Description: " + GetDescriptionFromHtml(productInformation));
             }
             return products;
         }
 
-        private Product CreateProduct(string productContainedHtml)
+        private List<Product> CreateProducts(string productContainedHtml)
         {
             string productInformation = GetInformationFromHtml<string>(productContainedHtml, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
 
             string name = GetNameFromHtml(productContainedHtml);
             string description = GetDescriptionFromHtml(productInformation);
+
+            string[] CompareUnitsInDescription = GetUnitsFromDescription(description);
+
             float price = GetPriceFromHtml(productContainedHtml);
-            string[] compareUnits = GetCompareUnitsFromDescription(description);
+
+            // This needs to run for every product
+            string compareUnit = GetCompareUnit(description);
+
+
             int externalId = GetExternalIdFromProductContainedHtml(productContainedHtml);
 
-            // TODO: implement when multiple products are bundles togetherw ith one price and split them up
+            // TODO: implement when multiple products are bundles together with one price and split them up
 
-            List<Price> prices = CreatePrices(productContainedHtml, compareUnit);
+            // If it has two of the samse compare units then its likely to have another product in the description
 
-            float amount = CalculateAmount(price, compareUnit, description);
 
-            return new Product(prices, null, name, "", description, -1, null, amount);
 
-            throw new NotImplementedException();
+            Debug.WriteLine(description);
+
+            return null;
+
+            //List<Price> prices = CreatePrices(productContainedHtml, compareUnit);
+            //
+            //float amount = CalculateAmount(price, compareUnit, description);
+            //
+            //return new Product(prices, null, name, "", description, -1, null, amount);
+            //
+            //throw new NotImplementedException();
+        }
+
+        private string[] GetUnitsFromDescription(string description)
+        {
+            string[] units = [];
+
+            string[] possibleUnitsToLookFor = { "g", "kg", "cl", "liter", "ml", "stk" };
+           
+
+            int startIndex = 0;
+            bool reachedEnd = false;
+            while(!reachedEnd)
+            {
+                foreach (var possibleUnit in possibleUnitsToLookFor)
+                {
+                    int index = description.IndexOf(possibleUnit, startIndex);
+                    if (index != -1)
+                    {
+                        if ((index == 0 || IsAllowedCharNextToUnit(description[index - 1] ) &&   IsAllowedCharNextToUnit(description[index + possibleUnit.Length]))
+                        {
+                            
+                        }
+                    }
+                }
+            }
+
+        }
+
+        private bool IsAllowedCharNextToUnit(char charAtLocation)
+        {
+            char[] allowedCharsNextToTheUnit = { '.', '/', ' ' };
+            foreach (var charToScan in allowedCharsNextToTheUnit)
+            {
+                if (charToScan.Equals(charAtLocation))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private string GetNameFromHtml(string productHtml)
@@ -62,6 +120,12 @@ namespace ScraperLibrary.COOP
             nameOfProduct.Replace("&nbsp;", " ");
             nameOfProduct.Replace("*", "");
             return nameOfProduct;
+        }
+
+        private bool NameHasMultipleProducts(string name)
+        {
+            return true;
+
         }
 
         private string GetDescriptionFromHtml(string productInformation)
@@ -115,19 +179,18 @@ namespace ScraperLibrary.COOP
             return GetInformationFromHtml<float>(productContainedHtml, ",-", ">", ",", -10);
         }
 
-        private string[] GetCompareUnitsFromDescription(string description)
+        private string GetCompareUnit(string stringToExtractFrom)
         {
-            string[] returnList = [];
             string[] possibleUnits = { "Stk-pris", "Kg-pris", "Literpris" };
             foreach (string unit in possibleUnits)
             {
-                if (description.Contains(unit))
+                if (stringToExtractFrom.Contains(unit))
                 {
                     string newString = unit.Replace("pris", "").Replace("-", "").Replace("iter", "").ToLower();
-                    returnList.Append(newString);
+                    return newString;
                 }
             }
-            return returnList;
+            return "";
         }
 
         private int GetExternalIdFromProductContainedHtml(string productContainedHtml)
