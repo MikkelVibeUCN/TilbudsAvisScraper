@@ -83,7 +83,7 @@ namespace ScraperLibrary.Rema
         {
             string productHtml = result.Substring(startIndex, endIndex - startIndex);
 
-            int externalProductId = GetExternalProductId(productHtml);
+            string externalProductId = GetExternalProductId(productHtml);
 
             int retryCount = 0;
             while (retryCount < 5)
@@ -93,6 +93,22 @@ namespace ScraperLibrary.Rema
                     var productJson = await GetProductJson(externalProductId);
                     string description = GetDescriptionOfProduct(productJson);
                     List<Price> prices = GetPricesOfProduct(productJson, avisExternalId);
+                    string[] units = { "GR.", "STK.", "KG.", "ML.", "CL.", "LTR.", "BAKKE" };
+
+                    var firstPart = description.Split('/')[0].Replace(" ", string.Empty);
+
+                    string unitOfMeasurement = "";
+
+                    foreach (string unit in units)
+                    {
+                        if (firstPart.Contains(unit))
+                        {
+                            unitOfMeasurement = unit;
+                        }
+                        firstPart = firstPart.Replace(unit, "");
+
+                    }
+                    float amountInProduct = (float)Math.Round(float.Parse(firstPart), 3);
 
                     return new Product(prices,
                         null,
@@ -101,7 +117,7 @@ namespace ScraperLibrary.Rema
                         description,
                         externalProductId,
                         GetNutritionalInfo(productJson),    
-                        GetAmountInProduct(description, prices)
+                        IProductScraper.GetAmountInProduct(amountInProduct, prices, unitOfMeasurement)
                         );
                 }
                 catch (Exception e)
@@ -123,9 +139,9 @@ namespace ScraperLibrary.Rema
             try { return GetInformationFromHtml<string>(productHtml, "product-grid-image", "src=\"", "\""); } catch { return ""; }
         }
 
-        private int GetExternalProductId(string productHtml)
+        private string GetExternalProductId(string productHtml)
         {
-            try { return GetInformationFromHtml<int>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/"); } catch { return -1; }
+            try { return GetInformationFromHtml<string>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/"); } catch { return ""; }
         }
 
     }

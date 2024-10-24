@@ -65,69 +65,7 @@ namespace ScraperLibrary.Rema
             return new NutritionInfo(energyKJ, fat, carbohydrates, sugars, fiber, protein, salt);
         }
 
-        public static float GetAmountInProduct(string description, List<Price> pricesAssosiated)
-        {
-            var firstPart = description.Split('/')[0].Replace(" ", string.Empty);
-
-            string[] units = { "GR.", "STK.", "KG.", "ML.", "CL.", "LTR.", "BAKKE" };
-            string unitOfMeasurement = "";
-
-
-            foreach (string unit in units)
-            {
-                if (firstPart.Contains(unit))
-                {
-                    unitOfMeasurement = unit;
-                }
-                firstPart = firstPart.Replace(unit, "");
-
-            }
-            float amount = (float)Math.Round(float.Parse(firstPart), 3);
-
-            foreach (Price price in pricesAssosiated)
-            {
-                // Get the unit of measurement from the price
-                // Convert the possible units to the format from the price
-                // Calculate the UnitPrice
-                string comparableUnitString = price.CompareUnitString;
-                switch (comparableUnitString)
-                {
-                    case "kg":
-                        if (unitOfMeasurement.Equals(units[0]))
-                        {
-                            return amount / 1000;
-                        }
-                        return amount;
-                    case "ltr":
-                        if (unitOfMeasurement.Equals(units[3]))
-                        {
-                            return amount / 1000;
-                        }
-                        else if (unitOfMeasurement.Equals(units[4]))
-                        {
-                            return amount / 100;
-                        }
-                        return amount;
-                    case "stk":
-                        return amount;
-                    case "bakke":
-                        return amount;
-                    default:
-                        throw new Exception($"Unit of measurement {comparableUnitString} is not supported in GetAmountInProduct");
-                }
-            }
-
-
-
-            if (float.TryParse(firstPart, out float result))
-            {
-                return result;
-            }
-            else
-            {
-                throw new Exception("Failed to parse float from underline string");
-            }
-        }
+        
 
         public static string GetNameOfProduct(dynamic jsonResponse)
         {
@@ -167,7 +105,7 @@ namespace ScraperLibrary.Rema
             return prices;
         }
 
-        public async Task<dynamic> GetProductJson(int externalId)
+        public async Task<dynamic> GetProductJson(string externalId)
         {
             await Task.Delay(new Random().Next(200, 300));
 

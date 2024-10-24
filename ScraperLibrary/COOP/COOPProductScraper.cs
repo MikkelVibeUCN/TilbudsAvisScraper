@@ -27,42 +27,95 @@ namespace ScraperLibrary.COOP
 
             foreach (var productString in productStrings)
             {
-                //List<Product> innerProducts = CreateProducts(productString);
+                List<Product> innerProducts = CreateProducts(productString);
                 //foreach (var product in innerProducts)
                 //{
                 //    products.Add(product);
                 //}
-                string productInformation = GetInformationFromHtml<string>(productString, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
-                Debug.WriteLine("Name: " + GetNameFromHtml(productString));
-                Debug.WriteLine("Description: " + GetDescriptionFromHtml(productInformation));
+                //string productInformation = GetInformationFromHtml<string>(productString, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
+                //Debug.WriteLine("Name: " + GetNameFromHtml(productString));
+                //string description = GetDescriptionFromHtml(productInformation);
+                //Debug.WriteLine("Description: " + description);
+                //string[] units = GetUnitsFromDescription(description);
+                //Debug.Write("Units found in description: ");
+                //foreach (var unit in units)
+                //{
+                //    Debug.Write(unit + ", ");
+                //}
+                //Debug.WriteLine("");
             }
             return products;
         }
 
-        private List<Product> CreateProducts(string productContainedHtml)
+        private static (Dictionary<string, int>, bool) CountStringOccurrencesAndCheck(string[] inputArray)
         {
+            Dictionary<string, int> stringCounts = new Dictionary<string, int>();
+            bool hasMoreThanTwo = false;
+
+            foreach (string value in inputArray)
+            {
+                // If the string already exists in the dictionary, increment the count
+                if (stringCounts.ContainsKey(value))
+                {
+                    stringCounts[value]++;
+                }
+                else
+                {
+                    stringCounts[value] = 1;
+                }
+
+                if (stringCounts[value] > 1)
+                {
+                    hasMoreThanTwo = true;
+                }
+            }
+            return (stringCounts, hasMoreThanTwo);
+        }
+
+
+
+        private static List<Product> CreateProducts(string productContainedHtml)
+        {
+            List< Product> products = new List< Product>();
+
             string productInformation = GetInformationFromHtml<string>(productContainedHtml, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
 
             string name = GetNameFromHtml(productContainedHtml);
             string description = GetDescriptionFromHtml(productInformation);
+            string imageUrl = GetImageUrlFromHtml(productContainedHtml);
 
             string[] CompareUnitsInDescription = GetUnitsFromDescription(description);
 
-            float price = GetPriceFromHtml(productContainedHtml);
+            List<Price> prices = CreatePrices(productContainedHtml, GetCompareUnit(description));
 
             // This needs to run for every product
-            string compareUnit = GetCompareUnit(description);
-
-
-            int externalId = GetExternalIdFromProductContainedHtml(productContainedHtml);
-
-            // TODO: implement when multiple products are bundles together with one price and split them up
+            string externalId = GetExternalIdFromProductContainedHtml(productContainedHtml);
 
             // If it has two of the samse compare units then its likely to have another product in the description
+            var (units, hasMoreThanTwo) = CountStringOccurrencesAndCheck(CompareUnitsInDescription);
+            if (hasMoreThanTwo)
+            {
+                Console.WriteLine("");
+                foreach (var unit in units)
+                {
+                    int amount = unit.Value;
+                    if (amount > 1)
+                    {
+                        for (int i = 0; i < amount; i++)
+                        {
+                            // Add product here
+                        }
+                    }
+                }
+            }
+            else
+            {
 
-
-
-            Debug.WriteLine(description);
+                Product product = new Product(prices, name, imageUrl, description, externalId, IProductScraper.GetAmountInProduct(description, prices, );
+                products.Add(product);
+            }
+            
+            
 
             return null;
 
@@ -75,46 +128,59 @@ namespace ScraperLibrary.COOP
             //throw new NotImplementedException();
         }
 
-        private string[] GetUnitsFromDescription(string description)
+        private static string GetImageUrlFromHtml(string productContainedHtml)
         {
-            string[] units = [];
+            string url = GetInformationFromHtml<string>(productContainedHtml, "data-bg=\"", "\"", "\"");
+            url.Replace("amp;", "");
+            return url;
+        }
+
+        private static string[] GetUnitsFromDescription(string description)
+        {
+            List<string> units = [];
 
             string[] possibleUnitsToLookFor = { "g", "kg", "cl", "liter", "ml", "stk" };
-           
 
-            int startIndex = 0;
-            bool reachedEnd = false;
-            while(!reachedEnd)
+
+            foreach (string unit in possibleUnitsToLookFor)
             {
-                foreach (var possibleUnit in possibleUnitsToLookFor)
+                // Search for the unit in the input string
+                int index = description.IndexOf(unit, StringComparison.OrdinalIgnoreCase);
+
+                // Continue searching for all occurrences of the unit
+                while (index != -1)
                 {
-                    int index = description.IndexOf(possibleUnit, startIndex);
-                    if (index != -1)
+                    // Check if the surrounding characters are valid
+                    if (IsValidUnitPosition(description, unit, index))
                     {
-                        if ((index == 0 || IsAllowedCharNextToUnit(description[index - 1] ) &&   IsAllowedCharNextToUnit(description[index + possibleUnit.Length]))
-                        {
-                            
-                        }
+                        units.Add(unit);
                     }
+
+                    // Continue searching for more occurrences of the unit
+                    index = description.IndexOf(unit, index + unit.Length, StringComparison.OrdinalIgnoreCase);
                 }
             }
-
+            return units.ToArray();
         }
 
-        private bool IsAllowedCharNextToUnit(char charAtLocation)
+        private static bool IsValidUnitPosition(string input, string unit, int index)
         {
-            char[] allowedCharsNextToTheUnit = { '.', '/', ' ' };
-            foreach (var charToScan in allowedCharsNextToTheUnit)
+            // Define valid surrounding characters (space, dot, numbers, or nothing)
+            char[] validSurroundings = { ' ', '.', '/', '\0' }; // Add any additional valid characters as needed
+
+            // Check the character before the unit
+            if (index > 0 && !Array.Exists(validSurroundings, c => c == input[index - 1]))
             {
-                if (charToScan.Equals(charAtLocation))
-                {
-                    return true;
-                }
+                return false;
             }
-            return false;
+
+            // Check the character after the unit and return the inverted condition
+            int endIndex = index + unit.Length;
+            return endIndex == input.Length || Array.Exists(validSurroundings, c => c == input[endIndex]);
         }
 
-        private string GetNameFromHtml(string productHtml)
+
+        private static string GetNameFromHtml(string productHtml)
         {
             string nameOfProduct = GetInformationFromHtml<string>(productHtml, "data-role=\"productInformation\"", "class=\"incito__view incito__text-view\">", "<");
             nameOfProduct.Replace("&nbsp;", " ");
@@ -122,13 +188,7 @@ namespace ScraperLibrary.COOP
             return nameOfProduct;
         }
 
-        private bool NameHasMultipleProducts(string name)
-        {
-            return true;
-
-        }
-
-        private string GetDescriptionFromHtml(string productInformation)
+        private static string GetDescriptionFromHtml(string productInformation)
         {
             // altid gang to tal sammen hvis der er et x imellem to tal DONE
             // hvis der er - så tag gennemsnittet og brug det DONE
@@ -150,7 +210,7 @@ namespace ScraperLibrary.COOP
             }
             catch
             {
-            
+
             }
             return RemoveUselessPartsOfDescription(description);
         }
@@ -162,10 +222,9 @@ namespace ScraperLibrary.COOP
                 description = processFunc(description, location, symbol);
             }
         }
-        private string RemoveUselessPartsOfDescription(string description)
+        private static string RemoveUselessPartsOfDescription(string description)
         {
             // remove min, formatting, "maks.", any double empty, " + pant."
-
             description = description.Replace("Min.", "").Replace("&nbsp;", " ").Replace("maks.", "").Replace("  ", " ").Replace(" + pant.", "");
             if (description.StartsWith(" "))
             {
@@ -174,12 +233,12 @@ namespace ScraperLibrary.COOP
             return description;
         }
 
-        private float GetPriceFromHtml(string productContainedHtml)
+        private static float GetPriceFromHtml(string productContainedHtml)
         {
             return GetInformationFromHtml<float>(productContainedHtml, ",-", ">", ",", -10);
         }
 
-        private string GetCompareUnit(string stringToExtractFrom)
+        private static string GetCompareUnit(string stringToExtractFrom)
         {
             string[] possibleUnits = { "Stk-pris", "Kg-pris", "Literpris" };
             foreach (string unit in possibleUnits)
@@ -193,9 +252,9 @@ namespace ScraperLibrary.COOP
             return "";
         }
 
-        private int GetExternalIdFromProductContainedHtml(string productContainedHtml)
+        private static string GetExternalIdFromProductContainedHtml(string productContainedHtml)
         {
-            return GetInformationFromHtml<int>(productContainedHtml, "data-id=", "\"", "\"");
+            return GetInformationFromHtml<string>(productContainedHtml, "data-id=", "\"", "\"");
         }
 
         private float CalculateAmount(float price, string compareUnit, string description)
@@ -203,7 +262,7 @@ namespace ScraperLibrary.COOP
             throw new NotImplementedException();
         }
 
-        private List<Price> CreatePrices(string productContainedHtml, string compareUnit)
+        private static List<Price> CreatePrices(string productContainedHtml, string compareUnit)
         {
             return new List<Price> { new Price(GetPriceFromHtml(productContainedHtml), compareUnit) };
         }
