@@ -31,6 +31,7 @@ namespace ScraperLibrary.Interfaces
                         return amountInProduct;
                     case "stk":
                     case "bakke":
+                    case "pk":
                         return amountInProduct;
                     default:
                         throw new Exception(productInUnit + " is not a valid unit");

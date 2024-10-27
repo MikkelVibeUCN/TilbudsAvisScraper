@@ -23,26 +23,18 @@ namespace ScraperLibrary.COOP
             List<Product> products = new List<Product>();
             List<string> productStrings = GetProductStrings(response);
 
-            // File.WriteAllText("response.text", response);
+            File.WriteAllText("response.text", response);
+
+            File.Delete("failedProductString.text");
 
             foreach (var productString in productStrings)
             {
-                List<Product> innerProducts = CreateProducts(productString);
-                //foreach (var product in innerProducts)
-                //{
-                //    products.Add(product);
-                //}
-                //string productInformation = GetInformationFromHtml<string>(productString, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
-                //Debug.WriteLine("Name: " + GetNameFromHtml(productString));
-                //string description = GetDescriptionFromHtml(productInformation);
-                //Debug.WriteLine("Description: " + description);
-                //string[] units = GetUnitsFromDescription(description);
-                //Debug.Write("Units found in description: ");
-                //foreach (var unit in units)
-                //{
-                //    Debug.Write(unit + ", ");
-                //}
-                //Debug.WriteLine("");
+                 List<Product>? innerProducts = CreateProducts(productString);
+
+                 if (innerProducts != null)
+                 {
+                    products.AddRange(innerProducts);
+                 }
             }
             return products;
         }
@@ -54,7 +46,6 @@ namespace ScraperLibrary.COOP
 
             foreach (string value in inputArray)
             {
-                // If the string already exists in the dictionary, increment the count
                 if (stringCounts.ContainsKey(value))
                 {
                     stringCounts[value]++;
@@ -74,7 +65,7 @@ namespace ScraperLibrary.COOP
 
 
 
-        private static List<Product> CreateProducts(string productContainedHtml)
+        private static List<Product>? CreateProducts(string productContainedHtml)
         {
             List< Product> products = new List< Product>();
 
@@ -86,16 +77,24 @@ namespace ScraperLibrary.COOP
 
             string[] CompareUnitsInDescription = GetUnitsFromDescription(description);
 
-            List<Price> prices = CreatePrices(productContainedHtml, GetCompareUnit(description));
+            List<Price>? prices = CreatePrices(productContainedHtml, GetCompareUnit(description));
+
+            if(prices == null)
+            {
+                // Ignore the produc if it has no prices or if they cant be found
+                return null;
+            }
 
             // This needs to run for every product
             string externalId = GetExternalIdFromProductContainedHtml(productContainedHtml);
+
+            //Debug.WriteLine(description);
 
             // If it has two of the samse compare units then its likely to have another product in the description
             var (units, hasMoreThanTwo) = CountStringOccurrencesAndCheck(CompareUnitsInDescription);
             if (hasMoreThanTwo)
             {
-                Console.WriteLine("");
+                Debug.WriteLine(description + " Is believed to have more than two");
                 foreach (var unit in units)
                 {
                     int amount = unit.Value;
@@ -104,15 +103,18 @@ namespace ScraperLibrary.COOP
                         for (int i = 0; i < amount; i++)
                         {
                             // Add product here
+                            Debug.WriteLine("yep it does");
                         }
                     }
                 }
             }
             else
             {
-
-                Product product = new Product(prices, name, imageUrl, description, externalId, IProductScraper.GetAmountInProduct(description, prices, );
-                products.Add(product);
+                //float amountOfProductInTheProduct = 
+                //
+                //
+                //Product product = new Product(prices, name, imageUrl, description, externalId, IProductScraper.GetAmountInProduct();
+                //products.Add(product);
             }
             
             
@@ -130,8 +132,8 @@ namespace ScraperLibrary.COOP
 
         private static string GetImageUrlFromHtml(string productContainedHtml)
         {
-            string url = GetInformationFromHtml<string>(productContainedHtml, "data-bg=\"", "\"", "\"");
-            url.Replace("amp;", "");
+            string url = GetInformationFromHtml<string>(productContainedHtml, "=\"https://image-transformer-api.tjek.com/", "\"", "\"");
+            url = url.Replace("amp;", "");
             return url;
         }
 
@@ -165,16 +167,13 @@ namespace ScraperLibrary.COOP
 
         private static bool IsValidUnitPosition(string input, string unit, int index)
         {
-            // Define valid surrounding characters (space, dot, numbers, or nothing)
-            char[] validSurroundings = { ' ', '.', '/', '\0' }; // Add any additional valid characters as needed
+            char[] validSurroundings = { ' ', '.', '/', '\0' }; 
 
-            // Check the character before the unit
             if (index > 0 && !Array.Exists(validSurroundings, c => c == input[index - 1]))
             {
                 return false;
             }
 
-            // Check the character after the unit and return the inverted condition
             int endIndex = index + unit.Length;
             return endIndex == input.Length || Array.Exists(validSurroundings, c => c == input[endIndex]);
         }
@@ -208,9 +207,9 @@ namespace ScraperLibrary.COOP
                 ProcessDescription(ref description, '-', ChangeEstimatesToAverage);
                 ProcessDescription(ref description, 'x', ChangeMultiplyToOneValue);
             }
-            catch
+            catch (Exception e)
             {
-
+                Debug.WriteLine(e.ToString());
             }
             return RemoveUselessPartsOfDescription(description);
         }
@@ -235,7 +234,7 @@ namespace ScraperLibrary.COOP
 
         private static float GetPriceFromHtml(string productContainedHtml)
         {
-            return GetInformationFromHtml<float>(productContainedHtml, ",-", ">", ",", -10);
+            try { return GetInformationFromHtml<float>(productContainedHtml, ",-", ">", ",", -10); } catch { return -1; }
         }
 
         private static string GetCompareUnit(string stringToExtractFrom)
@@ -262,9 +261,15 @@ namespace ScraperLibrary.COOP
             throw new NotImplementedException();
         }
 
-        private static List<Price> CreatePrices(string productContainedHtml, string compareUnit)
+        private static List<Price>? CreatePrices(string productContainedHtml, string compareUnit)
         {
-            return new List<Price> { new Price(GetPriceFromHtml(productContainedHtml), compareUnit) };
+            float price = GetPriceFromHtml(productContainedHtml);
+            if (price != -1)
+            {
+                return new List<Price> { new Price(price, compareUnit) };
+            }
+            else return null;
+            
         }
 
         private List<string> GetProductStrings(string html)
@@ -305,6 +310,7 @@ namespace ScraperLibrary.COOP
             return productStrings;
         }
 
+        // Find the index of the closing div and substrings to it
         private string GetOnlyProductString(string productString)
         {
             int currentIndex = 0;
@@ -340,7 +346,6 @@ namespace ScraperLibrary.COOP
                     return productString.Substring(0, latestClosingDiv);
                 }
             }
-
             throw new Exception("No valid div structure found");
         }
         private int GetIndexBackSearch(string html, int startPosition = 0)
@@ -352,6 +357,5 @@ namespace ScraperLibrary.COOP
             }
             return html.LastIndexOf("<div data-id=\"", startIndex);
         }
-
     }
 }

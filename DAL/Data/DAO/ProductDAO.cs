@@ -33,13 +33,13 @@ namespace DAL.Data.DAO
             this._priceDAO = priceDAO;
         }
 
-        public async Task<bool> DeleteNegativeExternalIds()
+        public async Task<bool> DeleteTestProducts()
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
                 await connection.OpenAsync();
 
-                using (SqlCommand command = new SqlCommand("delete from product where ExternalId < 0", connection))
+                using (SqlCommand command = new SqlCommand("delete from product where Name = 'Cool name'", connection))
                 {
                     int rowsAffected = await command.ExecuteNonQueryAsync();
 
@@ -70,7 +70,7 @@ namespace DAL.Data.DAO
             throw new NotImplementedException();
         }
 
-        public async Task<Product?> GetProductFromExernalId(int inputExternalId)
+        public async Task<Product?> GetProductFromExernalId(string inputExternalId)
         {
             try
             {
@@ -248,13 +248,13 @@ namespace DAL.Data.DAO
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     // Create a dictionary to map external IDs to products
-                    Dictionary<int, Product> productMap = products.ToDictionary(p => p.ExternalId);
+                    Dictionary<string, Product> productMap = products.ToDictionary(p => p.ExternalId);
 
                     // Read the inserted IDs and map them back to the products
                     while (await reader.ReadAsync())
                     {
                         int insertedId = reader.GetInt32(0);
-                        int externalId = reader.GetInt32(1);
+                        string externalId = reader.GetString(1);
 
                         // Map the inserted ID back to the original product
                         if (productMap.TryGetValue(externalId, out var product))
@@ -351,7 +351,7 @@ namespace DAL.Data.DAO
             string name = reader.GetString(reader.GetOrdinal("Name"));
             string description = reader.GetString(reader.GetOrdinal("Description"));
             string imageUrl = reader.GetString(reader.GetOrdinal("ImageUrl"));
-            int externalId = reader.GetInt32(reader.GetOrdinal("ExternalId"));
+            string externalId = reader.GetString(reader.GetOrdinal("ExternalId"));
             float? amount = reader.IsDBNull(reader.GetOrdinal("Amount")) ? null : (float)reader.GetDouble(reader.GetOrdinal("Amount"));
 
             List<Price> prices = await _priceDAO.GetPricesForProduct(productId);

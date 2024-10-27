@@ -93,20 +93,22 @@ namespace ScraperLibrary.Rema
                     var productJson = await GetProductJson(externalProductId);
                     string description = GetDescriptionOfProduct(productJson);
                     List<Price> prices = GetPricesOfProduct(productJson, avisExternalId);
-                    string[] units = { "GR.", "STK.", "KG.", "ML.", "CL.", "LTR.", "BAKKE" };
+                    string[] remaUnits = { "GR.", "STK.", "KG.", "ML.", "CL.", "LTR.", "BAKKE", "PK." };
+
+                    string[] standardUnits = ConvertUnitsToStandard(remaUnits);
+
 
                     var firstPart = description.Split('/')[0].Replace(" ", string.Empty);
 
                     string unitOfMeasurement = "";
 
-                    foreach (string unit in units)
+                    foreach (string unit in remaUnits)
                     {
                         if (firstPart.Contains(unit))
                         {
-                            unitOfMeasurement = unit;
+                            unitOfMeasurement = standardUnits[Array.IndexOf(remaUnits, unit)];
                         }
                         firstPart = firstPart.Replace(unit, "");
-
                     }
                     float amountInProduct = (float)Math.Round(float.Parse(firstPart), 3);
 
@@ -117,7 +119,7 @@ namespace ScraperLibrary.Rema
                         description,
                         externalProductId,
                         GetNutritionalInfo(productJson),    
-                        IProductScraper.GetAmountInProduct(amountInProduct, prices, unitOfMeasurement)
+                        IProductScraper.GetAmountInProduct(amountInProduct, unitOfMeasurement, prices)
                         );
                 }
                 catch (Exception e)

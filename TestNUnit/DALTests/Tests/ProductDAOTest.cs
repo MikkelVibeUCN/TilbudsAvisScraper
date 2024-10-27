@@ -52,7 +52,7 @@ namespace TestNUnit.DALTests.Tests
                     {
                         nutritionInfo = new(100, 20, 20, 20, 20, 20, 20);
                     }
-                    Product product = new Product(pricesInProduct, null, "Cool name", "url", "cool product", -i - 10, nutritionInfo, 5);
+                    Product product = new Product(pricesInProduct, "Cool name", "url", "Description yep", ((-i) - 10).ToString(), 0, nutritionInfo);
                     productsTestList.Add(product);
                 }
                 Avis baseAvis = new(avisBaseExternalId, DateTime.Now, DateTime.Now, new());
@@ -102,7 +102,7 @@ namespace TestNUnit.DALTests.Tests
                 prices.Add(new Price(20, avisBaseExternalId, "kg"));
                 prices.Add(new Price(30, avisExternalId, "kg"));
 
-                Product product = new(prices, null, "swag", "url", "sej produkt", -5000, new NutritionInfo(20, 20, 20, 20, 20, 20, 20), 5);
+                Product product = new(prices, "Cool name", "url", "sej produkt", "-100000", 5, new NutritionInfo(20, 20, 20, 20, 20, 20, 20));
                 productId = await _productDAO.Add(product, 3, baseAvisId, avisId, avisBaseExternalId);
             }
             catch (Exception e)
@@ -117,7 +117,7 @@ namespace TestNUnit.DALTests.Tests
         {
             try
             {
-                await _productDAO.DeleteNegativeExternalIds();
+                await _productDAO.DeleteTestProducts();
             }
             catch (Exception e)
             {
@@ -130,7 +130,7 @@ namespace TestNUnit.DALTests.Tests
         {
             try
             {
-                await _productDAO.DeleteNegativeExternalIds();
+                await _productDAO.DeleteTestProducts();
 
                 await _avisDAO.Delete(avisId);
                 await _avisDAO.Delete(baseAvisId);

@@ -135,5 +135,43 @@ namespace ScraperLibrary
         {
             return (float.TryParse(charToCheck.ToString(), out _) && charToCheck != ' ') || charToCheck.Equals(',');
         }
+
+        // Standard is kg, g, ml, cl, ltr, stk, bakke
+        protected static string[] ConvertUnitsToStandard(string[] unitsToConvert)
+        {
+            List<string> convertedUnits = new();
+
+            foreach (var unit in unitsToConvert)
+            {
+                switch (unit)
+                {
+                    case "GR.":
+                        convertedUnits.Add("g");
+                        break;
+                    case "KG.":
+                        convertedUnits.Add("kg");
+                        break;
+                    case "LTR.":
+                        convertedUnits.Add("ltr");
+                        break;
+                    case "ML.":
+                        convertedUnits.Add("ml");
+                        break;
+                    case "CL.":
+                        convertedUnits.Add("cl");
+                        break;
+                    case "BAKKE":
+                        convertedUnits.Add("bakke");
+                        break;
+                    case "STK.":
+                    case "PK.":
+                        convertedUnits.Add("stk");
+                        break;
+                    default:
+                        throw new Exception("Unit not recognized");
+                }
+            }
+            return convertedUnits.ToArray();
+        }
     }
 }
