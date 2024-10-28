@@ -34,7 +34,7 @@ namespace ScraperLibrary.Interfaces
                     case "pk":
                         return amountInProduct;
                     default:
-                        throw new Exception(productInUnit + " is not a valid unit");
+                        throw new Exception(price.CompareUnitString + " productinunit: " + productInUnit + " is not a valid unit");
                 }
             }
             throw new Exception("No prices");

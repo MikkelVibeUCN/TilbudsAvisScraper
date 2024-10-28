@@ -79,7 +79,7 @@ namespace ScraperLibrary.Rema
             return products;
         }
 
-        private async Task<Product> CreateProduct(string result, int startIndex, int endIndex, string avisExternalId)
+        private async Task<Product>? CreateProduct(string result, int startIndex, int endIndex, string avisExternalId)
         {
             string productHtml = result.Substring(startIndex, endIndex - startIndex);
 
@@ -133,7 +133,6 @@ namespace ScraperLibrary.Rema
             }
             Debug.WriteLine("Gave up too many attempts");
             return null;
-
         }
 
         private string GetProductUrlFromHtml(string productHtml)

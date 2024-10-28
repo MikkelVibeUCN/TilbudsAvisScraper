@@ -2,6 +2,7 @@
 using ScraperLibrary.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -84,10 +85,34 @@ namespace ScraperLibrary.COOP
         public async Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token)
         {
             string externalAvisId = await FindAvisUrl(AvisUrl);
+            progressCallback(23);
+
+            var getDatesTask = await GetAvisDates(AvisUrl, externalAvisId);
+            progressCallback(44);
 
             List<Product> products = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalAvisId);
+            progressCallback(100);
 
-            throw new NotImplementedException();
+            return new Avis(externalAvisId, getDatesTask.Item1, getDatesTask.Item2, new List<TilbudsAvisLibrary.Entities.Page>(), products);
+        }
+
+        private static async Task<(DateTime, DateTime)> GetAvisDates(string url, string externalAvisId)
+        {
+            IFormatProvider danishDateFormat = new CultureInfo("da-DK");
+            IFormatProvider americanDateFormat = new CultureInfo("en-US");
+
+            var response = await CallUrl(url, 5000);
+
+            File.WriteAllText("response.text", response);
+
+            string validFromTo = GetInformationFromHtml<string>(response, "Avisen gælder fra", "Avisen gælder fra ", "<");
+
+            string[] dates = validFromTo.Split("til");
+
+            DateTime validFrom = ConvertStringToDate(dates[0], danishDateFormat, americanDateFormat);
+            DateTime validTo = ConvertStringToDate(dates[1], danishDateFormat, americanDateFormat);
+
+            return (validFrom, validTo);
         }
     }
 }

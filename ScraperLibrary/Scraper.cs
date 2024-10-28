@@ -6,7 +6,7 @@ namespace ScraperLibrary
     public abstract class Scraper
     {
         protected HttpClient client = new HttpClient();
-        public static async Task<string> CallUrl(string fullUrl, int aditionalDelayMs = 0)
+        public static async Task<string> CallUrl(string fullUrl, int additionalDelayMs = 0)
         {
             // Download the browser if necessary
             await new BrowserFetcher().DownloadAsync();
@@ -36,7 +36,7 @@ namespace ScraperLibrary
 
                 await page.WaitForSelectorAsync("main");
 
-                await Task.Delay(500 + random.Next(500) + aditionalDelayMs);
+                await Task.Delay(500 + random.Next(500) + additionalDelayMs);
 
                 var content = await page.GetContentAsync();
 
@@ -97,7 +97,7 @@ namespace ScraperLibrary
             return ChangeDescriptionAccordingToOperation(description, location, searchChar, (x, y) => x * y);
         }
 
-        protected static string ChangeEstimatesToAverage(string description, int location, char searchChar)
+        protected static string ChangeEstimateToAverage(string description, int location, char searchChar)
         {
             return ChangeDescriptionAccordingToOperation(description, location, searchChar, (x, y) => (x + y) / 2);
         }
