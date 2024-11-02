@@ -13,6 +13,12 @@ public class GrocerProgress : INotifyPropertyChanged
     public CancellationTokenSource CancellationToken { get; set; }
 
     public string GrocerName { get; set; }
+    public int CompanyId { get; set; }
+
+    public GrocerProgress(int companyId)
+    {
+        CompanyId = companyId;
+    }
 
     public Avis avis { get; set; }
     public string Progress

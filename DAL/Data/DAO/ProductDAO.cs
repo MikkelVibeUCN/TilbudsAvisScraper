@@ -70,7 +70,7 @@ namespace DAL.Data.DAO
             throw new NotImplementedException();
         }
 
-        public async Task<Product?> GetProductFromExernalId(string inputExternalId)
+        public async Task<Product?> GetProductFromExernalIdAndCompanyId(string inputExternalId, int companyId)
         {
             try
             {
@@ -78,9 +78,10 @@ namespace DAL.Data.DAO
                 {
                     await connection.OpenAsync();
 
-                    using (SqlCommand command = new SqlCommand("SELECT * FROM Product WITH (NOLOCK) WHERE ExternalId = @ExternalId", connection))
+                    using (SqlCommand command = new SqlCommand("SELECT * FROM Product WITH (NOLOCK) WHERE ExternalId = @ExternalId AND CompanyId = @CompanyId", connection))
                     {
                         command.Parameters.AddWithValue("@ExternalId", inputExternalId);
+                        command.Parameters.AddWithValue("@ExternalId", companyId);
 
                         using (SqlDataReader reader = await command.ExecuteReaderAsync())
                         {
@@ -278,7 +279,7 @@ namespace DAL.Data.DAO
 
 
 
-        public async Task<List<Product>> AddProducts(List<Product> products, int baseAvisId, int avisId, string avisExternalId)
+        public async Task<List<Product>> AddProducts(List<Product> products, int baseAvisId, int avisId, string avisExternalId, int companyId)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
@@ -287,14 +288,14 @@ namespace DAL.Data.DAO
                 using (SqlTransaction transaction = connection.BeginTransaction())
                 {
                     BatchContext context = new(baseAvisId, avisId, avisExternalId);
-                    List<Product> addedProducts = await AddProducts(products, transaction, connection, baseAvisId, avisId, avisExternalId);
+                    List<Product> addedProducts = await AddProducts(products, transaction, connection, baseAvisId, avisId, avisExternalId, companyId);
                     transaction.Commit();
                     return addedProducts;
                 }
             }
         }
 
-        public async Task<List<Product>> AddProducts(List<Product> products, SqlTransaction transaction, SqlConnection connection, int baseAvisId, int avisId, string avisExternalId)
+        public async Task<List<Product>> AddProducts(List<Product> products, SqlTransaction transaction, SqlConnection connection, int baseAvisId, int avisId, string avisExternalId, int companyId)
         {
             // Use batch insert if there are more than 10 products
             if (products.Count() > 10)
@@ -307,7 +308,7 @@ namespace DAL.Data.DAO
 
             foreach (Product product in products)
             {
-                Product? checkProduct = await GetProductFromExernalId(product.ExternalId);
+                Product? checkProduct = await GetProductFromExernalIdAndCompanyId(product.ExternalId, companyId);
                 if (checkProduct == null)
                 {
                     try

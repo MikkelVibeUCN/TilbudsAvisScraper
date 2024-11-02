@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Entities;
@@ -70,13 +71,22 @@ namespace ScraperLibrary.COOP
 
         private static List<Product>? CreateProducts(string productContainedHtml)
         {
+
             List<Product> products = new List<Product>();
 
             string productInformation = GetInformationFromHtml<string>(productContainedHtml, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
 
-            string name = GetNameFromHtml(productContainedHtml);
+            string name = RemoveUselessPartsString(GetNameFromHtml(productContainedHtml));
+
+            if(name.Contains("Carlsberg eller Tuborg"))
+            {
+                Debug.WriteLine("BReak");
+            }
+
             string description = GetDescriptionFromHtml(productInformation);
             string imageUrl = GetImageUrlFromHtml(productContainedHtml);
+
+
 
             string[] compareUnitsInDescription = GetUnitsFromDescription(description);
 
@@ -84,16 +94,15 @@ namespace ScraperLibrary.COOP
 
             if (prices == null)
             {
-                // Ignore the produc if it has no prices or if they cant be found
+                // Ignore the product if it has no prices or if they cant be found
                 return null;
             }
 
-            // This needs to run for every product
             string externalId = GetExternalIdFromProductContainedHtml(productContainedHtml);
 
-            Debug.WriteLine(description);
+            // If it has two of the same compare units then its likely to have another product in the description.
+            // Next up is checking if it has two compare units that measure different things like ml and g
 
-            // If it has two of the same compare units then its likely to have another product in the description
             var (units, hasMoreThanTwo) = CountStringOccurrencesAndCheck(compareUnitsInDescription);
 
             if (hasMoreThanTwo)
@@ -127,9 +136,17 @@ namespace ScraperLibrary.COOP
                 {
                     // Check for edgecase where prices stored in half kilo has no unit except for the compare unit
                     // If it is found set amount to 0.5 
-                    if (prices[0].CompareUnitString == "kg")
+                    if (prices[0].CompareUnitString.Equals("kg"))
                     {
                         amount = 0.5f;
+                    }
+                    else if(prices[0].CompareUnitString.Equals("stk") || prices[0].CompareUnitString.Equals("bdt"))
+                    {
+                        amount = 1;
+                    }
+                    else
+                    {
+                        throw new Exception("No compare unit found in description: " + description);
                     }
                 }
                 else
@@ -157,18 +174,26 @@ namespace ScraperLibrary.COOP
             return 0;
         }
 
-        private static float GetAmountOfProductFromDescription(string description, int indexOffset = 0)
+        private static float GetAmountOfProductFromDescription(string description, int startIndex= 0)
         {
             // first try parse until a " " is found
             // Then go to the next / and parse to " " again
-            if(indexOffset != 0)
+            // Example 300 cl./627 cl.
+
+            int firstIndex = description.IndexOf(" ", startIndex);
+            if (firstIndex == -1)
             {
-                Debug.WriteLine("yep");
+                throw new Exception("Cant locate amount in the description: " + description);
             }
 
+            string firstPart = description.Substring(startIndex, firstIndex);
 
+            if (float.TryParse(firstPart, out float firstAmount))
+            {
+                return firstAmount;
+            }
+            throw new Exception("Cant parse amount: " + firstPart + " in the description: " + description);
 
-            return 0;
         }
 
         private static string GetImageUrlFromHtml(string productContainedHtml)
@@ -242,11 +267,6 @@ namespace ScraperLibrary.COOP
             {
                 description = GetInformationFromHtml<string>(productInformation, "class=\"incito__view incito__text-view\"", ">", "<", firstInformationIndex);
 
-                if(description.Contains("12 x 25 cl./18-20 x 33 cl")) 
-                {
-                    Debug.WriteLine("test");
-                }
-
                 // Check for "-" and "x" in the description
                 description = ProcessDescription(description, '-', ChangeEstimateToAverage);
                 description = ProcessDescription(description, 'x', ChangeMultiplyToOneValue);
@@ -255,7 +275,7 @@ namespace ScraperLibrary.COOP
             {
                 Debug.WriteLine(e.ToString());
             }
-            return RemoveUselessPartsOfDescription(description);
+            return RemoveUselessPartsString(description);
         }
 
         private static string ProcessDescription(string description, char symbol, Func<string, int, char, string> processFunc)
@@ -274,10 +294,10 @@ namespace ScraperLibrary.COOP
             return description;
         }
 
-        private static string RemoveUselessPartsOfDescription(string description)
+        private static string RemoveUselessPartsString(string description)
         {
             // remove min, formatting, "maks.", any double empty, " + pant."
-            description = description.Replace("Min.", "").Replace("&nbsp;", " ").Replace("maks.", "").Replace("  ", " ").Replace(" + pant.", "");
+            description = description.Replace("Min.", "").Replace("&nbsp;", " ").Replace("&amp;", "").Replace("maks.", "").Replace("  ", " ").Replace(" + pant.", "");
             if (description.StartsWith(" "))
             {
                 description = description.Substring(1);
@@ -292,12 +312,12 @@ namespace ScraperLibrary.COOP
 
         private static string GetCompareUnit(string stringToExtractFrom)
         {
-            string[] possibleUnits = { "Stk-pris", "Kg-pris", "Literpris" };
+            string[] possibleUnits = { "Stk-pris", "Kg-pris", "Literpris", "Bdt.-pris"};
             foreach (string unit in possibleUnits)
             {
                 if (stringToExtractFrom.Contains(unit))
                 {
-                    string newString = unit.Replace("pris", "").Replace("-", "").Replace("Liter", "ltr").ToLower();
+                    string newString = unit.Replace("pris", "").Replace(".-", "").Replace("-", "").Replace("Liter", "ltr").ToLower();
                     Debug.WriteLine(newString);
                     return newString;
                 }
@@ -364,7 +384,7 @@ namespace ScraperLibrary.COOP
             return productStrings;
         }
 
-        // Find the index of the closing div and substrings to it
+        // Find the index of the closing div and substring the product information
         private string GetOnlyProductString(string productString)
         {
             int currentIndex = 0;
@@ -391,7 +411,7 @@ namespace ScraperLibrary.COOP
                 }
                 else
                 {
-                    // No more div tags found
+                    // No div tags found
                     reachedEnd = true;
                 }
 

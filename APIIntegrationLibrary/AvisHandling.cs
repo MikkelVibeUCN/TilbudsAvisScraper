@@ -18,7 +18,7 @@ namespace APIIntegrationLibrary
             _remaAvisScraper = new RemaAvisScraper();
         }
 
-        public async Task<bool> SubmitAvis(Avis avis, string token)
+        public async Task<bool> SubmitAvis(Avis avis, int companyId, string token)
         {
             // Serialize the Avis object to JSON
             var content = JsonConvert.SerializeObject(avis);
@@ -26,8 +26,10 @@ namespace APIIntegrationLibrary
             // Use StringContent and specify the content type as application/json
             var byteContent = new StringContent(content, Encoding.UTF8, "application/json");
 
+            string postUrl = $"https://localhost:5001/api/v1/Avis?companyId={companyId}&token={token}";
+
             // Send the POST request
-            HttpResponseMessage response = await _httpClient.PostAsync($"https://localhost:5001/api/v1/Avis?companyId={1}&token={token}", byteContent);
+            HttpResponseMessage response = await _httpClient.PostAsync(postUrl, byteContent);
 
             if(response.IsSuccessStatusCode)
             {

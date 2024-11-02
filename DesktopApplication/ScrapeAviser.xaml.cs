@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,13 +15,20 @@ namespace DesktopApplication
         public Queue<GrocerProgress> GrocerQueue { get; set; }
         private bool QueueIsProcessing = false;
         // List of all possible grocers
-        private readonly string[] allGrocers = { "Rema", "365 Discount", "Kvickly"};
+        private readonly Dictionary<string, int> allGrocers = new Dictionary<string, int>
+        {
+            { "Rema", 1 },
+            { "365 Discount", 2 },
+            { "Kvickly", 3 },
+            {"SuperBrugsen", 4 },
+            {"Brugsen", 5 },
+        };
 
         private void PopulateComboBox()
         {
             foreach (var grocer in allGrocers)
             {
-                GrocerComboBox.Items.Add(grocer);
+                GrocerComboBox.Items.Add(grocer.Key);
             }
         }
 
@@ -61,10 +69,10 @@ namespace DesktopApplication
             var button = sender as Button;
 
             var grocerProgress = button?.CommandParameter as GrocerProgress;
+
             if (grocerProgress != null)
             {
-                this.IsEnabled = false;
-                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis, Token);
+                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis, Token, grocerProgress.CompanyId);
                 avisDetailsWindow.Show();
             }
         }
@@ -73,21 +81,23 @@ namespace DesktopApplication
         {
             if (GrocerComboBox.SelectedItem != null)
             {
-                var selectedGrocer = GrocerComboBox.SelectedItem.ToString();
-                AddGrocerToQueue(selectedGrocer);
-            }
+                string selectedGrocer = GrocerComboBox.SelectedItem.ToString();
 
+                var grocer = new KeyValuePair<string, int>(selectedGrocer, allGrocers[selectedGrocer]);
+
+                AddGrocerToQueue(grocer);
+            }
         }
 
-        private void AddGrocerToQueue(string selectedGrocer)
+        private void AddGrocerToQueue(KeyValuePair<string, int> selectedGrocer)
         {
-            if (selectedGrocer != string.Empty)
+            if (selectedGrocer.Key != string.Empty)
             {
-                var grocerInList = GrocerProgressList.FirstOrDefault(g => g.GrocerName == selectedGrocer);
+                var grocerInList = GrocerProgressList.FirstOrDefault(g => g.GrocerName == selectedGrocer.Key);
 
                 if (grocerInList == null)
                 {
-                    var newGrocerProgress = new GrocerProgress { GrocerName = selectedGrocer, Progress = "0%", IsProcessing = false, CancellationToken = new CancellationTokenSource()};
+                    var newGrocerProgress = new GrocerProgress(selectedGrocer.Value) { GrocerName = selectedGrocer.Key, Progress = "0%", IsProcessing = false, CancellationToken = new CancellationTokenSource()};
 
                     switch (newGrocerProgress.GrocerName)
                     {
@@ -97,9 +107,10 @@ namespace DesktopApplication
                         case "365 Discount":
                             newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().Scrape365Avis(progressCallback, newGrocerProgress.CancellationToken.Token);
                             break;
-                        default:
-                            case "Kvickly":
+                        case "Kvickly":
                             newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeKvicklyAvis(progressCallback, newGrocerProgress.CancellationToken.Token);
+                            break;
+                        default:
                             break;
                     }
 
@@ -162,5 +173,6 @@ namespace DesktopApplication
             grocerProgress.CancellationToken.Cancel();
             GrocerProgressList.Remove(grocerProgress);
         }
+
     }
 }

@@ -43,8 +43,16 @@ namespace ScraperLibrary
                 return content;
             }
         }
-        protected static dynamic GetInformationFromHtml<T>(string html, string searchPattern, string startSearchKey, string endSearchKey, int startIndexModifier = 0)
+        protected static dynamic GetInformationFromHtml<T>(string html, string searchPattern, string startSearchKey, string endSearchKey, int startIndexModifier = 0, bool ignoreCase = false)
         {
+            if(ignoreCase)
+            {
+                html = html.ToLower();
+                searchPattern = searchPattern.ToLower();
+                startSearchKey = startSearchKey.ToLower();
+                endSearchKey = endSearchKey.ToLower();
+            }
+
             int startIndex = html.IndexOf(searchPattern);
             if (startIndex != -1 && html.Contains(startSearchKey))
             {

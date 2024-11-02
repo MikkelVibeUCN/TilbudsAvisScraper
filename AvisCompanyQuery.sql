@@ -31,6 +31,11 @@ CREATE TABLE Product (
     Name VARCHAR(255), 
     Description VARCHAR(255), 
     ImageUrl VARCHAR(255)
+    Amount FLOAT,
+    CompanyId INT,
+    CONSTRAINT FK_Product_Company
+    FOREIGN KEY (CompanyId) REFERENCES Company(Id);
+    CONSTRAINT UQ_Product_ExternalId_CompanyId UNIQUE (ExternalId, CompanyId);
 );
 
 -- Create Price table with a foreign key to Product

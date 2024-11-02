@@ -101,11 +101,11 @@ namespace ScraperLibrary.COOP
             IFormatProvider danishDateFormat = new CultureInfo("da-DK");
             IFormatProvider americanDateFormat = new CultureInfo("en-US");
 
-            var response = await CallUrl(url, 5000);
+            var response = await CallUrl(url, 10000);
 
             File.WriteAllText("response.text", response);
 
-            string validFromTo = GetInformationFromHtml<string>(response, "Avisen gælder fra", "Avisen gælder fra ", "<");
+            string validFromTo = GetInformationFromHtml<string>(response, "avisen gælder fra", "avisen gælder fra ", "<", 0, true);
 
             string[] dates = validFromTo.Split("til");
 

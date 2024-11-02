@@ -12,7 +12,7 @@ namespace DesktopApplication
         private Product _selectedProduct;
         private string _searchTerm;
         private ObservableCollection<Product> _filteredProducts;
-
+        public int CompanyId;
         public Avis SelectedAvis
         {
             get { return _selectedAvis; }
@@ -63,8 +63,9 @@ namespace DesktopApplication
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public AvisDetailsViewModel(Avis avis)
+        public AvisDetailsViewModel(Avis avis, int companyId)
         {
+            CompanyId = companyId;
             SelectedAvis = avis;
             SelectedProduct = SelectedAvis.Products[0]; // Default selected product
             FilteredProducts = new ObservableCollection<Product>(SelectedAvis.Products); // Initialize filtered products

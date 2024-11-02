@@ -76,7 +76,7 @@ namespace TestNUnit.DALTests.Tests
         {
             try
             {
-                List<Product> productsWithIds = await _productDAO.AddProducts(productsTestList, baseAvisId, avisId, avisBaseExternalId);
+                List<Product> productsWithIds = await _productDAO.AddProducts(productsTestList, baseAvisId, avisId, avisBaseExternalId, 6);
 
                 foreach (var product in productsWithIds)
                 {
