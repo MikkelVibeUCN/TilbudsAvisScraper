@@ -82,7 +82,7 @@ namespace ScraperLibrary.COOP
             }
         }
 
-        public async Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token)
+        public async Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             string externalAvisId = await FindAvisUrl(AvisUrl);
             progressCallback(23);
@@ -90,7 +90,7 @@ namespace ScraperLibrary.COOP
             var getDatesTask = await GetAvisDates(AvisUrl, externalAvisId);
             progressCallback(44);
 
-            List<Product> products = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalAvisId);
+            List<Product> products = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalAvisId, companyId);
             progressCallback(100);
 
             return new Avis(externalAvisId, getDatesTask.Item1, getDatesTask.Item2, new List<TilbudsAvisLibrary.Entities.Page>(), products);

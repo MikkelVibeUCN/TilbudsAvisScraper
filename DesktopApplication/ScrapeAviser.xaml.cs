@@ -102,13 +102,13 @@ namespace DesktopApplication
                     switch (newGrocerProgress.GrocerName)
                     {
                         case "Rema":
-                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeRemaAvis(progressCallback, newGrocerProgress.CancellationToken.Token);
+                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeRemaAvis(progressCallback, newGrocerProgress.CancellationToken.Token, selectedGrocer.Value);
                             break;
                         case "365 Discount":
-                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().Scrape365Avis(progressCallback, newGrocerProgress.CancellationToken.Token);
+                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().Scrape365Avis(progressCallback, newGrocerProgress.CancellationToken.Token, selectedGrocer.Value);
                             break;
                         case "Kvickly":
-                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeKvicklyAvis(progressCallback, newGrocerProgress.CancellationToken.Token);
+                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeKvicklyAvis(progressCallback, newGrocerProgress.CancellationToken.Token, selectedGrocer.Value);
                             break;
                         default:
                             break;

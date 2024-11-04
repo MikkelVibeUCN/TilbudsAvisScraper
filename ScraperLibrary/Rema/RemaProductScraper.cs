@@ -18,7 +18,7 @@ namespace ScraperLibrary.Rema
 
         }
 
-        public async Task<List<Product>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId)
+        public async Task<List<Product>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId)
         {
             string result = await CallUrl(_remaProductPageUrl);
             int lengthOfResult = result.Length;
@@ -50,7 +50,7 @@ namespace ScraperLibrary.Rema
                     startIndex += startPattern.Length;
 
                     // Extract the product from the html
-                      Product product = await CreateProduct(result, startIndex, endIndex, avisExternalId);
+                    Product product = await CreateProduct(result, startIndex, endIndex, avisExternalId, companyId);
 
                     if (product == null)
                     {
@@ -79,7 +79,7 @@ namespace ScraperLibrary.Rema
             return products;
         }
 
-        private async Task<Product>? CreateProduct(string result, int startIndex, int endIndex, string avisExternalId)
+        private async Task<Product>? CreateProduct(string result, int startIndex, int endIndex, string avisExternalId, int companyId)
         {
             string productHtml = result.Substring(startIndex, endIndex - startIndex);
 
@@ -118,8 +118,9 @@ namespace ScraperLibrary.Rema
                         GetProductUrlFromHtml(productHtml),
                         description,
                         externalProductId,
-                        GetNutritionalInfo(productJson),    
-                        IProductScraper.GetAmountInProduct(amountInProduct, unitOfMeasurement, prices)
+                        GetNutritionalInfo(productJson),
+                        IProductScraper.GetAmountInProduct(amountInProduct, unitOfMeasurement, prices),
+                        companyId
                         );
                 }
                 catch (Exception e)

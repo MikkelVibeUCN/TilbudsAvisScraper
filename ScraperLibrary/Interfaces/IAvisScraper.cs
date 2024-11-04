@@ -10,6 +10,6 @@ namespace ScraperLibrary.Interfaces
 
         Task DownloadAllPagesAsImages(string url);
 
-        Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token);
+        Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId);
     }
 }

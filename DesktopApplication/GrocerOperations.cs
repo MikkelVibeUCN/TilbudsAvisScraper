@@ -13,11 +13,11 @@ namespace DesktopApplication
 {
     public class GrocerOperations
     {
-        public async Task<Avis?> ScrapeRemaAvis(Action<int> progressCallback, CancellationToken token)
+        public async Task<Avis?> ScrapeRemaAvis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             try
             {
-                return await new RemaAvisScraper().GetAvis(progressCallback, token);
+                return await new RemaAvisScraper().GetAvis(progressCallback, token, companyId);
             }
             catch
             {
@@ -25,11 +25,11 @@ namespace DesktopApplication
             }
         }
 
-        public async Task<Avis?> Scrape365Avis(Action<int> progressCallback, CancellationToken token)
+        public async Task<Avis?> Scrape365Avis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             try
             {
-                return await new _365AvisScraper().GetAvis(progressCallback, token);
+                return await new _365AvisScraper().GetAvis(progressCallback, token, companyId);
             }
             catch (CannotReachWebsiteException e)
             {
@@ -40,11 +40,11 @@ namespace DesktopApplication
                 return null;
             }
         }
-        public async Task<Avis?> ScrapeKvicklyAvis(Action<int> progressCallback, CancellationToken token)
+        public async Task<Avis?> ScrapeKvicklyAvis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             try
             {   
-                return await new KvicklyAvisScraper().GetAvis(progressCallback, token);
+                return await new KvicklyAvisScraper().GetAvis(progressCallback, token, companyId);
             }
             catch (CannotReachWebsiteException e)
             {

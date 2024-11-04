@@ -38,11 +38,11 @@ namespace TestNUnit.DALTests.Tests
                         Price price;
                         if (j == 0)
                         {
-                            price = new Price(i, avisBaseExternalId, compareUnitString);
+                            price = new Price(i, compareUnitString, avisBaseExternalId);
                         }
                         else
                         {
-                            price = new Price(i, avisExternalId, compareUnitString);
+                            price = new Price(i, compareUnitString, avisExternalId);
                         }
                         pricesInProduct.Add(price);
                     }
@@ -52,7 +52,7 @@ namespace TestNUnit.DALTests.Tests
                     {
                         nutritionInfo = new(100, 20, 20, 20, 20, 20, 20);
                     }
-                    Product product = new Product(pricesInProduct, "Cool name", "url", "Description yep", ((-i) - 10).ToString(), 0, nutritionInfo);
+                    Product product = new Product(pricesInProduct, "Cool name", "url", "Description yep", ((-i) - 10).ToString(), 0, 6, nutritionInfo);
                     productsTestList.Add(product);
                 }
                 Avis baseAvis = new(avisBaseExternalId, DateTime.Now, DateTime.Now, new());
@@ -65,8 +65,9 @@ namespace TestNUnit.DALTests.Tests
                 avis.SetId(avisId);
 
             }
-            catch
+            catch (Exception e)
             {
+                Assert.Fail(e.ToString());
                 Assert.Fail("Setup failed");
             }
         }
@@ -99,11 +100,11 @@ namespace TestNUnit.DALTests.Tests
             try
             {
                 List<Price> prices = new List<Price>();
-                prices.Add(new Price(20, avisBaseExternalId, "kg"));
-                prices.Add(new Price(30, avisExternalId, "kg"));
+                prices.Add(new Price(20, "kg", avisBaseExternalId));
+                prices.Add(new Price(30, "kg", avisExternalId));
 
-                Product product = new(prices, "Cool name", "url", "sej produkt", "-100000", 5, new NutritionInfo(20, 20, 20, 20, 20, 20, 20));
-                productId = await _productDAO.Add(product, 3, baseAvisId, avisId, avisBaseExternalId);
+                Product product = new(prices, "Cool name", "url", "sej produkt", "-100000", 5, 6, new NutritionInfo(20, 20, 20, 20, 20, 20, 20));
+                productId = await _productDAO.Add(product, baseAvisId, avisId, avisBaseExternalId, product.CompanyId);
             }
             catch (Exception e)
             {

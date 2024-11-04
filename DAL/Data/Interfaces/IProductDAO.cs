@@ -11,6 +11,6 @@ namespace DAL.Data.Interfaces
         Task<List<Product>> AddProducts(List<Product> products, int baseAvisId, int avisId, string externalAvisId, int companyId);
         Task<bool> DeleteOnExternalId(int externalId);
         Task<bool> DeleteTestProducts();
-        Task<int> Add(Product product, int permissionLevel, int baseAvisId, int avisId, string avisBaseExternalId);
+        Task<int> Add(Product product, int baseAvisId, int avisId, string avisBaseExternalId, int companyId);
     }
 }

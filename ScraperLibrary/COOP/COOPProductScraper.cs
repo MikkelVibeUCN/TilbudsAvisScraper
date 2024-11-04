@@ -18,7 +18,7 @@ namespace ScraperLibrary.COOP
             ProductsLocationUrl = productLocationsUrl;
         }
 
-        public async Task<List<Product>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId)
+        public async Task<List<Product>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId)
         {
             var response = await CallUrl(ProductsLocationUrl, 5000);
             List<Product> products = new List<Product>();
@@ -31,7 +31,7 @@ namespace ScraperLibrary.COOP
                 try
                 {
                     progressCallback((int)(((double)i / productStrings.Count) * 100));
-                    List<Product>? innerProducts = CreateProducts(productStrings[i]);
+                    List<Product>? innerProducts = CreateProducts(productStrings[i], companyId);
                     if (innerProducts != null)
                     {
                         products.AddRange(innerProducts);
@@ -69,7 +69,7 @@ namespace ScraperLibrary.COOP
             return (stringCounts, hasMoreThanTwo);
         }
 
-        private static List<Product>? CreateProducts(string productContainedHtml)
+        private static List<Product>? CreateProducts(string productContainedHtml, int companyId)
         {
 
             List<Product> products = new List<Product>();
@@ -122,7 +122,7 @@ namespace ScraperLibrary.COOP
 
                             float amount = IProductScraper.GetAmountInProduct(amountOfProductInTheProduct, unit.Key, prices);
 
-                            Product product = new Product(prices, name, imageUrl, description, externalId, amount);
+                            Product product = new Product(prices, name, imageUrl, description, externalId + "---" + i, amount, companyId);
                             products.Add(product);
                         }
                     }
@@ -158,7 +158,7 @@ namespace ScraperLibrary.COOP
                     amount = IProductScraper.GetAmountInProduct(amountOfProductInTheProduct, productInUnit, prices);
                 }
 
-                Product product = new Product(prices, name, imageUrl, description, externalId, amount);
+                Product product = new Product(prices, name, imageUrl, description, externalId, amount, companyId);
                 products.Add(product);
             }
             return products;

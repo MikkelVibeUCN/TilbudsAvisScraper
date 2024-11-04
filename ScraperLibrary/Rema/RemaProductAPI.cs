@@ -95,11 +95,11 @@ namespace ScraperLibrary.Rema
 
                 if (basePrice)
                 {
-                    prices.Add(new Price(priceValue, "base", compareUnitString));
+                    prices.Add(new Price(priceValue, compareUnitString, "base"));
                 }
                 else
                 {
-                    prices.Add(new Price(priceValue, avisExternalId, compareUnitString));
+                    prices.Add(new Price(priceValue, compareUnitString, avisExternalId));
                 }
             }
             return prices;

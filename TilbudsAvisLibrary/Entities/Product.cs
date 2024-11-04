@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Emgu.CV.CvEnum;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace TilbudsAvisLibrary.Entities
@@ -9,14 +10,14 @@ namespace TilbudsAvisLibrary.Entities
         public int? Id { get; private set; }
         public string Name { get; set; }
         public string ImageUrl { get; set; }
-        
         public string Description { get; set; }
         public string ExternalId { get; set; }
         public float? Amount { get; set; }  
+        public int CompanyId { get; set; }
         public NutritionInfo? NutritionInfo { get; set; }
 
         [JsonConstructor]
-        public Product(List<Price> prices, int? id, string name, string imageUrl, string description, string externalId, NutritionInfo? nutritionInfo, float? amount)
+        public Product(List<Price> prices, int? id, string name, string imageUrl, string description, string externalId, NutritionInfo? nutritionInfo, float? amount, int companyId)
         {
             Id = id;
             Name = name;
@@ -26,9 +27,10 @@ namespace TilbudsAvisLibrary.Entities
             Prices = prices;
             NutritionInfo = nutritionInfo;
             Amount = amount;
+            CompanyId = companyId;
         }
 
-        public Product(List<Price> prices, string name, string imageUrl, string description, string externalId, float amount, NutritionInfo? nutritionInfo = null, int? id = null)
+        public Product(List<Price> prices, string name, string imageUrl, string description, string externalId, float amount, int companyId, NutritionInfo? nutritionInfo = null, int? id = null)
         {
             Id = id;
             Name = name;
@@ -38,6 +40,7 @@ namespace TilbudsAvisLibrary.Entities
             Prices = prices;
             NutritionInfo = nutritionInfo;
             Amount = amount;
+            CompanyId = companyId;
         }
 
         public void CalculateUnitPrice()
@@ -72,7 +75,7 @@ namespace TilbudsAvisLibrary.Entities
 
         public int TotalParameterAmount()
         {
-            int amount = 5;
+            int amount = 6;
             if(Prices.Count > 0)
             {
                 amount += Prices.Count * Prices[0].TotalParameterAmount();
