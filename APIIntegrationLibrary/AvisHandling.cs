@@ -12,12 +12,6 @@ namespace APIIntegrationLibrary
 {
     public class AvisHandling : Client
     {
-        private RemaAvisScraper _remaAvisScraper;
-        public AvisHandling()
-        {
-            _remaAvisScraper = new RemaAvisScraper();
-        }
-
         public async Task<bool> SubmitAvis(Avis avis, int companyId, string token)
         {
             // Serialize the Avis object to JSON

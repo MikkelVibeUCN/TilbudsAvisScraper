@@ -29,6 +29,13 @@ namespace TilbudsAvisLibrary.Entities
             Pages = new List<Page>(pages);
             Products = new List<Product>(products);
         }
+
+        public Avis(DateTime validFrom, DateTime validTo)
+        {
+            ValidFrom = validFrom;
+            ValidTo = validTo;
+            Products = new List<Product>();
+        }
         public void SetId(int id) => Id = id;
 
         public void AddPage(Page page)

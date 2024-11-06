@@ -4,8 +4,6 @@ namespace APIIntegrationLibrary
 {
     public class TokenValidation : Client
     {
-        
-
         public async Task<bool> VerifyToken(string token, int permissionLevel)
         {
             try

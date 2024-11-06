@@ -13,7 +13,7 @@ namespace TilbudsAvisLibrary.Entities
         public float PriceValue { get; set; }
         public string? ExternalAvisId { get; set; } 
         public float UnitPrice { get; set; }
-        public string CompareUnitString { get; set; }
+        public string? CompareUnitString { get; set; }
 
         [JsonConstructor]
         public Price(int id, float priceValue, string externalAvisId,string compareUnitString)
@@ -28,6 +28,11 @@ namespace TilbudsAvisLibrary.Entities
             this.PriceValue = priceValue;
             this.CompareUnitString = compareUnitString;
             this.ExternalAvisId = externalAvisId;
+        }
+
+        public Price(float price)
+        {
+            this.PriceValue = price;
         }
         public void SetId(int id) => Id = id;
 

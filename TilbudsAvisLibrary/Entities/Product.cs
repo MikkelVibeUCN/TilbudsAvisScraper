@@ -42,7 +42,14 @@ namespace TilbudsAvisLibrary.Entities
             Amount = amount;
             CompanyId = companyId;
         }
-
+        public Product(List<Price> prices, string name, string imageUrl, string description, int id)
+        {
+            Prices = prices;
+            Name = name;
+            ImageUrl = imageUrl;
+            Description = description;
+            Id = id;
+        }
         public void CalculateUnitPrice()
         {
             foreach (var price in Prices)

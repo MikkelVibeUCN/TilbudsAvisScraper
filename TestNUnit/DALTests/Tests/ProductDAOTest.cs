@@ -1,5 +1,6 @@
 ﻿using DAL.Data.DAO;
 using DAL.Data.Interfaces;
+using TilbudsAvisLibrary;
 using TilbudsAvisLibrary.Entities;
 
 namespace TestNUnit.DALTests.Tests
@@ -111,6 +112,26 @@ namespace TestNUnit.DALTests.Tests
                 Assert.Fail(e.ToString());
             }
             Assert.That(productId != 0);
+        }
+
+        [Test]
+        public async Task TestOfSortedResult()
+        {
+
+            ProductQueryParameters parameters = new()
+            {
+                SortBy = "name"
+            };
+
+            List<Company> companies = await _productDAO.GetAllProdudctsWithInformationFromCompany(parameters);
+
+
+
+            parameters = new()
+            {
+                SortBy = "price"
+            };
+            companies = await _productDAO.GetAllProdudctsWithInformationFromCompany(parameters);
         }
 
         [TearDown]

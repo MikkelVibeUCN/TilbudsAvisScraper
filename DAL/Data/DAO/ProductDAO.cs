@@ -10,6 +10,8 @@ using System.Text;
 using DAL.Data.Batch;
 using System.Transactions;
 using System.Data.Common;
+using TilbudsAvisLibrary;
+using Emgu.CV;
 
 namespace DAL.Data.DAO
 {
@@ -403,6 +405,9 @@ namespace DAL.Data.DAO
             return addedProducts;
         }
 
+
+        
+
         private async Task<Product> CreateProductObjectFromReader(SqlDataReader reader)
         {
             int productId = reader.GetInt32(reader.GetOrdinal("Id"));
@@ -447,6 +452,120 @@ namespace DAL.Data.DAO
                 }
             }
             return existingProducts; // Return the dictionary
+        }
+
+        public async Task<List<Company>> GetAllProdudctsWithInformationFromCompany(ProductQueryParameters parameters)
+        {
+            List<Company> companies = null;
+
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                // Start building the base query
+                StringBuilder queryBuilder = new StringBuilder(@"
+                    SELECT p.Id, p.Name, p.Description, p.ImageUrl, 
+                         pr.Price AS Price, a.ValidFrom AS PriceValidFrom, 
+                         a.ValidTo AS PriceValidTo, c.Name AS RetailerName, a.ExternalId AS ExternalIdAvis
+                    FROM Product p
+                    INNER JOIN Company c ON p.CompanyId = c.Id
+                    INNER JOIN Price pr ON p.Id = pr.ProductId
+                    INNER JOIN Avis a ON pr.AvisId = a.Id
+                    WHERE a.ExternalId != 'base'
+                    AND a.ValidFrom <= GETDATE() AND a.ValidTo >= GETDATE()");
+
+                // Add filtering if retailer is provided
+                if (!string.IsNullOrEmpty(parameters.Retailer))
+                {
+                    queryBuilder.Append(" AND c.Name IN (@Retailers)");  // Support for multiple retailers
+                }
+
+                // Add sorting if a valid SortBy value is provided
+                if (!string.IsNullOrEmpty(parameters.SortBy))
+                {
+                    string sortColumn = parameters.SortBy.ToLower() switch
+                    {
+                        "price" => "pr.Price",
+                        "name" => "p.Name",
+                        _ => "p.Id"
+                    };
+                    queryBuilder.Append($" ORDER BY {sortColumn}");
+                }
+
+                // Add pagination (limit the number of results per page)
+                queryBuilder.Append(" OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
+
+                using (SqlCommand command = new SqlCommand(queryBuilder.ToString(), connection))
+                {
+                    // Add parameters for filtering
+                    if (!string.IsNullOrEmpty(parameters.Retailer))
+                    {
+                        command.Parameters.AddWithValue("@Retailers", string.Join(",", parameters.Retailer)); // For multiple retailers
+                    }
+
+                    // Add parameters for pagination
+                    command.Parameters.AddWithValue("@Offset", (parameters.PageNumber) * parameters.PageSize); 
+                    command.Parameters.AddWithValue("@PageSize", parameters.PageSize);
+
+                    // Execute the query
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        // Maps to track companies and their avis
+                        Dictionary<string, Company> companyMap = new();
+
+                        while (await reader.ReadAsync())
+                        {
+                            string retailerName = reader.GetString(reader.GetOrdinal("RetailerName"));
+                            string avisExternalId = reader.GetString(reader.GetOrdinal("ExternalIdAvis"));
+
+                            // Ensure company exists in the map
+                            if (!companyMap.ContainsKey(retailerName))
+                            {
+                                // Create and add the company to the map
+                                var company = new Company(retailerName);
+                                companyMap[retailerName] = company;
+                            }
+                            Company currentCompany = companyMap[retailerName];
+
+                            Avis? avis = currentCompany.Aviser.FirstOrDefault(a => a.ExternalId == avisExternalId);
+
+                            if (avis == null)
+                            {
+                                avis = CreateAvis(reader);
+                                avis.ExternalId = avisExternalId;
+                                currentCompany.AddAvis(avis);
+                            }
+
+                            avis.AddProduct(CreateProduct(reader));
+                        }
+                        companies = companyMap.Values.ToList();
+                    }
+                }
+            }
+            return companies;
+        }
+
+
+        private Avis CreateAvis(SqlDataReader reader)
+        {
+            DateTime validFrom = reader.GetDateTime(reader.GetOrdinal("PriceValidFrom"));
+            DateTime validTo = reader.GetDateTime(reader.GetOrdinal("PriceValidTo"));
+
+
+            return new Avis(validFrom, validTo);
+        }
+
+        private Product CreateProduct(SqlDataReader reader)
+        {
+            int productId = reader.GetInt32(reader.GetOrdinal("Id"));
+            string name = reader.GetString(reader.GetOrdinal("Name"));
+            string description = reader.GetString(reader.GetOrdinal("Description"));
+            string imageUrl = reader.GetString(reader.GetOrdinal("ImageUrl"));
+
+            float price = (float)reader.GetDouble(reader.GetOrdinal("Price"));
+            Price priceObject = new Price(price);
+
+            return new Product([priceObject], name, imageUrl, description, productId);
         }
     }
 }
