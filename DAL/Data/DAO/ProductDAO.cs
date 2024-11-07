@@ -462,7 +462,6 @@ namespace DAL.Data.DAO
             {
                 await connection.OpenAsync();
 
-                // Start building the base query
                 StringBuilder queryBuilder = new StringBuilder(@"
                     SELECT p.Id, p.Name, p.Description, p.ImageUrl, 
                          pr.Price AS Price, a.ValidFrom AS PriceValidFrom, 
@@ -474,13 +473,11 @@ namespace DAL.Data.DAO
                     WHERE a.ExternalId != 'base'
                     AND a.ValidFrom <= GETDATE() AND a.ValidTo >= GETDATE()");
 
-                // Add filtering if retailer is provided
                 if (!string.IsNullOrEmpty(parameters.Retailer))
                 {
-                    queryBuilder.Append(" AND c.Name IN (@Retailers)");  // Support for multiple retailers
+                    queryBuilder.Append(" AND c.Name IN (@Retailers)");  
                 }
 
-                // Add sorting if a valid SortBy value is provided
                 if (!string.IsNullOrEmpty(parameters.SortBy))
                 {
                     string sortColumn = parameters.SortBy.ToLower() switch
@@ -492,25 +489,19 @@ namespace DAL.Data.DAO
                     queryBuilder.Append($" ORDER BY {sortColumn}");
                 }
 
-                // Add pagination (limit the number of results per page)
                 queryBuilder.Append(" OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
 
                 using (SqlCommand command = new SqlCommand(queryBuilder.ToString(), connection))
                 {
-                    // Add parameters for filtering
                     if (!string.IsNullOrEmpty(parameters.Retailer))
                     {
-                        command.Parameters.AddWithValue("@Retailers", string.Join(",", parameters.Retailer)); // For multiple retailers
+                        command.Parameters.AddWithValue("@Retailers", string.Join(",", parameters.Retailer)); 
                     }
-
-                    // Add parameters for pagination
                     command.Parameters.AddWithValue("@Offset", (parameters.PageNumber) * parameters.PageSize); 
                     command.Parameters.AddWithValue("@PageSize", parameters.PageSize);
 
-                    // Execute the query
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        // Maps to track companies and their avis
                         Dictionary<string, Company> companyMap = new();
 
                         while (await reader.ReadAsync())
@@ -518,10 +509,8 @@ namespace DAL.Data.DAO
                             string retailerName = reader.GetString(reader.GetOrdinal("RetailerName"));
                             string avisExternalId = reader.GetString(reader.GetOrdinal("ExternalIdAvis"));
 
-                            // Ensure company exists in the map
                             if (!companyMap.ContainsKey(retailerName))
                             {
-                                // Create and add the company to the map
                                 var company = new Company(retailerName);
                                 companyMap[retailerName] = company;
                             }
