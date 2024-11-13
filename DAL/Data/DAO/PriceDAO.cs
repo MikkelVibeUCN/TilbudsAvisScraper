@@ -76,21 +76,16 @@ namespace DAL.Data.DAO
 
         private async Task<List<Product>> AddPricesInBatchInternal(List<Product> products, SqlConnection connection, SqlTransaction transaction, BatchContext context)
         {
-            // Initialize the SQL command text builder
             var commandText = new StringBuilder();
             commandText.AppendLine("INSERT INTO Price (ProductId, Price, AvisId, CompareUnitString)");
-            commandText.AppendLine("OUTPUT INSERTED.Id");  // Only get the generated Price IDs
+            commandText.AppendLine("OUTPUT INSERTED.Id"); 
             commandText.AppendLine("VALUES ");
-
-            // Create a list to hold the parameterized rows
             List<string> rows = new();
 
-            // Dictionary to track prices for each product
             Dictionary<int, List<Price>> priceMap = new();
 
-            int paramCounter = 0;  // Counter to handle unique parameter names for multiple prices
+            int paramCounter = 0;  
 
-            // Loop through each product and its associated prices
             for (int i = 0; i < products.Count; i++)
             {
                 var product = products[i];
@@ -99,33 +94,28 @@ namespace DAL.Data.DAO
                 {
                     foreach (var price in product.Prices)
                     {
-                        // Add a parameterized row for each price associated with the product
                         rows.Add($"(@ProductId{paramCounter}, @Price{paramCounter}, @AvisId{paramCounter}, @CompareUnitString{paramCounter})");
 
-                        // Map the product ID to its prices in the dictionary
                         if (!priceMap.ContainsKey(i))
                         {
                             priceMap[i] = new List<Price>();
                         }
-                        priceMap[i].Add(price);  // Add the price to this product's list
+                        priceMap[i].Add(price); 
 
                         paramCounter++;
                     }
                 }
             }
 
-            // If there are rows to insert
             if (rows.Count > 0)
             {
-                commandText.AppendLine(string.Join(", ", rows));  // Concatenate the rows into the SQL query
+                commandText.AppendLine(string.Join(", ", rows)); 
                 commandText.AppendLine(";");
 
                 using (SqlCommand command = new SqlCommand(commandText.ToString(), connection, transaction))
                 {
-                    // Reset paramCounter for adding parameter values
                     paramCounter = 0;
 
-                    // Loop again through the products and prices to add the parameters
                     for (int i = 0; i < products.Count; i++)
                     {
                         var product = products[i];
@@ -134,11 +124,9 @@ namespace DAL.Data.DAO
                         {
                             foreach (var price in product.Prices)
                             {
-                                // Add parameters for each price
                                 command.Parameters.AddWithValue($"@ProductId{paramCounter}", product.Id);
                                 command.Parameters.AddWithValue($"@Price{paramCounter}", price.PriceValue);
 
-                                // Determine the correct AvisId based on the ExternalAvisId and context
                                 if (price.ExternalAvisId.Equals(context.ExternalId))
                                 {
                                     command.Parameters.AddWithValue($"@AvisId{paramCounter}", context.BaseId);
@@ -148,7 +136,6 @@ namespace DAL.Data.DAO
                                     command.Parameters.AddWithValue($"@AvisId{paramCounter}", context.Id);
                                 }
 
-                                // Add the CompareUnitString parameter
                                 command.Parameters.AddWithValue($"@CompareUnitString{paramCounter}", price.CompareUnitString);
 
                                 paramCounter++;
@@ -156,27 +143,21 @@ namespace DAL.Data.DAO
                         }
                     }
 
-                    // Execute the command and read the inserted Price IDs
                     using (var reader = await command.ExecuteReaderAsync())
                     {
-                        // Keep track of product index and price index for proper mapping
                         int productIndex = 0;
                         int priceIndex = 0;
 
                         while (await reader.ReadAsync())
                         {
-                            int insertedPriceId = reader.GetInt32(0);  // Get the generated Price ID
+                            int insertedPriceId = reader.GetInt32(0);  
 
-                            // Retrieve the price list for the current product
                             var prices = priceMap[productIndex];
 
-                            // Set the generated Price ID to the current price
                             prices[priceIndex].SetId(insertedPriceId);
 
-                            // Move to the next price in the current product's list
                             priceIndex++;
 
-                            // If we've processed all prices for the current product, move to the next product
                             if (priceIndex >= prices.Count)
                             {
                                 productIndex++;
@@ -187,7 +168,7 @@ namespace DAL.Data.DAO
                 }
             }
 
-            return products;  // Return the updated list of products with assigned price IDs
+            return products;  
         }
 
         public async Task AddPricesForProduct(Product product, int baseAvisId, int avisId, string avisExternalId)

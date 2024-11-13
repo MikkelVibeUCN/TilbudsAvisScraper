@@ -36,6 +36,11 @@ namespace TilbudsAvisLibrary.Entities
             this.SaltPer100G = saltPer100G;
         }
 
+        public NutritionInfo()
+        {
+
+        }
+
         public override string ToString()
         {
             return $"Energy: {EnergyKJ} KJ / {EnergyKcal} Kcal\nFat: {FatPer100G} g\nSaturated Fat: {SaturatedFatPer100G} g\n" +

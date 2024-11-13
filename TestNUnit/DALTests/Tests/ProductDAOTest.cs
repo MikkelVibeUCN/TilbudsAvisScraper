@@ -125,8 +125,6 @@ namespace TestNUnit.DALTests.Tests
 
             List<Company> companies = await _productDAO.GetAllProdudctsWithInformationFromCompany(parameters);
 
-
-
             parameters = new()
             {
                 SortBy = "price"

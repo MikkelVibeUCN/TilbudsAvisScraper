@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\APIIntegrationLibrary\APIIntegrationLibrary.csproj" />
     <ProjectReference Include="..\DAL\DAL.csproj" />
     <ProjectReference Include="..\TilbudsAvisLibrary\TilbudsAvisLibrary.csproj" />
   </ItemGroup>

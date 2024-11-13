@@ -7,7 +7,7 @@ namespace TilbudsAvisLibrary.Entities
     public class Product : IParameters
     {
         public List<Price> Prices { get; set; }
-        public int? Id { get; private set; }
+        public int? Id { get; set; }
         public string Name { get; set; }
         public string ImageUrl { get; set; }
         public string Description { get; set; }
@@ -49,6 +49,11 @@ namespace TilbudsAvisLibrary.Entities
             ImageUrl = imageUrl;
             Description = description;
             Id = id;
+        }
+
+        public Product()
+        {
+
         }
         public void CalculateUnitPrice()
         {

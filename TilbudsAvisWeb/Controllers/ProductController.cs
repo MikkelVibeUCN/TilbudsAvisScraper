@@ -1,20 +1,47 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using APIIntegrationLibrary.DTO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TilbudsAvisLibrary;
+using TilbudsAvisWeb.Services;
 
 namespace TilbudsAvisWeb.Controllers
 {
     public class ProductController : Controller
     {
-        // GET: ProductController
-        public ActionResult Index()
+        private readonly ProductService _productService;
+
+        public ProductController(ProductService productService)
         {
-            return View();
+            _productService = productService;
+        }
+        public async Task<ActionResult> Index(ProductQueryParameters parameters)
+        {
+            ViewBag.Grocers = await _productService.GetValidCompanyNamesFromProductSerach(parameters);
+
+            int totalProductsForSearch = await _productService.GetProductCountAsync(parameters);
+            int totalPages = (int)Math.Ceiling(totalProductsForSearch / (double)parameters.PageSize);
+
+            if(totalPages > 1) { totalPages--; }
+
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = parameters.PageNumber;
+            ViewBag.PageSize = parameters.PageSize;
+            ViewBag.TotalPages = totalPages;
+
+            IEnumerable<ProductDTO> products = await _productService.GetProductsAsync(parameters);
+
+            return View(products);
         }
 
         // GET: ProductController/Details/5
-        public ActionResult Details(int id)
+        public async Task<ActionResult> Details(int id)
         {
-            return View();
+            ProductDTO? productDTO = await _productService.GetProductAsync(id);
+            if(productDTO == null)
+            {
+                return NotFound();
+            }
+            return View(productDTO);
         }
     }
 }

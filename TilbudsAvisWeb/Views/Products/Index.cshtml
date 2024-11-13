@@ -1,0 +1,106 @@
+﻿@model IEnumerable<APIIntegrationLibrary.DTO.ProductDTO>
+@{
+    ViewData["Title"] = "All Beers";
+    string selectedSortOrder = ViewBag.CurrentSortOrder ?? "";
+    string selectedCategory = ViewBag.CurrentCategory ?? "";
+    int currentPage = ViewBag.CurrentPage ?? 0;
+    int totalPages = ViewBag.TotalPages ?? 1;
+}
+
+<form method="get" asp-action="Index">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="sortOrder">Sorter efter:</label>
+            <select id="sortOrder" name="SortBy" class="form-control">
+                <option value="nameAsc" selected="@(selectedSortOrder == "nameAsc")">Navn stigende (A-Å)</option>
+                <option value="nameDesc" selected="@(selectedSortOrder == "nameDesc")">Navn faldende (Å-A)</option>
+                <option value="priceAsc" selected="@(selectedSortOrder == "priceAsc")">Pris stigende</option>
+                <option value="priceDesc" selected="@(selectedSortOrder == "priceDesc")">Pris faldene</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="retailer">Forhandlere:</label>
+            <select id="retailer" name="Retailer" class="form-control">
+                <option value="">Alle kategorier</option>
+                @foreach (var retailer in ViewBag.Categories as IEnumerable<string>)
+                {
+                    <option value="@retailer" selected="@(retailer == selectedCategory)">@retailer</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Apply</button>
+        </div>
+    </div>
+</form>
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <a asp-action="Details" asp-route-id="@item.Id" style="text-decoration: none; color: inherit;">
+                    <img class="card-img-top" style="max-height: 200px; object-fit: cover;"
+                         src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://storage.googleapis.com/pod_public/1300/163656.jpg" : item.ImageUrl)"
+                         alt="@item.Name" />
+
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Name</h5>
+                        <h6 class="card-subtitle text-muted">@item.Name</h6>
+                        <p class="card-text">@item.Description</p>
+
+                    </div>
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="pagination d-flex justify-content-center mt-4">
+    <div class="pagination-links">
+        @if (currentPage > 0)
+        {
+            <a href="@Url.Action("Index", new { pageNumber = currentPage - 1, SortBy = selectedSortOrder, Retailer = selectedRetailer })" class="btn btn-light">Tilbage</a>
+        }
+
+        @for (int i = Math.Max(0, currentPage); i <= Math.Min(Math.Max(0, currentPage) + 2, totalPages); i++)
+        {
+            <a href="@Url.Action("Index", new { pageNumber = i, SortBy = selectedSortOrder, Retailer = selectedCategory })" class="btn btn-light @((i == currentPage) ? "active" : "")">@i</a>
+        }
+
+        @if (currentPage < totalPages - 1)
+        {
+            <a href="@Url.Action("Index", new { pageNumber = currentPage + 1, SortBy = selectedSortOrder, Retailer = selectedCategory })" class="btn btn-light">Næste</a>
+        }
+    </div>
+</div>
+
+
+
+<div id="notification" class="notification"></div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.add-to-cart').on('click', function (event) {
+                event.preventDefault();
+                var productId = $(this).data('product-id');
+
+                $.ajax({
+                    url: '/Cart/AddToCart',
+                    method: 'POST',
+                    data: { productId: productId, quantity: 1 },
+
+                    success: function (response) {
+                        $('#cart-item-count').text(response.cartItemCount);
+                        window.showNotification('Product added to cart!', 'success');
+                    },
+                    error: function (xhr) {
+                        var errorMessage = xhr.responseText || 'Error adding to cart. Try again.';
+                        window.showNotification(errorMessage, 'error');
+                    }
+                });
+            });
+        });
+    </script>
+}        

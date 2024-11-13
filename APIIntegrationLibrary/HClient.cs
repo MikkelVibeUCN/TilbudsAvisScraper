@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace APIIntegrationLibrary
 {
-    public abstract class Client
+    public abstract class HClient
     {
         protected HttpClient _httpClient;
-        public Client()
+        public HClient()
         {
             _httpClient = new HttpClient();
         }

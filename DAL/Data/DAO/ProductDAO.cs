@@ -12,6 +12,7 @@ using System.Transactions;
 using System.Data.Common;
 using TilbudsAvisLibrary;
 using Emgu.CV;
+using System.Data;
 
 namespace DAL.Data.DAO
 {
@@ -100,12 +101,9 @@ namespace DAL.Data.DAO
             }
             catch (Exception ex)
             {
-                // Handle the exception
                 throw ex;
             }
         }
-
-
 
         public async Task<Product?> Get(int id, int permissionLevel)
         {
@@ -137,7 +135,6 @@ namespace DAL.Data.DAO
         }
 
 
-
         public async Task<List<Product>> GetAll(int permissionLevel)
         {
             List<Product> products = new List<Product>();
@@ -147,7 +144,7 @@ namespace DAL.Data.DAO
                 await connection.OpenAsync();
 
 
-                using (SqlCommand command = new SqlCommand("select * from product where 1 = 1", connection))
+                using (SqlCommand command = new SqlCommand("select * from product", connection))
                 {
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
@@ -237,7 +234,6 @@ namespace DAL.Data.DAO
                 {
                     var product = products[i];
 
-                    // Construct the parameterized value string
                     rows.Add($"(@ExternalId{i}, @Name{i}, @Description{i}, @ImageUrl{i}, @Amount{i}, @CompanyId{i})");
 
                     command.Parameters.AddWithValue($"@ExternalId{i}", product.ExternalId);
@@ -249,21 +245,17 @@ namespace DAL.Data.DAO
                 }
                 command.CommandText = string.Format(_addProductBatchQuery, string.Join(", ", rows));
 
-                // Execute the command and read the inserted IDs
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     try
                     {
-                        // Create a dictionary to map external IDs to products
                         Dictionary<string, Product> productMap = products.ToDictionary(p => p.ExternalId);
 
-                        // Read the inserted IDs and map them back to the products
                         while (await reader.ReadAsync())
                         {
                             int insertedId = reader.GetInt32(0);
                             string externalId = reader.GetString(1);
 
-                            // Map the inserted ID back to the original product
                             if (productMap.TryGetValue(externalId, out var product))
                             {
                                 product.SetId(insertedId);
@@ -314,7 +306,7 @@ namespace DAL.Data.DAO
 
             var existingProducts = await CheckExistingProductIdsAsync(externalIds, connection, transaction);
 
-            List<Product> removedProducts = new List<Product>(); // Local variable to hold removed products
+            List<Product> removedProducts = new List<Product>(); 
             List<Product> productsToAdd = new List<Product>();
 
             try
@@ -323,7 +315,7 @@ namespace DAL.Data.DAO
                 {
                     if (existingProducts.ContainsKey(product.ExternalId))
                     {
-                        removedProducts.Add(product); // Store the product in the local variable
+                        removedProducts.Add(product); 
 
                         var priceToRemove = product.Prices.FirstOrDefault(p => p.ExternalAvisId == avisExternalId);
                         if (priceToRemove != null)
@@ -335,7 +327,7 @@ namespace DAL.Data.DAO
                     }
                     else
                     {
-                        productsToAdd.Add(product); // Add to the list to be added
+                        productsToAdd.Add(product); 
                     }
                 }
             }
@@ -344,10 +336,8 @@ namespace DAL.Data.DAO
                 Debug.WriteLine(ex.Message);
             }
 
-            // Step 7: Add prices for removed products (if necessary)
             await _priceDAO.AddPricesForProducts(connection, transaction, removedProducts, baseAvisId, avisId, avisExternalId);
 
-            // Step 8: Return the list of products to be added
             return productsToAdd;
         }
 
@@ -356,7 +346,6 @@ namespace DAL.Data.DAO
         {
             products = await RemoveExistingProductsAsync(products, connection, transaction, baseAvisId, avisId, avisExternalId);
 
-            // Use batch insert if there are more than 10 products
             if (products.Count() > 10)
             {
                 var batchContext = new BatchContext(baseAvisId, avisId, avisExternalId);
@@ -405,9 +394,6 @@ namespace DAL.Data.DAO
             return addedProducts;
         }
 
-
-        
-
         private async Task<Product> CreateProductObjectFromReader(SqlDataReader reader)
         {
             int productId = reader.GetInt32(reader.GetOrdinal("Id"));
@@ -429,12 +415,10 @@ namespace DAL.Data.DAO
             // Dictionary to hold existing external IDs and their corresponding database IDs
             Dictionary<string, int> existingProducts = new Dictionary<string, int>();
 
-            // Construct the SQL query with parameter placeholders
             string sqlQuery = $"SELECT ExternalId, Id FROM Product WHERE ExternalId IN ({string.Join(", ", externalIds.Select((id, index) => $"@ExternalId{index}"))})";
 
             using (SqlCommand command = new SqlCommand(sqlQuery, connection, transaction))
             {
-                // Add each external ID as a parameter to avoid SQL injection
                 for (int i = 0; i < externalIds.Count; i++)
                 {
                     command.Parameters.AddWithValue($"@ExternalId{i}", externalIds[i]);
@@ -444,14 +428,13 @@ namespace DAL.Data.DAO
                 {
                     while (await reader.ReadAsync())
                     {
-                        // Add the external ID and its corresponding database ID to the dictionary
                         string externalId = reader.GetString(0);
-                        int id = reader.GetInt32(1); // Assuming Id is of type int
+                        int id = reader.GetInt32(1); 
                         existingProducts[externalId] = id;
                     }
                 }
             }
-            return existingProducts; // Return the dictionary
+            return existingProducts; 
         }
 
         public async Task<List<Company>> GetAllProdudctsWithInformationFromCompany(ProductQueryParameters parameters)
@@ -462,25 +445,25 @@ namespace DAL.Data.DAO
             {
                 await connection.OpenAsync();
 
-                // Start building the base query
                 StringBuilder queryBuilder = new StringBuilder(@"
-                    SELECT p.Id, p.Name, p.Description, p.ImageUrl, 
+                    SELECT p.Id, p.ExternalId as ProductExternalId, p.amount, p.Name, p.Description, p.ImageUrl, 
                          pr.Price AS Price, a.ValidFrom AS PriceValidFrom, 
-                         a.ValidTo AS PriceValidTo, c.Name AS RetailerName, a.ExternalId AS ExternalIdAvis
+                         a.ValidTo AS PriceValidTo, c.Name AS RetailerName, 
+	                     a.ExternalId AS ExternalIdAvis,
+	                     nu.*
                     FROM Product p
                     INNER JOIN Company c ON p.CompanyId = c.Id
                     INNER JOIN Price pr ON p.Id = pr.ProductId
+                    INNER JOIN NutritionInfo nu ON p.Id = nu.productId
                     INNER JOIN Avis a ON pr.AvisId = a.Id
                     WHERE a.ExternalId != 'base'
                     AND a.ValidFrom <= GETDATE() AND a.ValidTo >= GETDATE()");
 
-                // Add filtering if retailer is provided
                 if (!string.IsNullOrEmpty(parameters.Retailer))
                 {
-                    queryBuilder.Append(" AND c.Name IN (@Retailers)");  // Support for multiple retailers
+                    queryBuilder.Append(" AND c.Name IN (@Retailers)"); 
                 }
 
-                // Add sorting if a valid SortBy value is provided
                 if (!string.IsNullOrEmpty(parameters.SortBy))
                 {
                     string sortColumn = parameters.SortBy.ToLower() switch
@@ -492,36 +475,29 @@ namespace DAL.Data.DAO
                     queryBuilder.Append($" ORDER BY {sortColumn}");
                 }
 
-                // Add pagination (limit the number of results per page)
                 queryBuilder.Append(" OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
 
                 using (SqlCommand command = new SqlCommand(queryBuilder.ToString(), connection))
                 {
-                    // Add parameters for filtering
                     if (!string.IsNullOrEmpty(parameters.Retailer))
                     {
-                        command.Parameters.AddWithValue("@Retailers", string.Join(",", parameters.Retailer)); // For multiple retailers
+                        command.Parameters.AddWithValue("@Retailers", string.Join(",", parameters.Retailer));
                     }
 
-                    // Add parameters for pagination
                     command.Parameters.AddWithValue("@Offset", (parameters.PageNumber) * parameters.PageSize); 
                     command.Parameters.AddWithValue("@PageSize", parameters.PageSize);
 
-                    // Execute the query
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        // Maps to track companies and their avis
                         Dictionary<string, Company> companyMap = new();
 
                         while (await reader.ReadAsync())
                         {
                             string retailerName = reader.GetString(reader.GetOrdinal("RetailerName"));
                             string avisExternalId = reader.GetString(reader.GetOrdinal("ExternalIdAvis"));
-
-                            // Ensure company exists in the map
+                            
                             if (!companyMap.ContainsKey(retailerName))
                             {
-                                // Create and add the company to the map
                                 var company = new Company(retailerName);
                                 companyMap[retailerName] = company;
                             }
@@ -561,11 +537,37 @@ namespace DAL.Data.DAO
             string name = reader.GetString(reader.GetOrdinal("Name"));
             string description = reader.GetString(reader.GetOrdinal("Description"));
             string imageUrl = reader.GetString(reader.GetOrdinal("ImageUrl"));
+            double amount = reader.GetDouble(reader.GetOrdinal("amount"));
+            string externalId = reader.GetString(reader.GetOrdinal("ProductExternalId"));
 
             float price = (float)reader.GetDouble(reader.GetOrdinal("Price"));
+
             Price priceObject = new Price(price);
 
-            return new Product([priceObject], name, imageUrl, description, productId);
+
+            NutritionInfo nutritionInfo = new NutritionInfo
+            {
+                EnergyKJ = (float) reader.GetDouble(reader.GetOrdinal("EnergyKJ")),
+                FatPer100G = (float) reader.GetDouble(reader.GetOrdinal("FatPer100G")),
+                SaturatedFatPer100G = (float) reader.GetDouble(reader.GetOrdinal("SaturatedFatPer100G")),
+                CarbohydratesPer100G = (float) reader.GetDouble(reader.GetOrdinal("CarbohydratesPer100G")),
+                SugarsPer100G = (float) reader.GetDouble(reader.GetOrdinal("SugarsPer100G")),
+                FiberPer100G = (float) reader.GetDouble(reader.GetOrdinal("FiberPer100G")),
+                ProteinPer100G = (float) reader.GetDouble(reader.GetOrdinal("ProteinPer100G")),
+                SaltPer100G = (float) reader.GetDouble(reader.GetOrdinal("SaltPer100G"))
+            };
+
+            return new Product
+            {
+                Id = productId,
+                Prices = [priceObject],
+                Name = name,
+                ImageUrl = imageUrl,
+                Description = description,
+                ExternalId = externalId,
+                Amount = (float?)amount,
+                NutritionInfo = nutritionInfo
+            };
         }
     }
 }
