@@ -1,16 +1,17 @@
 ﻿using System.Windows;
 using APIIntegrationLibrary;
+using APIIntegrationLibrary.Client;
 namespace DesktopApplication
 {
     public partial class MainWindow : Window
     {
         private string Token;
-        private TokenValidation _tokenValidation;
+        
         private int permissionLevel = 0;
+        private readonly TokenValidator _tokenValidation = new TokenValidator();
         public MainWindow()
         {
             InitializeComponent();
-            _tokenValidation = new TokenValidation();
         }
 
 
@@ -41,7 +42,7 @@ namespace DesktopApplication
             }
             try
             {
-                if (await _tokenValidation.VerifyToken(token, 3))
+                if (await _tokenValidation.IsTokenValidForAction(token, 3))
                 {
                     EnableButtons();
 

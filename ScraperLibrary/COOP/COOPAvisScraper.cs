@@ -1,4 +1,5 @@
-﻿using PuppeteerSharp;
+﻿using APIIntegrationLibrary.DTO;
+using PuppeteerSharp;
 using ScraperLibrary.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -82,7 +83,7 @@ namespace ScraperLibrary.COOP
             }
         }
 
-        public async Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId)
+        public async Task<AvisDTO> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             string externalAvisId = await FindAvisUrl(AvisUrl);
             progressCallback(23);
@@ -90,10 +91,16 @@ namespace ScraperLibrary.COOP
             var getDatesTask = await GetAvisDates(AvisUrl, externalAvisId);
             progressCallback(44);
 
-            List<Product> products = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalAvisId, companyId);
+            List<ProductDTO> products = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalAvisId, companyId);
             progressCallback(100);
 
-            return new Avis(externalAvisId, getDatesTask.Item1, getDatesTask.Item2, new List<TilbudsAvisLibrary.Entities.Page>(), products);
+            return new AvisDTO
+            {
+                ExternalId = externalAvisId,
+                ValidFrom = getDatesTask.Item1,
+                ValidTo = getDatesTask.Item2,
+                Products = products
+            };
         }
 
         private static async Task<(DateTime, DateTime)> GetAvisDates(string url, string externalAvisId)
@@ -105,7 +112,11 @@ namespace ScraperLibrary.COOP
 
             File.WriteAllText("response.text", response);
 
-            string validFromTo = GetInformationFromHtml<string>(response, "avisen gælder fra", "avisen gælder fra ", "<", 0, true);
+            // TODO: Fix but so it knows to skip first instance of the key
+
+            int indexPastFirstInstance = response.IndexOf("avisen gælder fra ") + 100;
+
+            string validFromTo = GetInformationFromHtml<string>(response, "avisen gælder fra ", "avisen gælder fra ", "<", indexPastFirstInstance, true);
 
             string[] dates = validFromTo.Split("til");
 

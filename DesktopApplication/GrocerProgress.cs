@@ -1,4 +1,5 @@
-﻿using ScraperLibrary.Rema;
+﻿using APIIntegrationLibrary.DTO;
+using ScraperLibrary.Rema;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -20,7 +21,7 @@ public class GrocerProgress : INotifyPropertyChanged
         CompanyId = companyId;
     }
 
-    public Avis avis { get; set; }
+    public AvisDTO avis { get; set; }
     public string Progress
     {
         get => _progress;
@@ -71,12 +72,12 @@ public class GrocerProgress : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    public async Task<Avis> Process()
+    public async Task<AvisDTO> Process()
     {
         if (ProcessMethod != null)
         {
             IsProcessing = true;
-            Avis avis = await ProcessMethod(progress =>
+            AvisDTO avis = await ProcessMethod(progress =>
             {
                 // Update the Progress property based on the current progress value
                 Progress = $"{progress}%"; // Update progress as a string
@@ -88,5 +89,5 @@ public class GrocerProgress : INotifyPropertyChanged
         return null;
     }
 
-    public delegate Task<Avis> ProcessingMethod(Action<int> progressCallback);
+    public delegate Task<AvisDTO> ProcessingMethod(Action<int> progressCallback);
 }

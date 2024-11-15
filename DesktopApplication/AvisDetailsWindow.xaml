@@ -69,14 +69,14 @@
                 <DataGrid ItemsSource="{Binding SelectedProduct.Prices}" AutoGenerateColumns="False" 
                           Height="100">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Price" Binding="{Binding PriceValue}" Width="*" />
-                        <DataGridTextColumn Header="Compare Unit" Binding="{Binding CompareUnitString}" Width="*" />
+                        <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="*" />
+                        <DataGridTextColumn Header="Compare Unit" Binding="{Binding CompareUnit}" Width="*" />
                     </DataGrid.Columns>
                 </DataGrid>
             </GroupBox>
 
             <GroupBox Header="Selected Product's Nutrition Info" Grid.Row="1" Margin="0,10,0,0">
-                <TextBlock Text="{Binding SelectedProduct.NutritionInfo}" TextWrapping="Wrap" Padding="5"/>
+                <TextBlock Text="{Binding SelectedProduct.NutritionInfoDTO}" TextWrapping="Wrap" Padding="5"/>
             </GroupBox>
         </Grid>
 

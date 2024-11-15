@@ -1,4 +1,5 @@
-﻿using System;
+﻿using APIIntegrationLibrary.DTO;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -8,23 +9,23 @@ namespace DesktopApplication
 {
     public class AvisDetailsViewModel : INotifyPropertyChanged
     {
-        private Avis _selectedAvis;
-        private Product _selectedProduct;
+        private AvisDTO _selectedAvis;
+        private ProductDTO _selectedProduct;
         private string _searchTerm;
-        private ObservableCollection<Product> _filteredProducts;
+        private ObservableCollection<ProductDTO> _filteredProducts;
         public int CompanyId;
-        public Avis SelectedAvis
+        public AvisDTO SelectedAvis
         {
             get { return _selectedAvis; }
             set
             {
                 _selectedAvis = value;
                 OnPropertyChanged(nameof(SelectedAvis));
-                FilteredProducts = new ObservableCollection<Product>(_selectedAvis.Products); // Initialize filtered products
+                FilteredProducts = new ObservableCollection<ProductDTO>(_selectedAvis.Products); // Initialize filtered products
             }
         }
 
-        public Product SelectedProduct
+        public ProductDTO SelectedProduct
         {
             get { return _selectedProduct; }
             set
@@ -45,7 +46,7 @@ namespace DesktopApplication
             }
         }
 
-        public ObservableCollection<Product> FilteredProducts
+        public ObservableCollection<ProductDTO> FilteredProducts
         {
             get { return _filteredProducts; }
             set
@@ -63,12 +64,12 @@ namespace DesktopApplication
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public AvisDetailsViewModel(Avis avis, int companyId)
+        public AvisDetailsViewModel(AvisDTO avisDTO, int companyId)
         {
             CompanyId = companyId;
-            SelectedAvis = avis;
+            SelectedAvis = avisDTO;
             SelectedProduct = SelectedAvis.Products[0]; // Default selected product
-            FilteredProducts = new ObservableCollection<Product>(SelectedAvis.Products); // Initialize filtered products
+            FilteredProducts = new ObservableCollection<ProductDTO>(SelectedAvis.Products); // Initialize filtered products
         }
 
         private void FilterProducts()
@@ -76,7 +77,7 @@ namespace DesktopApplication
             if (string.IsNullOrWhiteSpace(SearchTerm))
             {
                 // If the search term is empty, show all products
-                FilteredProducts = new ObservableCollection<Product>(SelectedAvis.Products);
+                FilteredProducts = new ObservableCollection<ProductDTO>(SelectedAvis.Products);
             }
             else
             {
@@ -85,7 +86,7 @@ namespace DesktopApplication
                     .Where(p => p.Name.IndexOf(SearchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
                     .ToList();
 
-                FilteredProducts = new ObservableCollection<Product>(filtered);
+                FilteredProducts = new ObservableCollection<ProductDTO>(filtered);
             }
         }
     }

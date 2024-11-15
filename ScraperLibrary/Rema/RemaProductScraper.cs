@@ -1,4 +1,5 @@
-﻿using ScraperLibrary.Interfaces;
+﻿using APIIntegrationLibrary.DTO;
+using ScraperLibrary.Interfaces;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Net.Http;
@@ -18,11 +19,11 @@ namespace ScraperLibrary.Rema
 
         }
 
-        public async Task<List<Product>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId)
+        public async Task<List<ProductDTO>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId)
         {
             string result = await CallUrl(_remaProductPageUrl);
             int lengthOfResult = result.Length;
-            List<Product> products = new List<Product>();
+            List<ProductDTO> products = new List<ProductDTO>();
 
             int currentIndex = 0;
             bool reachedEnd = false;
@@ -50,7 +51,7 @@ namespace ScraperLibrary.Rema
                     startIndex += startPattern.Length;
 
                     // Extract the product from the html
-                    Product product = await CreateProduct(result, startIndex, endIndex, avisExternalId, companyId);
+                    ProductDTO product = await CreateProduct(result, startIndex, endIndex, avisExternalId, companyId);
 
                     if (product == null)
                     {
@@ -79,7 +80,7 @@ namespace ScraperLibrary.Rema
             return products;
         }
 
-        private async Task<Product>? CreateProduct(string result, int startIndex, int endIndex, string avisExternalId, int companyId)
+        private async Task<ProductDTO?> CreateProduct(string result, int startIndex, int endIndex, string avisExternalId, int companyId)
         {
             string productHtml = result.Substring(startIndex, endIndex - startIndex);
 
@@ -92,7 +93,7 @@ namespace ScraperLibrary.Rema
                 {
                     var productJson = await GetProductJson(externalProductId);
                     string description = GetDescriptionOfProduct(productJson);
-                    List<Price> prices = GetPricesOfProduct(productJson, avisExternalId);
+                    List<PriceDTO> prices = GetPricesOfProduct(productJson, avisExternalId);
                     string[] remaUnits = { "GR.", "STK.", "KG.", "ML.", "CL.", "LTR.", "BAKKE", "PK." };
 
                     string[] standardUnits = ConvertUnitsToStandard(remaUnits);
@@ -112,16 +113,16 @@ namespace ScraperLibrary.Rema
                     }
                     float amountInProduct = (float)Math.Round(float.Parse(firstPart), 3);
 
-                    return new Product(prices,
-                        null,
-                        GetNameOfProduct(productJson),
-                        GetProductUrlFromHtml(productHtml),
-                        description,
-                        externalProductId,
-                        GetNutritionalInfo(productJson),
-                        IProductScraper.GetAmountInProduct(amountInProduct, unitOfMeasurement, prices),
-                        companyId
-                        );
+                    return new ProductDTO
+                    {
+                        Prices = prices,
+                        Name = GetNameOfProduct(productJson),
+                        ImageUrl = GetProductUrlFromHtml(productHtml),
+                        Description = description,
+                        ExternalId = externalProductId,
+                        NutritionInfo = GetNutritionalInfo(productJson),
+                        Amount = IProductScraper.GetAmountInProduct(amountInProduct, unitOfMeasurement, prices),
+                    };
                 }
                 catch (Exception e)
                 {

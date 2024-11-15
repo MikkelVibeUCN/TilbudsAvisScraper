@@ -1,4 +1,5 @@
-﻿using ScraperLibrary._365_Discount;
+﻿using APIIntegrationLibrary.DTO;
+using ScraperLibrary._365_Discount;
 using ScraperLibrary.COOP.Kvickly;
 using ScraperLibrary.Rema;
 using System;
@@ -13,7 +14,7 @@ namespace DesktopApplication
 {
     public class GrocerOperations
     {
-        public async Task<Avis?> ScrapeRemaAvis(Action<int> progressCallback, CancellationToken token, int companyId)
+        public async Task<AvisDTO?> ScrapeRemaAvis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             try
             {
@@ -25,7 +26,7 @@ namespace DesktopApplication
             }
         }
 
-        public async Task<Avis?> Scrape365Avis(Action<int> progressCallback, CancellationToken token, int companyId)
+        public async Task<AvisDTO?> Scrape365Avis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             try
             {
@@ -40,7 +41,7 @@ namespace DesktopApplication
                 return null;
             }
         }
-        public async Task<Avis?> ScrapeKvicklyAvis(Action<int> progressCallback, CancellationToken token, int companyId)
+        public async Task<AvisDTO?> ScrapeKvicklyAvis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             try
             {   

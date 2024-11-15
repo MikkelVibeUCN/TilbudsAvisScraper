@@ -1,4 +1,5 @@
-﻿using ScraperLibrary.Interfaces;
+﻿using APIIntegrationLibrary.DTO;
+using ScraperLibrary.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,10 +19,10 @@ namespace ScraperLibrary.COOP
             ProductsLocationUrl = productLocationsUrl;
         }
 
-        public async Task<List<Product>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId)
+        public async Task<List<ProductDTO>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId)
         {
             var response = await CallUrl(ProductsLocationUrl, 5000);
-            List<Product> products = new List<Product>();
+            List<ProductDTO> products = new List<ProductDTO>();
             List<string> productStrings = GetProductStrings(response);
 
             //File.WriteAllText("response.text", response);
@@ -31,7 +32,7 @@ namespace ScraperLibrary.COOP
                 try
                 {
                     progressCallback((int)(((double)i / productStrings.Count) * 100));
-                    List<Product>? innerProducts = CreateProducts(productStrings[i], companyId);
+                    List<ProductDTO>? innerProducts = CreateProducts(productStrings[i], companyId);
                     if (innerProducts != null)
                     {
                         products.AddRange(innerProducts);
@@ -69,10 +70,10 @@ namespace ScraperLibrary.COOP
             return (stringCounts, hasMoreThanTwo);
         }
 
-        private static List<Product>? CreateProducts(string productContainedHtml, int companyId)
+        private static List<ProductDTO>? CreateProducts(string productContainedHtml, int companyId)
         {
 
-            List<Product> products = new List<Product>();
+            List<ProductDTO> products = new List<ProductDTO>();
 
             string productInformation = GetInformationFromHtml<string>(productContainedHtml, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
 
@@ -90,7 +91,7 @@ namespace ScraperLibrary.COOP
 
             string[] compareUnitsInDescription = GetUnitsFromDescription(description);
 
-            List<Price>? prices = CreatePrices(productContainedHtml, GetCompareUnit(description));
+            List<PriceDTO>? prices = CreatePrices(productContainedHtml, GetCompareUnit(description));
 
             if (prices == null)
             {
@@ -122,7 +123,15 @@ namespace ScraperLibrary.COOP
 
                             float amount = IProductScraper.GetAmountInProduct(amountOfProductInTheProduct, unit.Key, prices);
 
-                            Product product = new Product(prices, name, imageUrl, description, externalId + "---" + i, amount, companyId);
+                            ProductDTO product = new ProductDTO
+                            {
+                                Prices = prices,
+                                Name = name,
+                                ImageUrl = imageUrl,
+                                Description = description,
+                                ExternalId = externalId + "---" + i,
+                                Amount = amount,
+                            };
                             products.Add(product);
                         }
                     }
@@ -136,11 +145,11 @@ namespace ScraperLibrary.COOP
                 {
                     // Check for edgecase where prices stored in half kilo has no unit except for the compare unit
                     // If it is found set amount to 0.5 
-                    if (prices[0].CompareUnitString.Equals("kg"))
+                    if (prices[0].CompareUnit.Equals("kg"))
                     {
                         amount = 0.5f;
                     }
-                    else if(prices[0].CompareUnitString.Equals("stk") || prices[0].CompareUnitString.Equals("bdt"))
+                    else if(prices[0].CompareUnit.Equals("stk") || prices[0].CompareUnit.Equals("bdt"))
                     {
                         amount = 1;
                     }
@@ -158,7 +167,15 @@ namespace ScraperLibrary.COOP
                     amount = IProductScraper.GetAmountInProduct(amountOfProductInTheProduct, productInUnit, prices);
                 }
 
-                Product product = new Product(prices, name, imageUrl, description, externalId, amount, companyId);
+                ProductDTO product = new ProductDTO
+                {
+                    Prices = prices,
+                    Name = name,
+                    ImageUrl = imageUrl,
+                    Description = description,
+                    ExternalId = externalId,
+                    Amount = amount,
+                };
                 products.Add(product);
             }
             return products;
@@ -335,12 +352,20 @@ namespace ScraperLibrary.COOP
             throw new NotImplementedException();
         }
 
-        private static List<Price>? CreatePrices(string productContainedHtml, string compareUnit)
+        private static List<PriceDTO>? CreatePrices(string productContainedHtml, string compareUnit)
         {
             float price = GetPriceFromHtml(productContainedHtml);
             if (price != -1)
             {
-                return new List<Price> { new Price(price, compareUnit) };
+                return new List<PriceDTO>
+                {
+                    new PriceDTO
+                    {
+                        Price = price,
+                        CompareUnit = compareUnit
+                    }
+                };
+                
             }
             else return null;
 

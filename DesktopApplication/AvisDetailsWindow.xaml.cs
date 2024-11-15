@@ -1,21 +1,23 @@
 ﻿using System.Windows;
-using TilbudsAvisLibrary.Entities;
 using APIIntegrationLibrary;
+using APIIntegrationLibrary.DTO;
+using APIIntegrationLibrary.Interfaces;
 
 namespace DesktopApplication
 {
     public partial class AvisDetailsWindow : Window
     {
-        private AvisHandling avisHandling = new();
+        private readonly IAvisAPIRestClient _avisAPIRestClient;
         private string Token;
-        public AvisDetailsWindow(Avis avis, string token, int companyId)
+        public AvisDetailsWindow(AvisDTO avisDTO, string token, int companyId, IAvisAPIRestClient avisAPIRestClient)
         {
             InitializeComponent();
 
             Token = token;
 
+            _avisAPIRestClient = avisAPIRestClient;
             // Set the DataContext for data binding to the ViewModel
-            this.DataContext = new AvisDetailsViewModel(avis, companyId);
+            this.DataContext = new AvisDetailsViewModel(avisDTO, companyId);
         }
 
         private async void btnSave_Click(object sender, RoutedEventArgs e)
@@ -27,7 +29,7 @@ namespace DesktopApplication
             {
                 try
                 {
-                    await avisHandling.SubmitAvis(viewModel.SelectedAvis, viewModel.CompanyId, Token);
+                    await _avisAPIRestClient.CreateAsync(viewModel.SelectedAvis, viewModel.CompanyId, Token);
                     MessageBox.Show("Avis saved successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex) 

@@ -19,7 +19,6 @@ namespace APIIntegrationLibrary.Client
         }
         public async Task<int> CreateAsync(T entity, string? endpoint = null)
         {
-
             endpoint ??= _defaultEndPoint;
             var response = await _restClient.RequestAsync<int>(Method.Post, endpoint, entity);
 
@@ -68,10 +67,12 @@ namespace APIIntegrationLibrary.Client
             return response.Data ?? Enumerable.Empty<T>();
         }
 
-        public async Task<T?> GetAsync(int id, string? endpoint = null)
+        public async Task<T?> GetAsync(string? endpoint = null, int? id = null)
         {
-            endpoint ??= _defaultEndPoint;
-            var response = await _restClient.RequestAsync<T>(Method.Get, $"{endpoint}/{id}");
+            if(endpoint == null && id == null) { throw new Exception("Either endpoint or id must be provided"); }
+
+            endpoint ??= $"{_defaultEndPoint}/{id}";
+            var response = await _restClient.RequestAsync<T>(Method.Get, endpoint);
 
             if (!response.IsSuccessful)
             {

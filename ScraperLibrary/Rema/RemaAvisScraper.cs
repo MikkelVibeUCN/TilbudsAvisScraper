@@ -5,6 +5,7 @@ using TilbudsAvisLibrary.Entities;
 using System.Collections;
 using System.Globalization;
 using System.Collections.Generic;
+using APIIntegrationLibrary.DTO;
 
 namespace ScraperLibrary.Rema
 {
@@ -44,7 +45,7 @@ namespace ScraperLibrary.Rema
             return url + "/" + await FindExternalAvisId(url) + "/1";
         }
 
-        public async Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId)
+        public async Task<AvisDTO> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             string avisUrl = await FindAvisUrl(_remaAvisPageUrl);
             progressCallback(4);
@@ -58,7 +59,13 @@ namespace ScraperLibrary.Rema
             var getProductsTask = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalId, companyId);
             progressCallback(100);
 
-            return new Avis(externalId, getDatesTask.Result.Item1, getDatesTask.Result.Item2, new List<Page>(), getProductsTask);
+            return new AvisDTO
+            {
+                ExternalId = externalId,
+                ValidFrom = getDatesTask.Result.Item1,
+                ValidTo = getDatesTask.Result.Item2,
+                Products = getProductsTask
+            };
         }
 
         public string GetImageUrl(string input, int pageNumber)

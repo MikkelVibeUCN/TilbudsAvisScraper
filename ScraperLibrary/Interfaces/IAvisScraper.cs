@@ -1,4 +1,4 @@
-﻿using TilbudsAvisLibrary.Entities;
+﻿using APIIntegrationLibrary.DTO;
 
 namespace ScraperLibrary.Interfaces
 {
@@ -10,6 +10,6 @@ namespace ScraperLibrary.Interfaces
 
         Task DownloadAllPagesAsImages(string url);
 
-        Task<Avis> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId);
+        Task<AvisDTO> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId);
     }
 }

@@ -1,17 +1,18 @@
-﻿using TilbudsAvisLibrary.Entities;
+﻿using APIIntegrationLibrary.DTO;
+using TilbudsAvisLibrary.Entities;
 
 namespace ScraperLibrary.Interfaces
 {
     public interface IProductScraper
     {
-        Task<List<Product>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId);
+        Task<List<ProductDTO>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId);
 
-        public static float GetAmountInProduct(float amountInProduct, string productInUnit, List<Price> pricesAssosiated)
+        public static float GetAmountInProduct(float amountInProduct, string productInUnit, List<PriceDTO> pricesAssosiated)
         {
             string[] possibleCompareUnitsForAmount = { "kg", "ltr", "stk", "bakke" };
-            foreach (Price price in pricesAssosiated)
+            foreach (PriceDTO price in pricesAssosiated)
             {
-                switch (price.CompareUnitString)
+                switch (price.CompareUnit)
                 {
                     case "kg":
                         if (productInUnit.Equals("g"))
@@ -34,7 +35,7 @@ namespace ScraperLibrary.Interfaces
                     case "pk":
                         return amountInProduct;
                     default:
-                        throw new Exception(price.CompareUnitString + " productinunit: " + productInUnit + " is not a valid unit");
+                        throw new Exception(price.CompareUnit + " productinunit: " + productInUnit + " is not a valid unit");
                 }
             }
             throw new Exception("No prices");

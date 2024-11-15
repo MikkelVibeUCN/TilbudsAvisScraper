@@ -1,4 +1,5 @@
-﻿using System;
+﻿using APIIntegrationLibrary.DTO;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Dynamic;
@@ -13,7 +14,7 @@ namespace ScraperLibrary.Rema
 {
     public abstract class RemaProductAPI : Scraper
     {
-        public static NutritionInfo? GetNutritionalInfo(dynamic jsonResponse)
+        public static NutritionInfoDTO? GetNutritionalInfo(dynamic jsonResponse)
         {
             float energyKJ = 0, fat = 0, saturatedFat = 0, carbohydrates = 0, sugars = 0, fiber = 0, protein = 0, salt = 0;
 
@@ -62,7 +63,16 @@ namespace ScraperLibrary.Rema
             {
                 return null;
             }
-            return new NutritionInfo(energyKJ, fat, carbohydrates, sugars, fiber, protein, salt);
+            return new NutritionInfoDTO
+            {
+                EnergyKJ = energyKJ,
+                FatPer100G = fat,
+                CarbohydratesPer100G = carbohydrates,
+                FiberPer100G = fiber,
+                ProteinPer100G = protein,
+                SaltPer100G = salt,
+                SugarsPer100G = sugars,
+            };
         }
 
         
@@ -77,9 +87,9 @@ namespace ScraperLibrary.Rema
             return jsonResponse.GetProperty("data").GetProperty("underline").GetString();
         }
 
-        public static List<Price> GetPricesOfProduct(dynamic jsonResponse, string avisExternalId)
+        public static List<PriceDTO> GetPricesOfProduct(dynamic jsonResponse, string avisExternalId)
         {
-            List<Price> prices = new List<Price>();
+            List<PriceDTO> prices = new List<PriceDTO>();
 
             float priceValue = 0;
             string compareUnitString = "";
@@ -95,11 +105,21 @@ namespace ScraperLibrary.Rema
 
                 if (basePrice)
                 {
-                    prices.Add(new Price(priceValue, compareUnitString, "base"));
+                    prices.Add(new PriceDTO
+                    {
+                        Price = priceValue,
+                        CompareUnit = compareUnitString,
+                        ExternalAvisId = "base"
+                    });
                 }
                 else
                 {
-                    prices.Add(new Price(priceValue, compareUnitString, avisExternalId));
+                    prices.Add(new PriceDTO
+                    {
+                        Price = priceValue,
+                        CompareUnit = compareUnitString,
+                        ExternalAvisId = avisExternalId
+                    });
                 }
             }
             return prices;

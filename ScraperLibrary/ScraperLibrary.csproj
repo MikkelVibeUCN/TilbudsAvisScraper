@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TilbudsAvisLibrary\TilbudsAvisLibrary.csproj" />
+	<ProjectReference Include="..\APIIntegrationLibrary\APIIntegrationLibrary.csproj" />
   </ItemGroup>
 
 </Project>

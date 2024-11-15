@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\APIIntegrationLibrary\APIIntegrationLibrary.csproj" />
+    <ProjectReference Include="..\ScraperLibrary\ScraperLibrary.csproj" />
     <ProjectReference Include="..\TilbudsAvisLibrary\TilbudsAvisLibrary.csproj" />
   </ItemGroup>
 

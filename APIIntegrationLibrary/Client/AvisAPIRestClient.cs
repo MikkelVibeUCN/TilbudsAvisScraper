@@ -1,4 +1,5 @@
 ﻿using APIIntegrationLibrary.DTO;
+using APIIntegrationLibrary.Interfaces;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using TilbudsAvisLibrary.Entities;
 
 namespace APIIntegrationLibrary.Client
 {
-    public class AvisAPIRestClient : BaseClient<AvisDTO>
+    public class AvisAPIRestClient : BaseClient<AvisDTO>, IAvisAPIRestClient
     {
         public AvisAPIRestClient(string uri) : base(uri, "Avis") { }
         public async Task<int> CreateAsync(AvisDTO avis, int companyId, string token)

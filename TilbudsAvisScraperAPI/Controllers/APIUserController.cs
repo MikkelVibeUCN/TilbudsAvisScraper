@@ -19,7 +19,7 @@ namespace TIlbudsAvisScraperAPI.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> IsTokenValid(string token, int permissionLevel)
+        public async Task<IActionResult> IsTokenValid([FromQuery] string token,[FromQuery] int permissionLevel)
         {
             if(await _apiUserService.IsTokenValid(token, permissionLevel))
             {

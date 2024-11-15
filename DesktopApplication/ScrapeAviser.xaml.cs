@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using APIIntegrationLibrary.Client;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics.Eventing.Reader;
 using System.Linq;
@@ -72,7 +73,7 @@ namespace DesktopApplication
 
             if (grocerProgress != null)
             {
-                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis, Token, grocerProgress.CompanyId);
+                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis, Token, grocerProgress.CompanyId, new AvisAPIRestClient("https://localhost:5001/api/v1"));
                 avisDetailsWindow.Show();
             }
         }

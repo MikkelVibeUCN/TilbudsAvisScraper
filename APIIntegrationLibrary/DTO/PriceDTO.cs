@@ -13,5 +13,6 @@ namespace APIIntegrationLibrary.DTO
         public DateTime ValidTo { get; set; }
         public string CompareUnit { get; set; }
         public string CompanyName { get; set; }
+        public string ExternalAvisId { get; set; }
     }
 }
