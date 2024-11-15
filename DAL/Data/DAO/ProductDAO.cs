@@ -241,7 +241,7 @@ namespace DAL.Data.DAO
                     command.Parameters.AddWithValue($"@Description{i}", product.Description);
                     command.Parameters.AddWithValue($"@ImageUrl{i}", product.ImageUrl);
                     command.Parameters.AddWithValue($"@Amount{i}", product.Amount);
-                    command.Parameters.AddWithValue($"@CompanyId{i}", product.CompanyId);
+                    command.Parameters.AddWithValue($"@CompanyId{i}", context.CompanyId);
                 }
                 command.CommandText = string.Format(_addProductBatchQuery, string.Join(", ", rows));
 
@@ -348,7 +348,7 @@ namespace DAL.Data.DAO
 
             if (products.Count() > 10)
             {
-                var batchContext = new BatchContext(baseAvisId, avisId, avisExternalId);
+                var batchContext = new BatchContext(baseAvisId, avisId, avisExternalId, companyId);
                 return await AddProductsInBatch(products, connection, transaction, batchContext);
             }
 
@@ -568,6 +568,16 @@ namespace DAL.Data.DAO
                 Amount = (float?)amount,
                 NutritionInfo = nutritionInfo
             };
+        }
+
+        public Task<int> GetProductCountAsync(ProductQueryParameters parameters)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<string>> GetValidCompanyNamesFromProductSerach(ProductQueryParameters parameters)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -35,6 +35,11 @@ namespace APIIntegrationLibrary.Client
             return response.Data ?? Enumerable.Empty<ProductDTO>();
         }
 
+        public Task<IEnumerable<string>> GetValidCompanyNamesFromProductSearch(ProductQueryParameters parameters)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<IEnumerable<string>> GetValidCompanyNamesFromProductSerach(ProductQueryParameters parameters)
         {
             return await GetAllAsync<string>("products/companies", parameters);

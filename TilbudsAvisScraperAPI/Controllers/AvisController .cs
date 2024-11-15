@@ -1,3 +1,4 @@
+using APIIntegrationLibrary.DTO;
 using DAL.Data.DAO;
 using DAL.Data.Exceptions;
 using DAL.Data.Interfaces;
@@ -7,6 +8,7 @@ using System.Data.SqlClient;
 using System.Runtime.CompilerServices;
 using TilbudsAvisLibrary.Entities;
 using TIlbudsAvisScraperAPI.Services;
+using TIlbudsAvisScraperAPI.Tools;
 
 namespace TIlbudsAvisScraperAPI.Controllers
 {
@@ -25,20 +27,21 @@ namespace TIlbudsAvisScraperAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddAvis([FromBody] Avis avis, [FromQuery] int companyId, [FromQuery] string token)
+        public async Task<IActionResult> Create([FromBody] AvisDTO avis, [FromQuery] int companyId, [FromQuery] string token)
         {
             int permissionLevelRequired = 2;
             try
             {
                 if(await _apiUserService.IsTokenValid(token, permissionLevelRequired))
                 {
-                    int avisId = await _avisDAO.Add(avis, companyId);
-                    avis.SetId(avisId);
-                    return Created($"{baseURI}/{avis.Id}", avis);
+                    Avis mappedAvis = EntityMapper.MapToEntity(avis);
+                    int avisId = await _avisDAO.Add(mappedAvis, companyId);
+
+                    return Ok(avisId);
                 }
                 else
                 {
-                    return Unauthorized("Token provided is not valid for this action");
+                    return Unauthorized("Invalid token");
                 }
             }
             catch (Exception e)
@@ -57,7 +60,7 @@ namespace TIlbudsAvisScraperAPI.Controllers
             }
             else
             {
-                return Unauthorized("Token provided is not valid for this action");
+                return Unauthorized("Invalid token");
             }
         }
     }

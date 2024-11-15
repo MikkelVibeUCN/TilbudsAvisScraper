@@ -9,7 +9,7 @@ namespace TilbudsAvisLibrary.Entities
         public List<Product> Products { get; set; }
         public DateTime ValidFrom { get; set; }
         public DateTime ValidTo { get; set; }
-        public int Id { get; private set; }
+        public int Id { get; set; }
         public string ExternalId { get; set; }
 
         [JsonConstructor]
@@ -35,6 +35,11 @@ namespace TilbudsAvisLibrary.Entities
             ValidFrom = validFrom;
             ValidTo = validTo;
             Products = new List<Product>();
+        }
+
+        public Avis()
+        {
+
         }
         public void SetId(int id) => Id = id;
 

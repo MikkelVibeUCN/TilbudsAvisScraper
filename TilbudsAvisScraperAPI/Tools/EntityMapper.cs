@@ -16,7 +16,17 @@ namespace TIlbudsAvisScraperAPI.Tools
             return products;
         }
 
+        public static Avis MapToEntity(AvisDTO avis)
+        {
+            List<Product> products = ProductDTOMapper.MapToEntity(avis.Products, avis.ExternalId);
 
-        
+            return new Avis
+            {
+                Products = products,
+                ValidFrom = avis.ValidFrom,
+                ValidTo = avis.ValidTo,
+                ExternalId = avis.ExternalId
+            };
+        }
     }
 }

@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "All Beers";
     string selectedSortOrder = ViewBag.CurrentSortOrder ?? "";
-    string selectedCategory = ViewBag.CurrentCategory ?? "";
+    string selectedRetailer = ViewBag.CurrentRetailer ?? "";
     int currentPage = ViewBag.CurrentPage ?? 0;
     int totalPages = ViewBag.TotalPages ?? 1;
 }
@@ -24,7 +24,7 @@
                 <option value="">Alle kategorier</option>
                 @foreach (var retailer in ViewBag.Categories as IEnumerable<string>)
                 {
-                    <option value="@retailer" selected="@(retailer == selectedCategory)">@retailer</option>
+                    <option value="@retailer" selected="@(retailer == selectedRetailer)">@retailer</option>
                 }
             </select>
         </div>
@@ -65,12 +65,12 @@
 
         @for (int i = Math.Max(0, currentPage); i <= Math.Min(Math.Max(0, currentPage) + 2, totalPages); i++)
         {
-            <a href="@Url.Action("Index", new { pageNumber = i, SortBy = selectedSortOrder, Retailer = selectedCategory })" class="btn btn-light @((i == currentPage) ? "active" : "")">@i</a>
+            <a href="@Url.Action("Index", new { pageNumber = i, SortBy = selectedSortOrder, Retailer = selectedRetailer })" class="btn btn-light @((i == currentPage) ? "active" : "")">@i</a>
         }
 
         @if (currentPage < totalPages - 1)
         {
-            <a href="@Url.Action("Index", new { pageNumber = currentPage + 1, SortBy = selectedSortOrder, Retailer = selectedCategory })" class="btn btn-light">Næste</a>
+            <a href="@Url.Action("Index", new { pageNumber = currentPage + 1, SortBy = selectedSortOrder, Retailer = selectedRetailer })" class="btn btn-light">Næste</a>
         }
     </div>
 </div>

@@ -35,7 +35,7 @@ namespace TIlbudsAvisScraperAPI.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("count")]
         public async Task<ActionResult> GetProductCount([FromBody] ProductQueryParameters parameters)
         {
             try
@@ -49,7 +49,7 @@ namespace TIlbudsAvisScraperAPI.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("retailers")]
         public async Task<ActionResult> GetValidCompanyNamesFromProductSerach([FromBody] ProductQueryParameters parameters)
         {
             try

@@ -34,6 +34,10 @@ namespace TilbudsAvisLibrary.Entities
         {
             this.PriceValue = price;
         }
+
+        public Price()
+        {
+        }
         public void SetId(int id) => Id = id;
 
         public int TotalParameterAmount()

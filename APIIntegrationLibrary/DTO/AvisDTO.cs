@@ -14,5 +14,7 @@ namespace APIIntegrationLibrary.DTO
         public DateTime ValidFrom { get; set; }
         public DateTime ValidTo { get; set; }
         public int Id { get; set; }
+        public string ExternalId { get; set; }
+
     }
 }

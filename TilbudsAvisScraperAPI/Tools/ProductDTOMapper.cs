@@ -7,28 +7,15 @@ namespace TIlbudsAvisScraperAPI.Tools
     {
         public static List<ProductDTO> ConvertProductsInCompanyToDTO(Company company)
         {
-            List<ProductDTO> products = new List<ProductDTO>();
-
-            foreach (var avis in company.Aviser)
-            {
-                products.AddRange(ConvertAvisProductsToDTO(avis, company.Name));
-            }
-            return products;
+            return company.Aviser.SelectMany(avis => ConvertAvisProductsToDTO(avis.Products, company.Name, avis.ValidFrom, avis.ValidTo)).ToList();
         }
 
-        private static List<ProductDTO> ConvertAvisProductsToDTO(Avis avis, string companyName)
+        public static List<ProductDTO> ConvertAvisProductsToDTO(IEnumerable<Product> productEntities, string companyName, DateTime validFrom, DateTime validTo)
         {
-            List<ProductDTO> products = new List<ProductDTO>();
-
-            foreach (var product in avis.Products)
-            {
-                products.Add(MapProductToDTO(product, companyName, avis.ValidFrom, avis.ValidTo));
-            }
-
-            return products;
+            return productEntities.Select(product => MapToDTO(product, companyName, validFrom, validTo)).ToList();
         }
 
-        private static ProductDTO MapProductToDTO(Product product, string companyName, DateTime validFrom, DateTime validTo)
+        public static ProductDTO MapToDTO(Product product, string companyName, DateTime validFrom, DateTime validTo)
         {
             List<PriceDTO> prices = new List<PriceDTO>();
             foreach (var price in product.Prices)
@@ -40,7 +27,6 @@ namespace TIlbudsAvisScraperAPI.Tools
                     ValidTo = validTo,
                     CompareUnit = price.CompareUnitString,
                     CompanyName = companyName
-
                 });
             }
 
@@ -50,9 +36,70 @@ namespace TIlbudsAvisScraperAPI.Tools
                 Id = (int)product.Id,
                 ImageUrl = product.ImageUrl,
                 Name = product.Name,
-                NutritionInfo = product.NutritionInfo,
+                NutritionInfo = product.NutritionInfo != null ? MapToDTO(product.NutritionInfo) : null,
                 Prices = prices
             };
         }
+
+        public static List<Product> MapToEntity(IEnumerable<ProductDTO> products, string externalAvisID)
+        {
+            return products.Select(product => MapToEntity(product, externalAvisID)).ToList();
+        }
+
+        public static Product MapToEntity(ProductDTO product, string externalAvisID)
+        {
+            return new Product
+            {
+                Prices = product.Prices.Select(price => MapToEntity(price, externalAvisID)).ToList(),
+                Name = product.Name,
+                Description = product.Description,
+                ImageUrl = product.ImageUrl,
+                NutritionInfo = product.NutritionInfo != null ? MapToEntity(product.NutritionInfo) : null,
+                ExternalId = product.ExternalId,
+                Amount = product.Amount
+            };
+        }
+
+        public static Price MapToEntity(PriceDTO price, string externalAvisId)
+        {
+            return new Price
+            {
+                CompareUnitString = price.CompareUnit,
+                PriceValue = price.Price,
+                ExternalAvisId = externalAvisId,
+            };
+        }
+        public static NutritionInfo MapToEntity(NutritionInfoDTO nutritionInfoDTO)
+        {
+            return new NutritionInfo
+            {
+                CarbohydratesPer100G = nutritionInfoDTO.CarbohydratesPer100G,
+                EnergyKJ = nutritionInfoDTO.EnergyKJ,
+                FatPer100G = nutritionInfoDTO.FatPer100G,
+                FiberPer100G = nutritionInfoDTO.FiberPer100G,
+                ProteinPer100G = nutritionInfoDTO.ProteinPer100G,
+                SaltPer100G = nutritionInfoDTO.SaltPer100G,
+                SaturatedFatPer100G = nutritionInfoDTO.SaturatedFatPer100G,
+                SugarsPer100G = nutritionInfoDTO.SugarsPer100G
+            };
+        }
+
+        public static NutritionInfoDTO MapToDTO(NutritionInfo nutritionInfoDTO)
+        {
+            return new NutritionInfoDTO
+            {
+                CarbohydratesPer100G = nutritionInfoDTO.CarbohydratesPer100G,
+                EnergyKJ = nutritionInfoDTO.EnergyKJ,
+                FatPer100G = nutritionInfoDTO.FatPer100G,
+                FiberPer100G = nutritionInfoDTO.FiberPer100G,
+                ProteinPer100G = nutritionInfoDTO.ProteinPer100G,
+                SaltPer100G = nutritionInfoDTO.SaltPer100G,
+                SaturatedFatPer100G = nutritionInfoDTO.SaturatedFatPer100G,
+                SugarsPer100G = nutritionInfoDTO.SugarsPer100G,
+                Id = nutritionInfoDTO.Id
+
+            };
+        }
     }
+
 }
