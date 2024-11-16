@@ -112,11 +112,7 @@ namespace ScraperLibrary.COOP
 
             File.WriteAllText("response.text", response);
 
-            // TODO: Fix but so it knows to skip first instance of the key
-
-            int indexPastFirstInstance = response.IndexOf("avisen gælder fra ") + 100;
-
-            string validFromTo = GetInformationFromHtml<string>(response, "avisen gælder fra ", "avisen gælder fra ", "<", indexPastFirstInstance, true);
+            string validFromTo = GetInformationFromHtml<string>(response, "avisen gælder fra ", "avisen gælder fra ", "<", 50, true);
 
             string[] dates = validFromTo.Split("til");
 

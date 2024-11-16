@@ -1,60 +1,50 @@
 ﻿using APIIntegrationLibrary.DTO;
 using ScraperLibrary._365_Discount;
+using ScraperLibrary.COOP.Brugsen;
 using ScraperLibrary.COOP.Kvickly;
+using ScraperLibrary.COOP.SuperBrugsen;
+using ScraperLibrary.Interfaces;
 using ScraperLibrary.Rema;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using TilbudsAvisLibrary.Entities;
 using TilbudsAvisLibrary.Exceptions;
 
 namespace DesktopApplication
 {
     public class GrocerOperations
     {
-        public async Task<AvisDTO?> ScrapeRemaAvis(Action<int> progressCallback, CancellationToken token, int companyId)
+        private readonly Dictionary<string, IAvisScraper> _scrapers;
+
+        public GrocerOperations()
         {
-            try
+            _scrapers = new Dictionary<string, IAvisScraper>
             {
-                return await new RemaAvisScraper().GetAvis(progressCallback, token, companyId);
-            }
-            catch
-            {
-                return null;
-            }
+                { "Rema", new RemaAvisScraper() },
+                { "365 Discount", new _365AvisScraper() },
+                { "Kvickly", new KvicklyAvisScraper() },
+                { "Brugsen", new BrugsenAvisScraper() },
+                { "SuperBrugsen", new SuperBrugsenAvisScraper() }
+            };
         }
 
-        public async Task<AvisDTO?> Scrape365Avis(Action<int> progressCallback, CancellationToken token, int companyId)
+        public async Task<AvisDTO?> ScrapeAvis(string scraperKey, Action<int> progressCallback, CancellationToken token, int companyId)
         {
+            if (!_scrapers.TryGetValue(scraperKey, out var scraper))
+                throw new ArgumentException($"Scraper not found for key: {scraperKey}");
+
             try
             {
-                return await new _365AvisScraper().GetAvis(progressCallback, token, companyId);
+                return await scraper.GetAvis(progressCallback, token, companyId);
             }
             catch (CannotReachWebsiteException e)
             {
-                throw e;
+                throw;
             }
             catch
             {
-                return null;
-            }
-        }
-        public async Task<AvisDTO?> ScrapeKvicklyAvis(Action<int> progressCallback, CancellationToken token, int companyId)
-        {
-            try
-            {   
-                return await new KvicklyAvisScraper().GetAvis(progressCallback, token, companyId);
-            }
-            catch (CannotReachWebsiteException e)
-            {
-
-                throw e;
-            }
-            catch
-            {
-                return null;
+                return null; 
             }
         }
     }

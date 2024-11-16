@@ -12,7 +12,7 @@ namespace DesktopApplication
         private readonly APIUserRestClient _APIRestUserClient;
         public TokenValidator()
         {
-            _APIRestUserClient = new APIUserRestClient("https://localhost:5001/api/v1");
+            _APIRestUserClient = new APIUserRestClient("https://localhost:7133/api/v1");
         }
 
         public async Task<bool> IsTokenValidForAction(string token, int permissionRequired)

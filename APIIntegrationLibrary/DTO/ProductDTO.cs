@@ -9,11 +9,11 @@ namespace APIIntegrationLibrary.DTO
 {
     public class ProductDTO
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string ImageUrl { get; set; }
-        public NutritionInfoDTO NutritionInfo { get; set; }
+        public NutritionInfoDTO? NutritionInfo { get; set; }
         public List<PriceDTO> Prices { get; set; }
         public string ExternalId { get; set; }
         public float Amount { get; set; }

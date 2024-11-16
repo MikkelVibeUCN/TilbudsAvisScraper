@@ -19,13 +19,16 @@ namespace ScraperLibrary.COOP
             ProductsLocationUrl = productLocationsUrl;
         }
 
-        public async Task<List<ProductDTO>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId)
+        public async Task<List<ProductDTO>> GetAllProductsFromPage(
+            Action<int> progressCallback,
+            CancellationToken token,
+            string avisExternalId,
+            int companyId)
         {
             var response = await CallUrl(ProductsLocationUrl, 5000);
             List<ProductDTO> products = new List<ProductDTO>();
             List<string> productStrings = GetProductStrings(response);
-
-            //File.WriteAllText("response.text", response);
+            HashSet<string> addedExternalIds = new HashSet<string>(); 
 
             for (int i = 0; i < productStrings.Count; i++)
             {
@@ -33,9 +36,17 @@ namespace ScraperLibrary.COOP
                 {
                     progressCallback((int)(((double)i / productStrings.Count) * 100));
                     List<ProductDTO>? innerProducts = CreateProducts(productStrings[i], companyId);
+
                     if (innerProducts != null)
                     {
-                        products.AddRange(innerProducts);
+                        foreach (var product in innerProducts)
+                        {
+                            if (product?.ExternalId != null && addedExternalIds.Add(product.ExternalId))
+                            {
+                                // Avoid duplicates the retailers sometimes add the same product twice which fucks up the database
+                                products.Add(product);
+                            }
+                        }
                     }
                 }
                 catch (Exception e)
@@ -45,6 +56,7 @@ namespace ScraperLibrary.COOP
             }
             return products;
         }
+
 
         private static (Dictionary<string, int>, bool) CountStringOccurrencesAndCheck(string[] inputArray)
         {

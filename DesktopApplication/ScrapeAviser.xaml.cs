@@ -21,8 +21,8 @@ namespace DesktopApplication
             { "Rema", 1 },
             { "365 Discount", 2 },
             { "Kvickly", 3 },
-            {"SuperBrugsen", 4 },
-            {"Brugsen", 5 },
+            { "SuperBrugsen", 4 },
+            { "Brugsen", 5 },
         };
 
         private void PopulateComboBox()
@@ -73,7 +73,7 @@ namespace DesktopApplication
 
             if (grocerProgress != null)
             {
-                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis, Token, grocerProgress.CompanyId, new AvisAPIRestClient("https://localhost:5001/api/v1"));
+                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis, Token, grocerProgress.CompanyId, new AvisAPIRestClient("https://localhost:7133/api/v1"));
                 avisDetailsWindow.Show();
             }
         }
@@ -100,27 +100,21 @@ namespace DesktopApplication
                 {
                     var newGrocerProgress = new GrocerProgress(selectedGrocer.Value) { GrocerName = selectedGrocer.Key, Progress = "0%", IsProcessing = false, CancellationToken = new CancellationTokenSource()};
 
-                    switch (newGrocerProgress.GrocerName)
+                    try
                     {
-                        case "Rema":
-                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeRemaAvis(progressCallback, newGrocerProgress.CancellationToken.Token, selectedGrocer.Value);
-                            break;
-                        case "365 Discount":
-                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().Scrape365Avis(progressCallback, newGrocerProgress.CancellationToken.Token, selectedGrocer.Value);
-                            break;
-                        case "Kvickly":
-                            newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeKvicklyAvis(progressCallback, newGrocerProgress.CancellationToken.Token, selectedGrocer.Value);
-                            break;
-                        default:
-                            break;
+                        newGrocerProgress.ProcessMethod = (progressCallback) => new GrocerOperations().ScrapeAvis(newGrocerProgress.GrocerName, progressCallback, newGrocerProgress.CancellationToken.Token, selectedGrocer.Value);
+
+                        GrocerProgressList.Add(newGrocerProgress);
+                        GrocerQueue.Enqueue(newGrocerProgress);
+
+                        if (!QueueIsProcessing)
+                        {
+                            ProcessQueue();
+                        }
                     }
-
-                    GrocerProgressList.Add(newGrocerProgress);
-                    GrocerQueue.Enqueue(newGrocerProgress);
-
-                    if(!QueueIsProcessing)
+                    catch (Exception e)
                     {
-                        ProcessQueue();
+                        MessageBox.Show(e.Message);
                     }
                 }
             }

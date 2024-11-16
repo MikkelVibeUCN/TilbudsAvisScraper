@@ -53,7 +53,7 @@ namespace ScraperLibrary
                 endSearchKey = endSearchKey.ToLower();
             }
 
-            int startIndex = html.IndexOf(searchPattern, startIndexModifier);
+            int startIndex = html.IndexOf(searchPattern);
             if (startIndex != -1 && html.Contains(startSearchKey))
             {
                 startIndex = html.IndexOf(startSearchKey, startIndex + startIndexModifier) + startSearchKey.Length; // Move past the startSearchKey
