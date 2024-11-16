@@ -22,7 +22,7 @@
             <label for="retailer">Forhandlere:</label>
             <select id="retailer" name="Retailer" class="form-control">
                 <option value="">Alle kategorier</option>
-                @foreach (var retailer in ViewBag.Categories as IEnumerable<string>)
+                @foreach (var retailer in ViewBag.Grocers as IEnumerable<string>)
                 {
                     <option value="@retailer" selected="@(retailer == selectedRetailer)">@retailer</option>
                 }
@@ -75,32 +75,4 @@
     </div>
 </div>
 
-
-
 <div id="notification" class="notification"></div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            $('.add-to-cart').on('click', function (event) {
-                event.preventDefault();
-                var productId = $(this).data('product-id');
-
-                $.ajax({
-                    url: '/Cart/AddToCart',
-                    method: 'POST',
-                    data: { productId: productId, quantity: 1 },
-
-                    success: function (response) {
-                        $('#cart-item-count').text(response.cartItemCount);
-                        window.showNotification('Product added to cart!', 'success');
-                    },
-                    error: function (xhr) {
-                        var errorMessage = xhr.responseText || 'Error adding to cart. Try again.';
-                        window.showNotification(errorMessage, 'error');
-                    }
-                });
-            });
-        });
-    </script>
-}        

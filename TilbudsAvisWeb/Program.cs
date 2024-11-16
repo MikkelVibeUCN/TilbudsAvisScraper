@@ -1,3 +1,8 @@
+using APIIntegrationLibrary.Client;
+using APIIntegrationLibrary.Interfaces;
+using System;
+using TilbudsAvisWeb.Services;
+
 namespace TilbudsAvisWeb
 {
     public class Program
@@ -8,6 +13,13 @@ namespace TilbudsAvisWeb
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            string uri = "https://localhost:7133/api/v1/";
+
+            // Add services to the container.
+            builder.Services.AddScoped<IProductAPIRestClient>(provider => new ProductAPIRestClient(uri));
+
+            builder.Services.AddScoped<ProductService>();
 
             var app = builder.Build();
 

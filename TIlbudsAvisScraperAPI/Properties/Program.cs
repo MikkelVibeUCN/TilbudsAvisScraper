@@ -13,8 +13,12 @@ namespace TIlbudsAvisScraperAPI.Properties
             // Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddScoped<IAvisDAO>(provider => new AvisDAO(new ProductDAO(new NutritionInfoDAO(), new PriceDAO())));
-            builder.Services.AddScoped<APIUserService>(provider => new APIUserService(new APIUserDAO())); 
-
+            builder.Services.AddScoped<IProductDAO>(provider => new ProductDAO(new NutritionInfoDAO(), new PriceDAO()));
+            builder.Services.AddScoped<APIUserService>(provider => new APIUserService(new APIUserDAO()));
+            builder.Services.AddScoped<ProductService>(provider =>
+                new ProductService(
+                    provider.GetRequiredService<IProductDAO>()
+                ));
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

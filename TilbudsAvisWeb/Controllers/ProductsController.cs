@@ -6,17 +6,17 @@ using TilbudsAvisWeb.Services;
 
 namespace TilbudsAvisWeb.Controllers
 {
-    public class ProductController : Controller
+    public class ProductsController : Controller
     {
         private readonly ProductService _productService;
 
-        public ProductController(ProductService productService)
+        public ProductsController(ProductService productService)
         {
             _productService = productService;
         }
         public async Task<ActionResult> Index(ProductQueryParameters parameters)
         {
-            ViewBag.Grocers = await _productService.GetValidCompanyNamesFromProductSerach(parameters);
+            ViewBag.Grocers = await _productService.GetValidCompanyNamesFromProductSearch(parameters);
 
             int totalProductsForSearch = await _productService.GetProductCountAsync(parameters);
             int totalPages = (int)Math.Ceiling(totalProductsForSearch / (double)parameters.PageSize);

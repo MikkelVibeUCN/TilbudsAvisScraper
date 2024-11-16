@@ -25,7 +25,9 @@ namespace APIIntegrationLibrary.Client
 
         public async Task<IEnumerable<ProductDTO>> GetProductsAsync(ProductQueryParameters parameters)
         {
-            var response = await _restClient.RequestAsync<IEnumerable<ProductDTO>>(Method.Get, "products", parameters);
+            var queryString = GetQueryString(parameters);
+
+            var response = await _restClient.RequestAsync<IEnumerable<ProductDTO>>(Method.Get, $"products{queryString}");
 
             if (!response.IsSuccessful || response.Data == null)
             {
@@ -35,14 +37,43 @@ namespace APIIntegrationLibrary.Client
             return response.Data ?? Enumerable.Empty<ProductDTO>();
         }
 
-        public Task<IEnumerable<string>> GetValidCompanyNamesFromProductSearch(ProductQueryParameters parameters)
+        public async Task<IEnumerable<string>> GetValidCompanyNamesFromProductSearch(ProductQueryParameters parameters)
         {
-            throw new NotImplementedException();
+            return await GetAllAsync<string>("products/retailers", parameters);
         }
 
-        public async Task<IEnumerable<string>> GetValidCompanyNamesFromProductSerach(ProductQueryParameters parameters)
+        private string GetQueryString(ProductQueryParameters parameters)
         {
-            return await GetAllAsync<string>("products/companies", parameters);
+            var queryString = "?";
+
+            if (!string.IsNullOrEmpty(parameters.SortBy))
+            {
+                queryString += $"SortBy={parameters.SortBy}&";
+            }
+
+            if (parameters.PageNumber > 0)
+            {
+                queryString += $"PageNumber={parameters.PageNumber}&";
+            }
+
+            if (parameters.PageSize > 0)
+            {
+                queryString += $"PageSize={parameters.PageSize}&";
+            }
+
+            if (!string.IsNullOrEmpty(parameters.Retailer))
+            {
+                queryString += $"Retailer={parameters.Retailer}&";
+            }
+
+            // Remove the trailing '&' if there are any query parameters added
+            if (queryString.EndsWith("&"))
+            {
+                queryString = queryString.Remove(queryString.Length - 1);
+            }
+
+            return queryString;
         }
+
     }
 }

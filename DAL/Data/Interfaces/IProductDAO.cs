@@ -15,6 +15,6 @@ namespace DAL.Data.Interfaces
         Task<int> Add(Product product, int baseAvisId, int avisId, string avisBaseExternalId, int companyId);
         Task<List<Company>> GetAllProdudctsWithInformationFromCompany(ProductQueryParameters parameters);
         Task<int> GetProductCountAsync(ProductQueryParameters parameters);
-        Task<IEnumerable<string>> GetValidCompanyNamesFromProductSerach(ProductQueryParameters parameters);
+        Task<IEnumerable<string>> GetValidCompanyNamesFromProductSearch(ProductQueryParameters parameters);
     }
 }

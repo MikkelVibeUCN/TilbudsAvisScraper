@@ -27,7 +27,7 @@ namespace TIlbudsAvisScraperAPI.Services
 
         public async Task<IEnumerable<string>> GetValidCompanyNamesFromProductSerach(ProductQueryParameters parameters)
         {
-            return await _productDAO.GetValidCompanyNamesFromProductSerach(parameters);
+            return await _productDAO.GetValidCompanyNamesFromProductSearch(parameters);
         }
     }
 }

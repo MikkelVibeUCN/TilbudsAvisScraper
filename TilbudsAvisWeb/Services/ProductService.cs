@@ -22,7 +22,7 @@ namespace TilbudsAvisWeb.Services
             return await _productAPIRestClient.GetProductCountAsync(parameters);
         }
 
-        public async Task<IEnumerable<string>> GetValidCompanyNamesFromProductSerach(ProductQueryParameters parameters)
+        public async Task<IEnumerable<string>> GetValidCompanyNamesFromProductSearch(ProductQueryParameters parameters)
         {
             return await _productAPIRestClient.GetValidCompanyNamesFromProductSearch(parameters);
         }

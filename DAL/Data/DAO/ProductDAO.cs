@@ -13,6 +13,7 @@ using System.Data.Common;
 using TilbudsAvisLibrary;
 using Emgu.CV;
 using System.Data;
+using Dapper;
 
 namespace DAL.Data.DAO
 {
@@ -26,6 +27,82 @@ namespace DAL.Data.DAO
                         INSERT INTO Product (ExternalId, Name, Description, ImageUrl, Amount, CompanyId)
                         OUTPUT INSERTED.Id, INSERTED.ExternalId
                          VALUES {0};";
+
+        private readonly string _getRetailersWithValidProducts = @"SELECT DISTINCT c.Name AS RetailerName
+                                FROM Product p
+                                INNER JOIN Company c ON p.CompanyId = c.Id
+                                INNER JOIN Price pr ON p.Id = pr.ProductId
+                                INNER JOIN Avis a ON pr.AvisId = a.Id
+                                WHERE a.ExternalId != 'base'
+                                AND a.ValidFrom <= CAST(GETDATE() AS DATE)
+                                AND a.ValidTo >= CAST(GETDATE() AS DATE)";
+
+        private readonly string _getValidProductsCount = @"SELECT COUNT(*) AS ProductCount
+            FROM Product p
+            INNER JOIN Company c ON p.CompanyId = c.Id
+            INNER JOIN Price pr ON p.Id = pr.ProductId
+            INNER JOIN NutritionInfo nu ON p.Id = nu.ProductId
+            INNER JOIN Avis a ON pr.AvisId = a.Id
+            WHERE a.ExternalId != 'base'
+            AND a.ValidFrom <= CAST(GETDATE() AS DATE)
+            AND a.ValidTo >= CAST(GETDATE() AS DATE)";
+
+        private readonly string _getProducts = @"
+            SELECT 
+                p.Id, 
+                p.ExternalId AS ProductExternalId, 
+                p.amount, 
+                p.Name, 
+                p.Description, 
+                p.ImageUrl, 
+                pr.Price AS Price, 
+                a.ValidFrom AS PriceValidFrom, 
+                a.ValidTo AS PriceValidTo, 
+                c.Name AS RetailerName, 
+                a.ExternalId AS ExternalIdAvis,
+                nu.CarbohydratesPer100G, 
+                nu.EnergyKJ, 
+                nu.FatPer100G, 
+                nu.FiberPer100G, 
+                nu.ProteinPer100G, 
+                nu.productId, 
+                nu.SaturatedFatPer100G, 
+                nu.SugarsPer100G,
+                nu.SaltPer100G,
+                -- Price aggregation
+                priceAgg.MaxPrice, 
+                priceAgg.MinPrice
+            FROM 
+                Product p
+            INNER JOIN 
+                Company c ON p.CompanyId = c.Id
+            INNER JOIN 
+                NutritionInfo nu ON p.Id = nu.productId
+            INNER JOIN 
+                (SELECT 
+                     pr.ProductId, 
+                     MAX(pr.Price) AS MaxPrice, 
+                     MIN(pr.Price) AS MinPrice
+                 FROM 
+                     Price pr
+                 INNER JOIN 
+                     Avis a ON pr.AvisId = a.Id
+                 WHERE 
+                     a.ExternalId != 'base' 
+                     AND a.ValidFrom <= CAST(GETDATE() AS DATE)
+                     AND a.ValidTo >= CAST(GETDATE() AS DATE)
+                 GROUP BY 
+                     pr.ProductId
+                ) priceAgg ON p.Id = priceAgg.ProductId
+            INNER JOIN 
+                Price pr ON pr.ProductId = p.Id AND pr.Price = priceAgg.MaxPrice
+            INNER JOIN 
+                Avis a ON pr.AvisId = a.Id
+            WHERE 
+                a.ExternalId != 'base'
+                AND a.ValidFrom <= CAST(GETDATE() AS DATE) 
+                AND a.ValidTo >= CAST(GETDATE() AS DATE)";
+
 
         private INutritionInfoDAO _nutritionInfoDAO;
         private IPriceDAO _priceDAO;
@@ -445,35 +522,27 @@ namespace DAL.Data.DAO
             {
                 await connection.OpenAsync();
 
-                StringBuilder queryBuilder = new StringBuilder(@"
-                    SELECT p.Id, p.ExternalId as ProductExternalId, p.amount, p.Name, p.Description, p.ImageUrl, 
-                         pr.Price AS Price, a.ValidFrom AS PriceValidFrom, 
-                         a.ValidTo AS PriceValidTo, c.Name AS RetailerName, 
-	                     a.ExternalId AS ExternalIdAvis,
-	                     nu.*
-                    FROM Product p
-                    INNER JOIN Company c ON p.CompanyId = c.Id
-                    INNER JOIN Price pr ON p.Id = pr.ProductId
-                    INNER JOIN NutritionInfo nu ON p.Id = nu.productId
-                    INNER JOIN Avis a ON pr.AvisId = a.Id
-                    WHERE a.ExternalId != 'base'
-                    AND a.ValidFrom <= GETDATE() AND a.ValidTo >= GETDATE()");
+                StringBuilder queryBuilder = new StringBuilder(_getProducts); 
 
                 if (!string.IsNullOrEmpty(parameters.Retailer))
                 {
-                    queryBuilder.Append(" AND c.Name IN (@Retailers)"); 
+                    queryBuilder.Append(" AND c.Name IN (@Retailers)");
                 }
 
-                if (!string.IsNullOrEmpty(parameters.SortBy))
-                {
-                    string sortColumn = parameters.SortBy.ToLower() switch
+                string sortColumn = string.IsNullOrEmpty(parameters.SortBy)
+                    ? "p.Id"  // Default sorting by Product ID when SortBy is null or empty
+                    : parameters.SortBy.ToLower() switch
                     {
-                        "price" => "pr.Price",
-                        "name" => "p.Name",
-                        _ => "p.Id"
+                        var s when s.StartsWith("price") => parameters.SortBy.EndsWith("Desc", StringComparison.OrdinalIgnoreCase) ? "priceAgg.MaxPrice" : "priceAgg.MinPrice",  // Use MaxPrice for DESC, MinPrice for ASC
+                        var s when s.StartsWith("name") => "p.Name",  // Sorting by product name
+                        _ => "p.Id"  // Default to sorting by Product ID
                     };
-                    queryBuilder.Append($" ORDER BY {sortColumn}");
-                }
+
+                string sortDirection = string.IsNullOrEmpty(parameters.SortBy)
+                    ? "ASC"  
+                    : parameters.SortBy.EndsWith("Desc", StringComparison.OrdinalIgnoreCase) ? "DESC" : "ASC";
+
+                queryBuilder.Append($" ORDER BY {sortColumn} {sortDirection}");
 
                 queryBuilder.Append(" OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
 
@@ -484,7 +553,7 @@ namespace DAL.Data.DAO
                         command.Parameters.AddWithValue("@Retailers", string.Join(",", parameters.Retailer));
                     }
 
-                    command.Parameters.AddWithValue("@Offset", (parameters.PageNumber) * parameters.PageSize); 
+                    command.Parameters.AddWithValue("@Offset", (parameters.PageNumber) * parameters.PageSize);
                     command.Parameters.AddWithValue("@PageSize", parameters.PageSize);
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
@@ -495,7 +564,7 @@ namespace DAL.Data.DAO
                         {
                             string retailerName = reader.GetString(reader.GetOrdinal("RetailerName"));
                             string avisExternalId = reader.GetString(reader.GetOrdinal("ExternalIdAvis"));
-                            
+
                             if (!companyMap.ContainsKey(retailerName))
                             {
                                 var company = new Company(retailerName);
@@ -522,6 +591,7 @@ namespace DAL.Data.DAO
         }
 
 
+
         private Avis CreateAvis(SqlDataReader reader)
         {
             DateTime validFrom = reader.GetDateTime(reader.GetOrdinal("PriceValidFrom"));
@@ -540,44 +610,69 @@ namespace DAL.Data.DAO
             double amount = reader.GetDouble(reader.GetOrdinal("amount"));
             string externalId = reader.GetString(reader.GetOrdinal("ProductExternalId"));
 
-            float price = (float)reader.GetDouble(reader.GetOrdinal("Price"));
+            float price = reader.IsDBNull(reader.GetOrdinal("Price")) ? 0 : (float)reader.GetDouble(reader.GetOrdinal("Price"));
 
             Price priceObject = new Price(price);
 
-
             NutritionInfo nutritionInfo = new NutritionInfo
             {
-                EnergyKJ = (float) reader.GetDouble(reader.GetOrdinal("EnergyKJ")),
-                FatPer100G = (float) reader.GetDouble(reader.GetOrdinal("FatPer100G")),
-                SaturatedFatPer100G = (float) reader.GetDouble(reader.GetOrdinal("SaturatedFatPer100G")),
-                CarbohydratesPer100G = (float) reader.GetDouble(reader.GetOrdinal("CarbohydratesPer100G")),
-                SugarsPer100G = (float) reader.GetDouble(reader.GetOrdinal("SugarsPer100G")),
-                FiberPer100G = (float) reader.GetDouble(reader.GetOrdinal("FiberPer100G")),
-                ProteinPer100G = (float) reader.GetDouble(reader.GetOrdinal("ProteinPer100G")),
-                SaltPer100G = (float) reader.GetDouble(reader.GetOrdinal("SaltPer100G"))
+                EnergyKJ = (float)reader.GetDouble(reader.GetOrdinal("EnergyKJ")),
+                FatPer100G = (float)reader.GetDouble(reader.GetOrdinal("FatPer100G")),
+                SaturatedFatPer100G = (float)reader.GetDouble(reader.GetOrdinal("SaturatedFatPer100G")),
+                CarbohydratesPer100G = (float)reader.GetDouble(reader.GetOrdinal("CarbohydratesPer100G")),
+                SugarsPer100G = (float)reader.GetDouble(reader.GetOrdinal("SugarsPer100G")),
+                FiberPer100G = (float)reader.GetDouble(reader.GetOrdinal("FiberPer100G")),
+                ProteinPer100G = (float)reader.GetDouble(reader.GetOrdinal("ProteinPer100G")),
+                SaltPer100G = (float)reader.GetDouble(reader.GetOrdinal("SaltPer100G"))
             };
 
             return new Product
             {
                 Id = productId,
-                Prices = [priceObject],
+                Prices = new List<Price> { priceObject },  // Correcting this to use List<Price>
                 Name = name,
                 ImageUrl = imageUrl,
                 Description = description,
                 ExternalId = externalId,
-                Amount = (float?)amount,
+                Amount = (float?)amount,  // Casting to nullable float if necessary
                 NutritionInfo = nutritionInfo
             };
         }
 
-        public Task<int> GetProductCountAsync(ProductQueryParameters parameters)
+
+        public async Task<int> GetProductCountAsync(ProductQueryParameters parameters)
         {
-            throw new NotImplementedException();
+            StringBuilder builder = new StringBuilder(_getValidProductsCount);
+
+            if (!string.IsNullOrEmpty(parameters.Retailer))
+            {
+                builder.Append(" AND c.Name IN (@Retailers)");
+            }
+            try
+            {
+                using var connection = new SqlConnection(ConnectionString);
+                return await connection.QueryFirstOrDefaultAsync<int>(builder.ToString());
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("Error retrieving productcount message was: " + e.Message);
+            }
+
         }
 
-        public Task<IEnumerable<string>> GetValidCompanyNamesFromProductSerach(ProductQueryParameters parameters)
+        public async Task<IEnumerable<string>> GetValidCompanyNamesFromProductSearch(ProductQueryParameters parameters)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using var connection = new SqlConnection(ConnectionString);
+                return await connection.QueryAsync<string>(_getRetailersWithValidProducts);
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("Error retrieving retailernames message was: " + e.Message);
+            }
         }
     }
 }
