@@ -1,4 +1,4 @@
-﻿using APIIntegrationLibrary.DTO;
+﻿using TilbudsAvisLibrary.DTO;
 using DAL.Data.Interfaces;
 using TilbudsAvisLibrary;
 using TIlbudsAvisScraperAPI.Tools;
@@ -15,9 +15,7 @@ namespace TIlbudsAvisScraperAPI.Services
 
         public async Task<IEnumerable<ProductDTO>> GetProductsAsync(ProductQueryParameters parameters)
         {
-            var companies = await _productDAO.GetAllProdudctsWithInformationFromCompany(parameters);
-
-            return EntityMapper.MapToDTO(companies);
+            return await _productDAO.GetProducts(parameters);
         }
 
         public async Task<int> GetProductCountAsync(ProductQueryParameters parameters)

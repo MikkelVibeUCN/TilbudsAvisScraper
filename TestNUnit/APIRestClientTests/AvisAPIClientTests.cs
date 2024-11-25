@@ -1,5 +1,5 @@
 ﻿using APIIntegrationLibrary.Client;
-using APIIntegrationLibrary.DTO;
+using TilbudsAvisLibrary.DTO;
 using DAL.Data.DAO;
 using DAL.Data.Interfaces;
 using Microsoft.Extensions.Configuration;

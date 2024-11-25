@@ -1,4 +1,4 @@
-﻿using APIIntegrationLibrary.DTO;
+﻿using TilbudsAvisLibrary.DTO;
 using TilbudsAvisLibrary.Entities;
 
 namespace TIlbudsAvisScraperAPI.Tools

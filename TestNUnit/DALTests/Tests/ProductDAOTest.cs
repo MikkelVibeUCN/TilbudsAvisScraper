@@ -1,6 +1,7 @@
 ﻿using DAL.Data.DAO;
 using DAL.Data.Interfaces;
 using TilbudsAvisLibrary;
+using TilbudsAvisLibrary.DTO;
 using TilbudsAvisLibrary.Entities;
 
 namespace TestNUnit.DALTests.Tests
@@ -123,13 +124,13 @@ namespace TestNUnit.DALTests.Tests
                 SortBy = "name"
             };
 
-            List<Company> companies = await _productDAO.GetAllProdudctsWithInformationFromCompany(parameters);
+            List<ProductDTO> productDTOs = await _productDAO.GetProducts(parameters);
 
             parameters = new()
             {
                 SortBy = "price"
             };
-            companies = await _productDAO.GetAllProdudctsWithInformationFromCompany(parameters);
+            productDTOs = await _productDAO.GetProducts(parameters);
         }
 
         [TearDown]

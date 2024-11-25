@@ -5,7 +5,7 @@ using TilbudsAvisLibrary.Entities;
 using System.Collections;
 using System.Globalization;
 using System.Collections.Generic;
-using APIIntegrationLibrary.DTO;
+using TilbudsAvisLibrary.DTO;
 
 namespace ScraperLibrary.Rema
 {

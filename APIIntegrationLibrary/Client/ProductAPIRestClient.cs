@@ -1,4 +1,4 @@
-﻿using APIIntegrationLibrary.DTO;
+﻿using TilbudsAvisLibrary.DTO;
 using APIIntegrationLibrary.Interfaces;
 using TilbudsAvisLibrary;
 using RestSharp;

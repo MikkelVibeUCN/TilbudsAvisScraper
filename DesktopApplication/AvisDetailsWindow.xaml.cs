@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 using APIIntegrationLibrary;
-using APIIntegrationLibrary.DTO;
+using TilbudsAvisLibrary.DTO;
 using APIIntegrationLibrary.Interfaces;
 
 namespace DesktopApplication

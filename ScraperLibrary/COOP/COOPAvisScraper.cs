@@ -1,4 +1,4 @@
-﻿using APIIntegrationLibrary.DTO;
+﻿using TilbudsAvisLibrary.DTO;
 using PuppeteerSharp;
 using ScraperLibrary.Interfaces;
 using System;

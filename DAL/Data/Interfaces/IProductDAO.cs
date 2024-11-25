@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary;
+using TilbudsAvisLibrary.DTO;
 using TilbudsAvisLibrary.Entities;
 
 namespace DAL.Data.Interfaces
@@ -13,7 +14,7 @@ namespace DAL.Data.Interfaces
         Task<bool> DeleteOnExternalId(int externalId);
         Task<bool> DeleteTestProducts();
         Task<int> Add(Product product, int baseAvisId, int avisId, string avisBaseExternalId, int companyId);
-        Task<List<Company>> GetAllProdudctsWithInformationFromCompany(ProductQueryParameters parameters);
+        Task<List<ProductDTO>> GetProducts(ProductQueryParameters parameters);
         Task<int> GetProductCountAsync(ProductQueryParameters parameters);
         Task<IEnumerable<string>> GetValidCompanyNamesFromProductSearch(ProductQueryParameters parameters);
     }

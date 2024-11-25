@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Entities;
 using TilbudsAvisLibrary;
-using APIIntegrationLibrary.DTO;
+using TilbudsAvisLibrary.DTO;
 
 namespace APIIntegrationLibrary
 {

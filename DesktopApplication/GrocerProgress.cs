@@ -1,4 +1,4 @@
-﻿using APIIntegrationLibrary.DTO;
+﻿using TilbudsAvisLibrary.DTO;
 using ScraperLibrary.Rema;
 using System;
 using System.Collections.ObjectModel;

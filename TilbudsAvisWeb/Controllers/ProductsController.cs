@@ -1,4 +1,4 @@
-﻿using APIIntegrationLibrary.DTO;
+﻿using TilbudsAvisLibrary.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TilbudsAvisLibrary;
@@ -19,13 +19,11 @@ namespace TilbudsAvisWeb.Controllers
             ViewBag.Grocers = await _productService.GetValidCompanyNamesFromProductSearch(parameters);
 
             int totalProductsForSearch = await _productService.GetProductCountAsync(parameters);
-            int totalPages = (int)Math.Ceiling(totalProductsForSearch / (double)parameters.PageSize);
+            int totalPages = (int)Math.Ceiling(totalProductsForSearch / (double)parameters.PageSize) - 1;
 
-            if(totalPages > 1) { totalPages--; }
-
-            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentSortOrder = parameters.SortBy;
+            ViewBag.CurrentCategory = parameters.Retailer;
             ViewBag.CurrentPage = parameters.PageNumber;
-            ViewBag.PageSize = parameters.PageSize;
             ViewBag.TotalPages = totalPages;
 
             IEnumerable<ProductDTO> products = await _productService.GetProductsAsync(parameters);

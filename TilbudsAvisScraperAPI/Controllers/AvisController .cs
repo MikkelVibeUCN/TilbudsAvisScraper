@@ -1,4 +1,4 @@
-using APIIntegrationLibrary.DTO;
+using TilbudsAvisLibrary.DTO;
 using DAL.Data.DAO;
 using DAL.Data.Exceptions;
 using DAL.Data.Interfaces;

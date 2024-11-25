@@ -1,4 +1,4 @@
-﻿using APIIntegrationLibrary.DTO;
+﻿using TilbudsAvisLibrary.DTO;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;

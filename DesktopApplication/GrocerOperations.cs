@@ -1,4 +1,4 @@
-﻿using APIIntegrationLibrary.DTO;
+﻿using TilbudsAvisLibrary.DTO;
 using ScraperLibrary._365_Discount;
 using ScraperLibrary.COOP.Brugsen;
 using ScraperLibrary.COOP.Kvickly;

@@ -1,4 +1,4 @@
-﻿using APIIntegrationLibrary.DTO;
+﻿using TilbudsAvisLibrary.DTO;
 using ScraperLibrary.Interfaces;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace APIIntegrationLibrary.DTO
+namespace TilbudsAvisLibrary.DTO
 {
     public class APIUserDTO
     {

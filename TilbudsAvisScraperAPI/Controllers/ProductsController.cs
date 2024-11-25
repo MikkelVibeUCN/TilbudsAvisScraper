@@ -27,6 +27,13 @@ namespace TIlbudsAvisScraperAPI.Controllers
             try
             {
                 var productDTOs = await _productService.GetProductsAsync(parameters);
+
+                foreach (var productDTO in productDTOs)
+                {
+                    var minPrice = productDTO.Prices.Min(p => p.Price);
+                    Console.WriteLine($"Product: {productDTO.Name}, Min Price: {minPrice}");
+                }
+
                 return Ok(productDTOs);
             }
             catch (Exception e)

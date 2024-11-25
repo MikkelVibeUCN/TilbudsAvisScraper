@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Entities;
 
-namespace APIIntegrationLibrary.DTO
+namespace TilbudsAvisLibrary.DTO
 {
     public class ProductDTO
     {

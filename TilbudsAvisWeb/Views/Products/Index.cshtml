@@ -1,4 +1,4 @@
-﻿@model IEnumerable<APIIntegrationLibrary.DTO.ProductDTO>
+﻿@model IEnumerable<TilbudsAvisLibrary.DTO.ProductDTO>
 @{
     ViewData["Title"] = "All Beers";
     string selectedSortOrder = ViewBag.CurrentSortOrder ?? "";
@@ -6,6 +6,8 @@
     int currentPage = ViewBag.CurrentPage ?? 0;
     int totalPages = ViewBag.TotalPages ?? 1;
 }
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
 <form method="get" asp-action="Index">
     <div class="row mb-3">
@@ -34,21 +36,34 @@
     </div>
 </form>
 
-<div class="row">
+<div class="row" id="product-container">
     @foreach (var item in Model)
     {
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
+        <div class="col-6 col-sm-4 col-md-2 mb-2">
+            <div class="card text-center" style="font-size: 0.8rem; border: 1px solid #ddd;">
                 <a asp-action="Details" asp-route-id="@item.Id" style="text-decoration: none; color: inherit;">
-                    <img class="card-img-top" style="max-height: 200px; object-fit: cover;"
+                    <!-- Product Image -->
+                    <img class="card-img-top" style="max-height: 100px; width: 100%; object-fit: contain;"
                          src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://storage.googleapis.com/pod_public/1300/163656.jpg" : item.ImageUrl)"
                          alt="@item.Name" />
 
-                    <div class="card-body">
-                        <h5 class="card-title">@item.Name</h5>
-                        <h6 class="card-subtitle text-muted">@item.Name</h6>
-                        <p class="card-text">@item.Description</p>
+                    <!-- Product Name -->
+                    <div class="card-body p-1">
+                        <h6 class="card-title mb-1 text-truncate" style="font-size: 0.75rem;">@item.Name</h6>
 
+                        <!-- Lowest Product Price -->
+                        <p class="card-text mb-0" style="font-size: 0.8rem;">
+                            <strong>
+                                @if (item.Prices != null && item.Prices.Any())
+                                {
+                                    @($"{item.Prices.Min().Price} kr.")
+                                }
+                                else
+                                {
+                                    <span>Ikke tilgængelig</span>
+                                }
+                            </strong>
+                        </p>
                     </div>
                 </a>
             </div>
@@ -56,23 +71,62 @@
     }
 </div>
 
-<div class="pagination d-flex justify-content-center mt-4">
-    <div class="pagination-links">
-        @if (currentPage > 0)
-        {
-            <a href="@Url.Action("Index", new { pageNumber = currentPage - 1, SortBy = selectedSortOrder, Retailer = selectedRetailer })" class="btn btn-light">Tilbage</a>
-        }
-
-        @for (int i = Math.Max(0, currentPage); i <= Math.Min(Math.Max(0, currentPage) + 2, totalPages); i++)
-        {
-            <a href="@Url.Action("Index", new { pageNumber = i, SortBy = selectedSortOrder, Retailer = selectedRetailer })" class="btn btn-light @((i == currentPage) ? "active" : "")">@i</a>
-        }
-
-        @if (currentPage < totalPages - 1)
-        {
-            <a href="@Url.Action("Index", new { pageNumber = currentPage + 1, SortBy = selectedSortOrder, Retailer = selectedRetailer })" class="btn btn-light">Næste</a>
-        }
-    </div>
+<div id="loading-indicator" class="text-center mt-3" style="display: none;">
+    <i class="bi bi-arrow-clockwise"></i> Henter flere tilbud...
 </div>
 
 <div id="notification" class="notification"></div>
+
+
+@section Scripts {
+    <script>
+        let currentPage = @currentPage; // Tracks the current page number
+        const totalPages = @totalPages; // Total number of pages from the server
+        let isLoading = false; // Prevents multiple simultaneous requests
+
+        const loadMoreProducts = async () => {
+            if (isLoading || currentPage >= totalPages) return; // Exit if already loading or no more pages
+
+            isLoading = true; // Set flag to prevent multiple requests
+            const loadingIndicator = document.getElementById("loading-indicator");
+            loadingIndicator.style.display = "block"; // Show loading indicator
+
+            try {
+                // Fetch the next set of products
+                const response = await fetch(`@Url.Action("Index")?pageNumber=${currentPage + 1}&SortBy=@selectedSortOrder&Retailer=@selectedRetailer`);
+                if (response.ok) {
+                    const newProductsHtml = await response.text();
+                    const container = document.getElementById("product-container");
+
+                    // Append new products
+                    const tempDiv = document.createElement("div");
+                    tempDiv.innerHTML = newProductsHtml;
+                    const newProducts = tempDiv.querySelectorAll(".col-6"); // Adjust selector as needed
+
+                    if (newProducts.length > 0) {
+                        newProducts.forEach(product => container.appendChild(product));
+                        currentPage++; // Increment the page number
+                    }
+                } else {
+                    console.error("Failed to fetch more products.");
+                }
+            } catch (error) {
+                console.error("Error loading more products:", error);
+            } finally {
+                isLoading = false; // Reset the flag
+                loadingIndicator.style.display = "none"; // Hide loading indicator
+            }
+        };
+
+        const onScroll = () => {
+            const scrollPosition = window.scrollY + window.innerHeight;
+            const pageHeight = document.documentElement.scrollHeight;
+
+            if (scrollPosition >= pageHeight - 200) { // Trigger when near the bottom
+                loadMoreProducts();
+            }
+        };
+
+        window.addEventListener("scroll", onScroll);
+    </script>
+}
