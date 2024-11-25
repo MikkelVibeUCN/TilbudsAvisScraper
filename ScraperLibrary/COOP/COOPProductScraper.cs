@@ -35,7 +35,7 @@ namespace ScraperLibrary.COOP
                 try
                 {
                     progressCallback((int)(((double)i / productStrings.Count) * 100));
-                    List<ProductDTO>? innerProducts = CreateProducts(productStrings[i], companyId);
+                    List<ProductDTO>? innerProducts = CreateProducts(productStrings[i], companyId, avisExternalId);
 
                     if (innerProducts != null)
                     {
@@ -82,7 +82,7 @@ namespace ScraperLibrary.COOP
             return (stringCounts, hasMoreThanTwo);
         }
 
-        private static List<ProductDTO>? CreateProducts(string productContainedHtml, int companyId)
+        private static List<ProductDTO>? CreateProducts(string productContainedHtml, int companyId, string externalAvisId)
         {
 
             List<ProductDTO> products = new List<ProductDTO>();
@@ -103,7 +103,7 @@ namespace ScraperLibrary.COOP
 
             string[] compareUnitsInDescription = GetUnitsFromDescription(description);
 
-            List<PriceDTO>? prices = CreatePrices(productContainedHtml, GetCompareUnit(description));
+            List<PriceDTO>? prices = CreatePrices(productContainedHtml, GetCompareUnit(description), externalAvisId);
 
             if (prices == null)
             {
@@ -364,7 +364,7 @@ namespace ScraperLibrary.COOP
             throw new NotImplementedException();
         }
 
-        private static List<PriceDTO>? CreatePrices(string productContainedHtml, string compareUnit)
+        private static List<PriceDTO>? CreatePrices(string productContainedHtml, string compareUnit, string externalAvisId)
         {
             float price = GetPriceFromHtml(productContainedHtml);
             if (price != -1)
@@ -374,7 +374,8 @@ namespace ScraperLibrary.COOP
                     new PriceDTO
                     {
                         Price = price,
-                        CompareUnit = compareUnit
+                        CompareUnit = compareUnit,
+                        ExternalAvisId = externalAvisId
                     }
                 };
                 

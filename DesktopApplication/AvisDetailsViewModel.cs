@@ -74,20 +74,19 @@ namespace DesktopApplication
 
         private void FilterProducts()
         {
-            if (string.IsNullOrWhiteSpace(SearchTerm))
-            {
-                // If the search term is empty, show all products
-                FilteredProducts = new ObservableCollection<ProductDTO>(SelectedAvis.Products);
-            }
-            else
-            {
-                // Filter products based on the search term
-                var filtered = SelectedAvis.Products
-                    .Where(p => p.Name.IndexOf(SearchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
-                    .ToList();
+            if (FilteredProducts == null)
+                FilteredProducts = new ObservableCollection<ProductDTO>();
 
-                FilteredProducts = new ObservableCollection<ProductDTO>(filtered);
-            }
+            FilteredProducts.Clear();
+
+            var filtered = string.IsNullOrWhiteSpace(SearchTerm)
+                ? SelectedAvis.Products
+                : SelectedAvis.Products
+                    .Where(p => p.Name.IndexOf(SearchTerm, StringComparison.OrdinalIgnoreCase) >= 0);
+
+            foreach (var product in filtered)
+                FilteredProducts.Add(product);
         }
+
     }
 }

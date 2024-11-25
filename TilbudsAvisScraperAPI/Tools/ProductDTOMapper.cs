@@ -46,60 +46,48 @@ namespace TIlbudsAvisScraperAPI.Tools
             return products.Select(product => MapToEntity(product, externalAvisID)).ToList();
         }
 
-        public static Product MapToEntity(ProductDTO product, string externalAvisID)
+        public static Product MapToEntity(ProductDTO product, string externalAvisID) => new Product
         {
-            return new Product
-            {
-                Prices = product.Prices.Select(price => MapToEntity(price, externalAvisID)).ToList(),
-                Name = product.Name,
-                Description = product.Description,
-                ImageUrl = product.ImageUrl,
-                NutritionInfo = product.NutritionInfo != null ? MapToEntity(product.NutritionInfo) : null,
-                ExternalId = product.ExternalId,
-                Amount = product.Amount
-            };
-        }
+            Prices = product.Prices.Select(MapToEntity).ToList(),
+            Name = product.Name,
+            Description = product.Description,
+            ImageUrl = product.ImageUrl,
+            NutritionInfo = product.NutritionInfo != null ? MapToEntity(product.NutritionInfo) : null,
+            ExternalId = product.ExternalId,
+            Amount = product.Amount
+        };
 
-        public static Price MapToEntity(PriceDTO price, string externalAvisId)
+        public static Price MapToEntity(PriceDTO price) => new Price
         {
-            return new Price
-            {
-                CompareUnitString = price.CompareUnit,
-                PriceValue = price.Price,
-                ExternalAvisId = externalAvisId,
-            };
-        }
-        public static NutritionInfo MapToEntity(NutritionInfoDTO nutritionInfoDTO)
+            CompareUnitString = price.CompareUnit,
+            PriceValue = price.Price,
+            ExternalAvisId = price.ExternalAvisId,
+        };
+        public static NutritionInfo MapToEntity(NutritionInfoDTO nutritionInfoDTO) => new NutritionInfo
         {
-            return new NutritionInfo
-            {
-                CarbohydratesPer100G = nutritionInfoDTO.CarbohydratesPer100G,
-                EnergyKJ = nutritionInfoDTO.EnergyKJ,
-                FatPer100G = nutritionInfoDTO.FatPer100G,
-                FiberPer100G = nutritionInfoDTO.FiberPer100G,
-                ProteinPer100G = nutritionInfoDTO.ProteinPer100G,
-                SaltPer100G = nutritionInfoDTO.SaltPer100G,
-                SaturatedFatPer100G = nutritionInfoDTO.SaturatedFatPer100G,
-                SugarsPer100G = nutritionInfoDTO.SugarsPer100G
-            };
-        }
+            CarbohydratesPer100G = nutritionInfoDTO.CarbohydratesPer100G,
+            EnergyKJ = nutritionInfoDTO.EnergyKJ,
+            FatPer100G = nutritionInfoDTO.FatPer100G,
+            FiberPer100G = nutritionInfoDTO.FiberPer100G,
+            ProteinPer100G = nutritionInfoDTO.ProteinPer100G,
+            SaltPer100G = nutritionInfoDTO.SaltPer100G,
+            SaturatedFatPer100G = nutritionInfoDTO.SaturatedFatPer100G,
+            SugarsPer100G = nutritionInfoDTO.SugarsPer100G
+        };
 
-        public static NutritionInfoDTO MapToDTO(NutritionInfo nutritionInfoDTO)
+        public static NutritionInfoDTO MapToDTO(NutritionInfo nutritionInfoDTO) => new NutritionInfoDTO
         {
-            return new NutritionInfoDTO
-            {
-                CarbohydratesPer100G = nutritionInfoDTO.CarbohydratesPer100G,
-                EnergyKJ = nutritionInfoDTO.EnergyKJ,
-                FatPer100G = nutritionInfoDTO.FatPer100G,
-                FiberPer100G = nutritionInfoDTO.FiberPer100G,
-                ProteinPer100G = nutritionInfoDTO.ProteinPer100G,
-                SaltPer100G = nutritionInfoDTO.SaltPer100G,
-                SaturatedFatPer100G = nutritionInfoDTO.SaturatedFatPer100G,
-                SugarsPer100G = nutritionInfoDTO.SugarsPer100G,
-                Id = nutritionInfoDTO.Id
+            CarbohydratesPer100G = nutritionInfoDTO.CarbohydratesPer100G,
+            EnergyKJ = nutritionInfoDTO.EnergyKJ,
+            FatPer100G = nutritionInfoDTO.FatPer100G,
+            FiberPer100G = nutritionInfoDTO.FiberPer100G,
+            ProteinPer100G = nutritionInfoDTO.ProteinPer100G,
+            SaltPer100G = nutritionInfoDTO.SaltPer100G,
+            SaturatedFatPer100G = nutritionInfoDTO.SaturatedFatPer100G,
+            SugarsPer100G = nutritionInfoDTO.SugarsPer100G,
+            Id = nutritionInfoDTO.Id
 
-            };
-        }
+        };
     }
 
 }

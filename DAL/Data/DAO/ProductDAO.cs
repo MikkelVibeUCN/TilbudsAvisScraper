@@ -377,11 +377,11 @@ namespace DAL.Data.DAO
             }
         }
 
-        public async Task<List<Product>> RemoveExistingProductsAsync(List<Product> products, SqlConnection connection, SqlTransaction transaction, int baseAvisId, int avisId, string avisExternalId)
+        public async Task<List<Product>> RemoveExistingProductsAsync(List<Product> products, SqlConnection connection, SqlTransaction transaction, int baseAvisId, int avisId, string avisExternalId, int companyId)
         {
             List<string> externalIds = products.Select(p => p.ExternalId).ToList();
 
-            var existingProducts = await CheckExistingProductIdsAsync(externalIds, connection, transaction);
+            var existingProducts = await CheckExistingProductIdsAsync(externalIds, companyId, connection, transaction);
 
             List<Product> removedProducts = new List<Product>(); 
             List<Product> productsToAdd = new List<Product>();
@@ -421,7 +421,7 @@ namespace DAL.Data.DAO
 
         public async Task<List<Product>> AddProducts(List<Product> products, SqlTransaction transaction, SqlConnection connection, int baseAvisId, int avisId, string avisExternalId, int companyId)
         {
-            products = await RemoveExistingProductsAsync(products, connection, transaction, baseAvisId, avisId, avisExternalId);
+            products = await RemoveExistingProductsAsync(products, connection, transaction, baseAvisId, avisId, avisExternalId, companyId);
 
             if (products.Count() > 10)
             {
@@ -487,12 +487,12 @@ namespace DAL.Data.DAO
             return new Product(prices, productId, name, imageUrl, description, externalId, nutritionInfo, amount, companyId);
         }
 
-        public async Task<Dictionary<string, int>> CheckExistingProductIdsAsync(List<string> externalIds, SqlConnection connection, SqlTransaction transaction)
+        public async Task<Dictionary<string, int>> CheckExistingProductIdsAsync(List<string> externalIds, int companyId, SqlConnection connection, SqlTransaction transaction)
         {
             // Dictionary to hold existing external IDs and their corresponding database IDs
             Dictionary<string, int> existingProducts = new Dictionary<string, int>();
 
-            string sqlQuery = $"SELECT ExternalId, Id FROM Product WHERE ExternalId IN ({string.Join(", ", externalIds.Select((id, index) => $"@ExternalId{index}"))})";
+            string sqlQuery = $"SELECT ExternalId, Id FROM Product WHERE ExternalId IN ({string.Join(", ", externalIds.Select((id, index) => $"@ExternalId{index}"))}) AND CompanyId = @CompanyId";
 
             using (SqlCommand command = new SqlCommand(sqlQuery, connection, transaction))
             {
@@ -500,7 +500,7 @@ namespace DAL.Data.DAO
                 {
                     command.Parameters.AddWithValue($"@ExternalId{i}", externalIds[i]);
                 }
-
+                command.Parameters.AddWithValue("CompanyId", companyId);
                 using (SqlDataReader reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
