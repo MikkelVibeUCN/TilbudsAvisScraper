@@ -3,6 +3,7 @@
     ViewData["Title"] = "All Beers";
     string selectedSortOrder = ViewBag.CurrentSortOrder ?? "";
     string selectedRetailer = ViewBag.CurrentRetailer ?? "";
+    string selectedSearchTerm = ViewBag.CurrentSearchTerm ?? "";
     int currentPage = ViewBag.CurrentPage ?? 0;
     int totalPages = ViewBag.TotalPages ?? 1;
 }
@@ -11,7 +12,7 @@
 
 <form method="get" asp-action="Index">
     <div class="row mb-3">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="sortOrder">Sorter efter:</label>
             <select id="sortOrder" name="SortBy" class="form-control">
                 <option value="nameAsc" selected="@(selectedSortOrder == "nameAsc")">Navn stigende (A-Å)</option>
@@ -20,7 +21,8 @@
                 <option value="priceDesc" selected="@(selectedSortOrder == "priceDesc")">Pris faldene</option>
             </select>
         </div>
-        <div class="col-md-4">
+
+        <div class="col-md-3">
             <label for="retailer">Forhandlere:</label>
             <select id="retailer" name="Retailer" class="form-control">
                 <option value="">Alle kategorier</option>
@@ -30,11 +32,18 @@
                 }
             </select>
         </div>
-        <div class="col-md-4 d-flex align-items-end">
+
+        <div class="col-md-3">
+            <label for="searchTerm">Søg efter navn:</label>
+            <input type="text" id="searchTerm" name="SearchTerm" class="form-control" placeholder="Indtast produktnavn" value="@(selectedSearchTerm ?? "")">
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end">
             <button type="submit" class="btn btn-primary">Apply</button>
         </div>
     </div>
 </form>
+
 
 <div class="row" id="product-container">
     @foreach (var item in Model)
