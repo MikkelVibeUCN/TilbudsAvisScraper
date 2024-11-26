@@ -1,6 +1,6 @@
 ﻿@model IEnumerable<TilbudsAvisLibrary.DTO.ProductDTO>
 @{
-    ViewData["Title"] = "All Beers";
+    ViewData["Title"] = "Alle tilbud";
     string selectedSortOrder = ViewBag.CurrentSortOrder ?? "";
     string selectedRetailer = ViewBag.CurrentRetailer ?? "";
     int currentPage = ViewBag.CurrentPage ?? 0;
@@ -8,7 +8,11 @@
 }
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
+<style>
+    .card:hover .card-img-top {
+        transform: scale(1.5);
+    }
+</style>
 <form method="get" asp-action="Index">
     <div class="row mb-3">
         <div class="col-md-4">
@@ -21,9 +25,9 @@
             </select>
         </div>
         <div class="col-md-4">
-            <label for="retailer">Forhandlere:</label>
+            <label for="retailer">Butikker:</label>
             <select id="retailer" name="Retailer" class="form-control">
-                <option value="">Alle kategorier</option>
+                <option value="">Alle butikker</option>
                 @foreach (var retailer in ViewBag.Grocers as IEnumerable<string>)
                 {
                     <option value="@retailer" selected="@(retailer == selectedRetailer)">@retailer</option>
@@ -39,17 +43,23 @@
 <div class="row" id="product-container">
     @foreach (var item in Model)
     {
-        <div class="col-6 col-sm-4 col-md-2 mb-2">
-            <div class="card text-center" style="font-size: 0.8rem; border: 1px solid #ddd;">
-                <a asp-action="Details" asp-route-id="@item.Id" style="text-decoration: none; color: inherit;">
-                    <!-- Product Image -->
-                    <img class="card-img-top" style="max-height: 100px; width: 100%; object-fit: contain;"
-                         src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://storage.googleapis.com/pod_public/1300/163656.jpg" : item.ImageUrl)"
-                         alt="@item.Name" />
+        <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-3">
+            <div class="card text-center" style="font-size: 0.8rem; border: 1px solid #ddd; height: 170px; display: flex; flex-direction: column; margin: 0 auto; overflow: hidden; position: relative;">
+                <a asp-action="Details" asp-route-id="@item.Id" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; height: 100%; padding: 0;">
 
-                    <!-- Product Name -->
-                    <div class="card-body p-1">
-                        <h6 class="card-title mb-1 text-truncate" style="font-size: 0.75rem;">@item.Name</h6>
+                    <!-- Product Image -->
+                    <div class="card-img-container" style="flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 10px; box-sizing: border-box; height: 60%; width: 100%; overflow: hidden;">
+                        <img class="card-img-top" style="width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease;"
+                             src="@(string.IsNullOrEmpty(item.ImageUrl) ? "https://storage.googleapis.com/pod_public/1300/163656.jpg" : item.ImageUrl)"
+                             alt="@item.Name" />
+                    </div>
+
+                    <!-- Product Name and Price -->
+                    <div class="card-body p-1" style="display: flex; flex-direction: column; justify-content: flex-end; padding: 0.5rem; text-align: center; flex-shrink: 0;">
+                        <!-- Product Name -->
+                        <h6 class="card-title mb-1 text-truncate" style="font-size: 0.75rem; margin-bottom: 10px;">
+                            @item.Name
+                        </h6>
 
                         <!-- Lowest Product Price -->
                         <p class="card-text mb-0" style="font-size: 0.8rem;">
@@ -70,6 +80,10 @@
         </div>
     }
 </div>
+
+
+
+
 
 <div id="loading-indicator" class="text-center mt-3" style="display: none;">
     <i class="bi bi-arrow-clockwise"></i> Henter flere tilbud...
