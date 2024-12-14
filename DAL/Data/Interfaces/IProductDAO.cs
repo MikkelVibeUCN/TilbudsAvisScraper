@@ -17,5 +17,6 @@ namespace DAL.Data.Interfaces
         Task<List<ProductDTO>> GetProducts(ProductQueryParameters parameters);
         Task<int> GetProductCountAsync(ProductQueryParameters parameters);
         Task<IEnumerable<string>> GetValidCompanyNamesFromProductSearch(ProductQueryParameters parameters);
+        Task<List<Company>> GetProductWithInformationAsync(int id);
     }
 }

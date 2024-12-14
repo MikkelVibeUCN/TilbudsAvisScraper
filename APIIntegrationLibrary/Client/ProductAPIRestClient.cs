@@ -66,6 +66,11 @@ namespace APIIntegrationLibrary.Client
                 queryString += $"Retailer={parameters.Retailer}&";
             }
 
+            if(!string.IsNullOrEmpty(parameters.SearchTerm))
+            {
+                queryString += $"SearchTerm={parameters.SearchTerm}&";
+            }
+
             // Remove the trailing '&' if there are any query parameters added
             if (queryString.EndsWith("&"))
             {

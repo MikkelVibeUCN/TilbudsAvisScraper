@@ -48,61 +48,77 @@ namespace DAL.Data.DAO
             AND a.ValidFrom <= CAST(GETDATE() AS DATE)
             AND a.ValidTo >= CAST(GETDATE() AS DATE)";
 
+
+        private readonly string _getProduct = @"SELECT 
+                   p.Id, p.ExternalId, p.Name, p.Description, p.ImageUrl, p.amount,      
+                    c.*,     
+					pr.Id, pr.Price as PriceValue, pr.AvisId as ExternalAvisId, pr.CompareUnitString,       
+                    a.*         
+                FROM 
+                    Product p
+                INNER JOIN 
+                    Company c ON p.CompanyId = c.Id
+                INNER JOIN 
+                    Price pr ON p.Id = pr.ProductId
+                INNER JOIN 
+                    Avis a ON a.Id = pr.AvisId
+                WHERE 
+                    p.id = @Id";
+
         private readonly string _getProducts = @"
                        SELECT 
-                p.Id AS ProductId, 
-                p.ExternalId AS ProductExternalId, 
-                p.amount AS ProductAmount, 
-                p.Name AS ProductName, 
-                p.Description AS ProductDescription, 
-                p.ImageUrl AS ProductImageUrl, 
-                pr.Price AS Price, 
-                a.ValidFrom AS PriceValidFrom, 
-                a.ValidTo AS PriceValidTo, 
-                c.Name AS PriceRetailerName, 
-                a.ExternalId AS PriceExternalIdAvis,
-                nu.CarbohydratesPer100G, 
-                nu.EnergyKJ, 
-                nu.FatPer100G, 
-                nu.FiberPer100G, 
-                nu.ProteinPer100G, 
-                nu.productId, 
-                nu.SaturatedFatPer100G, 
-                nu.SugarsPer100G,
-                nu.SaltPer100G,
-                -- Price aggregation
-                priceAgg.MaxPrice, 
-                priceAgg.MinPrice
-            FROM 
-                Product p
-            INNER JOIN 
-                Company c ON p.CompanyId = c.Id
-            LEFT JOIN 
-                NutritionInfo nu ON p.Id = nu.productId
-            INNER JOIN 
-                (SELECT 
-                     pr.ProductId, 
-                     MAX(pr.Price) AS MaxPrice, 
-                     MIN(pr.Price) AS MinPrice
-                 FROM 
-                     Price pr
-                 INNER JOIN 
-                     Avis a ON pr.AvisId = a.Id
-                 WHERE 
-                     a.ExternalId != 'base' 
-                     AND a.ValidFrom <= CAST(GETDATE() AS DATE)
-                     AND a.ValidTo >= CAST(GETDATE() AS DATE)
-                 GROUP BY 
-                     pr.ProductId
-                ) priceAgg ON p.Id = priceAgg.ProductId
-            INNER JOIN 
-                Price pr ON pr.ProductId = p.Id AND pr.Price = priceAgg.MaxPrice
-            INNER JOIN 
-                Avis a ON pr.AvisId = a.Id
-            WHERE 
-                a.ExternalId != 'base'
-                AND a.ValidFrom <= CAST(GETDATE() AS DATE) 
-                AND a.ValidTo >= CAST(GETDATE() AS DATE)";
+            p.Id AS ProductId, 
+            p.ExternalId AS ProductExternalId, 
+            p.amount AS ProductAmount, 
+            p.Name AS ProductName, 
+            p.Description AS ProductDescription, 
+            p.ImageUrl AS ProductImageUrl, 
+            pr.Price AS Price, 
+            a.ValidFrom AS PriceValidFrom, 
+            a.ValidTo AS PriceValidTo, 
+            c.Name AS PriceRetailerName, 
+            a.ExternalId AS PriceExternalIdAvis,
+            nu.CarbohydratesPer100G, 
+            nu.EnergyKJ, 
+            nu.FatPer100G, 
+            nu.FiberPer100G, 
+            nu.ProteinPer100G, 
+            nu.productId, 
+            nu.SaturatedFatPer100G, 
+            nu.SugarsPer100G,
+            nu.SaltPer100G,
+            priceAgg.MaxPrice, 
+            priceAgg.MinPrice
+        FROM 
+            Product p
+        INNER JOIN 
+            Company c ON p.CompanyId = c.Id
+        LEFT JOIN 
+            NutritionInfo nu ON p.Id = nu.productId
+        INNER JOIN 
+            (SELECT 
+                 pr.ProductId, 
+                 MAX(pr.Price) AS MaxPrice, 
+                 MIN(pr.Price) AS MinPrice
+             FROM 
+                 Price pr
+             INNER JOIN 
+                 Avis a ON pr.AvisId = a.Id
+             WHERE 
+                 a.ExternalId != 'base' 
+                 AND a.ValidFrom <= CAST(GETDATE() AS DATE)
+                 AND a.ValidTo >= CAST(GETDATE() AS DATE)
+             GROUP BY 
+                 pr.ProductId
+            ) priceAgg ON p.Id = priceAgg.ProductId
+        INNER JOIN 
+            Price pr ON pr.ProductId = p.Id AND pr.Price = priceAgg.MaxPrice
+        INNER JOIN 
+            Avis a ON pr.AvisId = a.Id
+        WHERE 
+            a.ExternalId != 'base' 
+            AND a.ValidFrom <= CAST(GETDATE() AS DATE) 
+            AND a.ValidTo >= CAST(GETDATE() AS DATE)";
 
 
         private INutritionInfoDAO _nutritionInfoDAO;
@@ -525,35 +541,42 @@ namespace DAL.Data.DAO
 
                 StringBuilder queryBuilder = new StringBuilder(_getProducts);
 
-                // Apply filter for Retailer if specified
                 if (!string.IsNullOrEmpty(parameters.Retailer))
                 {
-                    queryBuilder.Append(" AND c.Name IN (@Retailers)");
+                    queryBuilder.Append(" AND c.Name IN (SELECT value FROM STRING_SPLIT(@Retailers, ','))");
                 }
 
-                // Determine sorting column and direction
-                string sortColumn = string.IsNullOrEmpty(parameters.SortBy)
-                    ? "p.Id"  // Default sorting by Product ID
-                    : parameters.SortBy.ToLower() switch
-                    {
-                        var s when s.StartsWith("price") => parameters.SortBy.EndsWith("Desc", StringComparison.OrdinalIgnoreCase) ? "priceAgg.MaxPrice" : "priceAgg.MinPrice",
-                        var s when s.StartsWith("name") => "p.Name",
-                        _ => "p.Id"
-                    };
+                if (!string.IsNullOrEmpty(parameters.SearchTerm))
+                {
+                    queryBuilder.Append(" AND (p.Name LIKE '%' + @SearchTerm + '%' OR p.Description LIKE '%' + @SearchTerm + '%')");
+                }
 
-                string sortDirection = string.IsNullOrEmpty(parameters.SortBy)
+                string sortColumn = parameters.SortBy?.ToLower() switch
+                {
+                    "pricemax" => "priceAgg.MaxPrice",
+                    "pricemin" => "priceAgg.MinPrice",
+                    "name" => "p.Name",
+                    _ => "p.Id" // Default sorting by Product ID
+                };
+
+                string sortDirection = string.IsNullOrEmpty(parameters.SortBy) || !parameters.SortBy.EndsWith("Desc", StringComparison.OrdinalIgnoreCase)
                     ? "ASC"
-                    : parameters.SortBy.EndsWith("Desc", StringComparison.OrdinalIgnoreCase) ? "DESC" : "ASC";
+                    : "DESC";
 
-                // Add sorting and pagination
                 queryBuilder.Append($" ORDER BY {sortColumn} {sortDirection}");
+
                 queryBuilder.Append(" OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
 
                 using (SqlCommand command = new SqlCommand(queryBuilder.ToString(), connection))
                 {
                     if (!string.IsNullOrEmpty(parameters.Retailer))
                     {
-                        command.Parameters.AddWithValue("@Retailers", string.Join(",", parameters.Retailer));
+                        command.Parameters.AddWithValue("@Retailers", parameters.Retailer);
+                    }
+
+                    if (!string.IsNullOrEmpty(parameters.SearchTerm))
+                    {
+                        command.Parameters.AddWithValue("@SearchTerm", parameters.SearchTerm);
                     }
 
                     command.Parameters.AddWithValue("@Offset", parameters.PageNumber * parameters.PageSize);
@@ -563,23 +586,61 @@ namespace DAL.Data.DAO
                     {
                         while (await reader.ReadAsync())
                         {
-                            // Create and add each product
                             products.Add(CreateProductDTO(reader));
                         }
                     }
                 }
             }
-
             return products;
         }
 
 
+        public async Task<List<Company>> GetProductWithInformationAsync(int productID)
+        {
+            List<Company> companies = new();
+
+            using SqlConnection connection = new(ConnectionString);
+            await connection.OpenAsync();
+
+            var parameters = new { Id = productID };
+
+            _ = await connection.QueryAsync<Product, Company, Price, Avis, object>(
+                _getProduct,
+                (product, company, price, avis) =>
+                {
+                    if (!companies.Any(c => c.Id == company.Id))
+                    {
+                        company.Aviser = new List<Avis>();
+                        companies.Add(company);
+                    }
+
+                    var currentCompany = companies.First(c => c.Id == company.Id);
+                    if (!currentCompany.Aviser.Any(a => a.Id == avis.Id))
+                    {
+                        currentCompany.Aviser.Add(avis);
+                        avis.Products = new List<Product>();
+                    }
+
+                    if (!avis.Products.Any(p => p.Id == product.Id))
+                    {
+                        avis.Products.Add(product);
+                    }
+
+                    product.Prices = [price];
+
+                    return null;
+                },
+                param: parameters,
+                splitOn: "Id, Id, Id, Id"
+            );
+
+            return companies;
+        }
 
         private Avis CreateAvis(SqlDataReader reader)
         {
             DateTime validFrom = reader.GetDateTime(reader.GetOrdinal("PriceValidFrom"));
             DateTime validTo = reader.GetDateTime(reader.GetOrdinal("PriceValidTo"));
-
 
             return new Avis(validFrom, validTo);
         }

@@ -5,6 +5,7 @@ namespace TilbudsAvisLibrary.Entities
     {
         public string Name { get; set; }
         public List<Avis> Aviser { get; set; }
+        public int Id { get; set; }
 
         public Company(string name, List<Avis> aviser)
         {
@@ -16,6 +17,12 @@ namespace TilbudsAvisLibrary.Entities
             Name = name;
             Aviser = new List<Avis>();
         }
+
+        public Company()
+        {
+            
+        }
+
         public void AddAvis(Avis avis)
         {
             Aviser.Add(avis);

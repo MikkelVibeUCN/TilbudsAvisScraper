@@ -25,7 +25,7 @@
                 <option value="priceDesc" selected="@(selectedSortOrder == "priceDesc")">Pris faldene</option>
             </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="retailer">Butikker:</label>
             <select id="retailer" name="Retailer" class="form-control">
                 <option value="">Alle butikker</option>
@@ -37,8 +37,8 @@
         </div>
 
         <div class="col-md-3">
-            <label for="searchTerm">Søg efter navn:</label>
-            <input type="text" id="searchTerm" name="SearchTerm" class="form-control" placeholder="Indtast produktnavn" value="@(selectedSearchTerm ?? "")">
+            <label for="searchTerm">Søg efter produkt:</label>
+            <input type="text" id="searchTerm" name="SearchTerm" class="form-control" placeholder="Indtast søgekriterie" value="@(selectedSearchTerm ?? "")">
         </div>
 
         <div class="col-md-3 d-flex align-items-end">

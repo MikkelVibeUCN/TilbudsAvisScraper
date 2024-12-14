@@ -21,6 +21,23 @@ namespace TIlbudsAvisScraperAPI.Controllers
             this._apiUserService = apiUserService;
         }
 
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult> GetProduct(int id)
+        {
+            try
+            {
+                var productDTO = await _productService.GetProductAsync(id);
+                return Ok(productDTO);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+
+
         [HttpGet]
         public async Task<ActionResult> GetProducts([FromQuery] ProductQueryParameters parameters)
         {

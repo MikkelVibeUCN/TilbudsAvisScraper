@@ -2,6 +2,7 @@
 using DAL.Data.Interfaces;
 using TilbudsAvisLibrary;
 using TIlbudsAvisScraperAPI.Tools;
+using TilbudsAvisLibrary.Entities;
 
 namespace TIlbudsAvisScraperAPI.Services
 {
@@ -26,6 +27,13 @@ namespace TIlbudsAvisScraperAPI.Services
         public async Task<IEnumerable<string>> GetValidCompanyNamesFromProductSerach(ProductQueryParameters parameters)
         {
             return await _productDAO.GetValidCompanyNamesFromProductSearch(parameters);
+        }
+
+        public async Task<ProductDTO?> GetProductAsync(int id)
+        {
+            List<Company> companies = await _productDAO.GetProductWithInformationAsync(id);
+
+            return companies.Count == 0 ? null : EntityMapper.MapCompanyToFullProductDTO(companies);
         }
     }
 }

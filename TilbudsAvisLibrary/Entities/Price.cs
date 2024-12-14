@@ -11,9 +11,9 @@ namespace TilbudsAvisLibrary.Entities
     {
         public int Id { get; private set; } 
         public float PriceValue { get; set; }
-        public string? ExternalAvisId { get; set; } 
-        public float UnitPrice { get; set; }
-        public string? CompareUnitString { get; set; }
+        public string ExternalAvisId { get; set; } 
+        public float? UnitPrice { get; set; }
+        public string CompareUnitString { get; set; }
 
         [JsonConstructor]
         public Price(int id, float priceValue, string externalAvisId,string compareUnitString)

@@ -22,9 +22,10 @@ namespace TilbudsAvisWeb.Controllers
             int totalPages = (int)Math.Ceiling(totalProductsForSearch / (double)parameters.PageSize) - 1;
 
             ViewBag.CurrentSortOrder = parameters.SortBy;
-            ViewBag.CurrentCategory = parameters.Retailer;
+            ViewBag.CurrentRetailer = parameters.Retailer;
             ViewBag.CurrentPage = parameters.PageNumber;
             ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentSearchTerm = parameters.SearchTerm;
 
             IEnumerable<ProductDTO> products = await _productService.GetProductsAsync(parameters);
 
