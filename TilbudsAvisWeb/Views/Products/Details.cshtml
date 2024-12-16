@@ -1,0 +1,117 @@
+﻿@model TilbudsAvisLibrary.DTO.ProductDTO
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="container">
+    <!-- Product Details Section -->
+    <div class="row align-items-center mb-4">
+        <!-- Product Image -->
+        <div class="col-md-4">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded" />
+            }
+            else
+            {
+                <p>Intet billede</p>
+            }
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-md-8">
+            <h3>@Model.Name</h3>
+            <p>@Model.Description</p>
+        </div>
+    </div>
+
+    <!-- Base Prices Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Basispriser</h4>
+            <ul>
+                @foreach (var price in Model.Prices.Where(p => p.ValidFrom == p.ValidTo))
+                {
+                    <li>@price.CompanyName: @price.Price kr.</li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <!-- Price History Graph -->
+    <div class="row">
+        <div class="col-md-12">
+            <h4>Prisudvikling</h4>
+            <canvas id="priceChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const priceData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Prices.Select(p => new { p.Price, ValidFrom = p.ValidFrom?.ToString("yyyy-MM-dd"), ValidTo = p.ValidTo?.ToString("yyyy-MM-dd"), p.CompanyName })));
+
+        // Filter out base prices
+        const filteredPriceData = priceData.filter(p => p.ValidFrom !== p.ValidTo);
+
+        // Group data by company
+        const groupedData = filteredPriceData.reduce((acc, curr) => {
+            if (!acc[curr.CompanyName]) {
+                acc[curr.CompanyName] = [];
+            }
+            acc[curr.CompanyName].push(curr);
+            return acc;
+        }, {});
+
+        // Create datasets for each company
+        const datasets = Object.keys(groupedData).map(company => {
+            const companyData = groupedData[company];
+            return {
+                label: company,
+                data: companyData.map(p => p.Price),
+                borderColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`,
+                backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.2)`,
+                fill: true,
+                tension: 0.1
+            };
+        });
+
+        // Initialize the chart
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [...new Set(filteredPriceData.map(p => p.ValidFrom))],
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Prisudvikling'
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Dato'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Pris'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>

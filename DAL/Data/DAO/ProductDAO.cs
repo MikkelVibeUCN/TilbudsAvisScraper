@@ -553,8 +553,8 @@ namespace DAL.Data.DAO
 
                 string sortColumn = parameters.SortBy?.ToLower() switch
                 {
-                    "pricemax" => "priceAgg.MaxPrice",
-                    "pricemin" => "priceAgg.MinPrice",
+                    "pricedesc" => "priceAgg.MaxPrice",
+                    "priceasc" => "priceAgg.MinPrice",
                     "name" => "p.Name",
                     _ => "p.Id" // Default sorting by Product ID
                 };
