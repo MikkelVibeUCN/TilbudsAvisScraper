@@ -36,8 +36,6 @@ namespace TIlbudsAvisScraperAPI.Controllers
             }
         }
 
-
-
         [HttpGet]
         public async Task<ActionResult> GetProducts([FromQuery] ProductQueryParameters parameters)
         {

@@ -124,7 +124,7 @@ namespace DAL.Data.DAO
         private INutritionInfoDAO _nutritionInfoDAO;
         private IPriceDAO _priceDAO;
 
-        public ProductDAO(INutritionInfoDAO nutritionInfoDAO, IPriceDAO priceDAO)
+        public ProductDAO(INutritionInfoDAO nutritionInfoDAO, IPriceDAO priceDAO, string connectionString) : base(connectionString)
         {
             this._nutritionInfoDAO = nutritionInfoDAO;
             this._priceDAO = priceDAO;

@@ -16,6 +16,11 @@ namespace DAL.Data.DAO
 
         private readonly string _addPriceQuery = "INSERT INTO Price (ProductId, Price, AvisId, CompareUnitString) " +
                         "VALUES (@ProductId, @Price, @AvisId, @CompareUnitString)";
+
+        public PriceDAO(string connectionString) : base(connectionString)
+        {
+        }
+
         public Task<int> Add(Price pricel)
         {
             throw new NotImplementedException();

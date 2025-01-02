@@ -73,7 +73,7 @@ namespace DesktopApplication
 
             if (grocerProgress != null)
             {
-                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis, Token, grocerProgress.CompanyId, new AvisAPIRestClient("https://localhost:7133/api/v1"));
+                AvisDetailsWindow avisDetailsWindow = new(grocerProgress.avis, Token, grocerProgress.CompanyId, new AvisAPIRestClient("http://94.72.103.138:8801/api/v1/"));
                 avisDetailsWindow.Show();
             }
         }

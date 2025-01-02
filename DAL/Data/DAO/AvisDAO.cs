@@ -22,7 +22,7 @@ namespace DAL.Data.DAO
 
         private const string _PageQuery = "INSERT INTO Page(PdfUrl, PageNumber, AvisId) VALUES(@PdfUrl, @PageNumber, @AvisId) SELECT SCOPE_IDENTITY();";
 
-        public AvisDAO(IProductDAO productDAO)
+        public AvisDAO(IProductDAO productDAO, string connectionString) : base(connectionString)
         {
             this._productDAO = productDAO;
         }

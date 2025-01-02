@@ -14,7 +14,7 @@ namespace TilbudsAvisWeb
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
-            string uri = "https://localhost:7133/api/v1/";
+            string uri = "http://94.72.103.138:8801/api/v1/";
 
             // Add services to the container.
             builder.Services.AddScoped<IProductAPIRestClient>(provider => new ProductAPIRestClient(uri));
@@ -30,8 +30,8 @@ namespace TilbudsAvisWeb
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            app.UseForwardedHeaders();
 
-            app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();

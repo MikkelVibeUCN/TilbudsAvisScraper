@@ -22,6 +22,10 @@ namespace DAL.Data.DAO
         private const string APIUserPermissionQuery = @"
             SELECT PermissionLevel FROM APIUser WHERE Token = @Token";
 
+        public APIUserDAO(string connectionString) : base(connectionString)
+        {
+        }
+
         public async Task<int> Add(APIUser user)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))

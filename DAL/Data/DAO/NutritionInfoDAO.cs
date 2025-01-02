@@ -17,6 +17,10 @@ namespace DAL.Data.DAO
                     "VALUES (@ProductId, @EnergyKJ, @FatPer100G, @SaturatedFatPer100G, @CarbohydratesPer100G, @SugarsPer100G, @FiberPer100G, @ProteinPer100G, @SaltPer100G); " +
                     "SELECT SCOPE_IDENTITY();";
 
+        public NutritionInfoDAO(string connectionString) : base(connectionString)
+        {
+        }
+
         public async Task<List<Product>> AddNutritionInfosInBatch(List<Product> products, SqlConnection connection, SqlTransaction transaction)
         {
             return await AddTInBatch(products, connection, transaction, AddNutritionInfoBatchInternal);

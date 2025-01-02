@@ -47,7 +47,7 @@
             }
 
             .navbar-custom .nav-link:hover {
-                color: #ffc107;
+                font-weight: bold;
             }
     </style>
 </head>
@@ -60,16 +60,14 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Retailers" asp-action="Index">Butikker</a>
-                        </li>
+                    <ul class="navbar-nav">
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Products" asp-action="Index">Tilbud</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Om">Om</a>
-                        </li>
+
+                        @*<li class="nav-item">
+                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Om">Om</a> 
+                        </li>*@
                     </ul>
                 </div>
             </div>
@@ -84,7 +82,7 @@
 
     <footer class="footer mt-auto">
         <div class="container">
-            &copy; 2024 - TilbudsFinder - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privatlivspolitik</a>
+            &copy; 2024 - TilbudsFinder</a>
         </div>
     </footer>
 

@@ -14,21 +14,9 @@ namespace DAL.Data.DAO
     {
         protected string ConnectionString;
 
-        public DAObject()
+        public DAObject(string connectionString)
         {
-            try
-            {
-                string filePath = "/src/databaselogin.txt";
-                ConnectionString = File.ReadAllText(filePath);
-            }
-            catch
-            {
-                string currentDirectory = Directory.GetCurrentDirectory();
-                string filePath = Path.Combine(currentDirectory, "..", "databaselogin.txt");
-                string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                string filePathWindows = Path.Combine(userProfile, "source", "repos", "TilbudsAvisScraper", "databaselogin.txt");
-                ConnectionString = File.ReadAllText(filePathWindows);
-            }
+            ConnectionString = connectionString;
         }
 
         protected string GetAllFromTableQueryOnCondition(string tableName, string identifer)

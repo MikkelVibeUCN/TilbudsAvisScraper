@@ -10,11 +10,13 @@ namespace TIlbudsAvisScraperAPI.Properties
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            string connectionString = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
+
             // Add services to the container.
             builder.Services.AddControllers();
-            builder.Services.AddScoped<IAvisDAO>(provider => new AvisDAO(new ProductDAO(new NutritionInfoDAO(), new PriceDAO())));
-            builder.Services.AddScoped<IProductDAO>(provider => new ProductDAO(new NutritionInfoDAO(), new PriceDAO()));
-            builder.Services.AddScoped<APIUserService>(provider => new APIUserService(new APIUserDAO()));
+            builder.Services.AddScoped<IAvisDAO>(provider => new AvisDAO(new ProductDAO(new NutritionInfoDAO(connectionString), new PriceDAO(connectionString), connectionString), connectionString));
+            builder.Services.AddScoped<IProductDAO>(provider => new ProductDAO(new NutritionInfoDAO(connectionString), new PriceDAO(connectionString), connectionString));
+            builder.Services.AddScoped<APIUserService>(provider => new APIUserService(new APIUserDAO(connectionString)));
             builder.Services.AddScoped<ProductService>(provider =>
                 new ProductService(
                     provider.GetRequiredService<IProductDAO>()
