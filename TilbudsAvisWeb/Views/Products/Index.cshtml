@@ -115,7 +115,7 @@
 
             try {
                 // Fetch the next set of products
-                const response = await fetch(`@Url.Action("Index")?pageNumber=${currentPage + 1}&SortBy=@selectedSortOrder&Retailer=@selectedRetailer`);
+                const response = await fetch(`@Url.Action("Index")?pageNumber=${currentPage + 1}&SortBy=@selectedSortOrder&Retailer=@selectedRetailer&SearchTerm=@selectedSearchTerm`);
                 if (response.ok) {
                     const newProductsHtml = await response.text();
                     const container = document.getElementById("product-container");
