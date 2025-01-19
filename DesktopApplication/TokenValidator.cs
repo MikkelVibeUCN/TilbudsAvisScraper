@@ -10,9 +10,9 @@ namespace DesktopApplication
     public class TokenValidator
     {
         private readonly APIUserRestClient _APIRestUserClient;
-        public TokenValidator()
+        public TokenValidator(string APIUrl)
         {
-            _APIRestUserClient = new APIUserRestClient("http://94.72.103.138:8801/api/v1/");
+            _APIRestUserClient = new APIUserRestClient(APIUrl);
         }
 
         public async Task<bool> IsTokenValidForAction(string token, int permissionRequired)

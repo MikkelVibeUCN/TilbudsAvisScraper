@@ -172,7 +172,9 @@ namespace ScraperLibrary
                         convertedUnits.Add("bakke");
                         break;
                     case "STK.":
+                    case "POSE":
                     case "PK.":
+                    case "PAKKE":
                         convertedUnits.Add("stk");
                         break;
                     default:

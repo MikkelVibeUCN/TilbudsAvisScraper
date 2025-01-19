@@ -1,16 +1,24 @@
-﻿using System.Windows;
+﻿using System.Runtime.CompilerServices;
+using System.Windows;
 using APIIntegrationLibrary;
 using APIIntegrationLibrary.Client;
+using static System.Net.WebRequestMethods;
 namespace DesktopApplication
 {
     public partial class MainWindow : Window
     {
         private string Token;
-        
+        private const string DebugAPIUrl = "https://localhost:7133/api/v1";
+        private const string ServerAPIUrl = "http://94.72.103.138:8801/api/v1/";
+
+        private static string APIUrl = ServerAPIUrl;
+
         private int permissionLevel = 0;
-        private readonly TokenValidator _tokenValidation = new TokenValidator();
+        private readonly TokenValidator _tokenValidation;
         public MainWindow()
         {
+            _tokenValidation = new TokenValidator(APIUrl);
+
             InitializeComponent();
         }
 
@@ -80,7 +88,7 @@ namespace DesktopApplication
         private void btnClick_Scrape(object sender, RoutedEventArgs e)
         {
             this.IsEnabled = false;
-            ScrapeAviser scrapeWindow = new ScrapeAviser(Token);
+            ScrapeAviser scrapeWindow = new ScrapeAviser(Token, APIUrl);
             scrapeWindow.Show();
         }
         private void btnClick_UpdateProducts(object sender, RoutedEventArgs e)

@@ -12,6 +12,7 @@ namespace DesktopApplication
     public partial class ScrapeAviser : Window
     {
         private string Token;
+        private string APIUrl;
         public ObservableCollection<GrocerProgress> GrocerProgressList { get; set; }
         public Queue<GrocerProgress> GrocerQueue { get; set; }
         private bool QueueIsProcessing = false;
@@ -33,8 +34,10 @@ namespace DesktopApplication
             }
         }
 
-        public ScrapeAviser(string token)
+        public ScrapeAviser(string token, string APIUrl)
         {
+            this.APIUrl = APIUrl;
+
             InitializeComponent();
 
             GrocerQueue = new Queue<GrocerProgress>();
