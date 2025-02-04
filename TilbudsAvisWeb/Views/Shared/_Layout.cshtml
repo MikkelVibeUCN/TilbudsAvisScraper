@@ -82,9 +82,19 @@
 
     <footer class="footer mt-auto">
         <div class="container">
-            &copy; 2024 - TilbudsFinder</a>
+            &copy; <span id="current-year"></span> - TilbudsFinder</a>
         </div>
     </footer>
+
+    <script>
+        const timezone = "Europe/Copenhagen";
+
+        const danishDate = new Date().toLocaleString("en-US", { timeZone: timezone });
+
+        const danishYear = new Date(danishDate).getFullYear();
+
+        document.getElementById("current-year").textContent = danishYear;
+    </script>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
