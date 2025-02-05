@@ -49,69 +49,96 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const priceData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Prices.Select(p => new { p.Price, ValidFrom = p.ValidFrom?.ToString("yyyy-MM-dd"), ValidTo = p.ValidTo?.ToString("yyyy-MM-dd"), p.CompanyName })));
+    // Create data from PriceDTO with custom serialization
+    const priceData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+        Model.Prices.Select(p => new
+        {
+            p.Price,
+            ValidFrom = p.ValidFrom?.ToString("yyyy-MM-dd"),
+            ValidTo = p.ValidTo?.ToString("yyyy-MM-dd"),
+            p.CompanyName
+        }))
+        );
 
-        // Filter out base prices
-        const filteredPriceData = priceData.filter(p => p.ValidFrom !== p.ValidTo);
+    // Group the prices by company name
+    const companyPrices = priceData.reduce((acc, price) => {
+        const company = price.CompanyName || 'Unknown Company'; // Default if no company name
+        if (!acc[company]) {
+            acc[company] = [];
+        }
+        acc[company].push({
+            price: price.Price,
+            date: price.ValidFrom ? price.ValidFrom.substring(0, 10) : 'Dato fejl',
+        });
+        return acc;
+    }, {});
 
-        // Group data by company
-        const groupedData = filteredPriceData.reduce((acc, curr) => {
-            if (!acc[curr.CompanyName]) {
-                acc[curr.CompanyName] = [];
-            }
-            acc[curr.CompanyName].push(curr);
-            return acc;
-        }, {});
+    // Get unique dates and sort them chronologically
+    const labels = Array.from(new Set(priceData.map(p => p.ValidFrom ? p.ValidFrom.substring(0, 10) : 'Dato fejl')))
+        .map(dateString => new Date(dateString)) // Convert to Date objects
+        .sort((a, b) => a - b) // Sort by date (chronologically)
+        .map(date => date.toISOString().substring(0, 10)); // Convert back to 'YYYY-MM-DD' format for labels
 
-        // Create datasets for each company
-        const datasets = Object.keys(groupedData).map(company => {
-            const companyData = groupedData[company];
-            return {
-                label: company,
-                data: companyData.map(p => p.Price),
-                borderColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`,
-                backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.2)`,
-                fill: true,
-                tension: 0.1
-            };
+    // Create datasets for each company
+    const datasets = Object.keys(companyPrices).map(company => {
+        const data = labels.map(label => {
+            // Get the price for the given date for the current company
+            const price = companyPrices[company].find(p => p.date === label);
+            return price ? price.price : null; 
         });
 
-        // Initialize the chart
-        const ctx = document.getElementById('priceChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [...new Set(filteredPriceData.map(p => p.ValidFrom))],
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
+        return {
+            label: company,
+            data: data,
+            borderColor: getRandomColor(),
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            fill: true,
+            tension: 0.1,
+            spanGaps: true
+        };
+    });
+
+    // Create chart
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    const priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
                     title: {
                         display: true,
-                        text: 'Prisudvikling'
+                        text: 'Dato'
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 20
                     }
                 },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Dato'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Pris'
-                        }
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Pris'
                     }
                 }
             }
-        });
+        }
     });
+
+    // Function to generate random colors for each company line
+    function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
 </script>
+

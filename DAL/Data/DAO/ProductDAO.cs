@@ -31,9 +31,9 @@ namespace DAL.Data.DAO
 
         private readonly string _getRetailersWithValidProducts = @"SELECT DISTINCT c.Name AS RetailerName
                                 FROM Product p
-                                INNER JOIN Company c ON p.CompanyId = c.Id
                                 INNER JOIN Price pr ON p.Id = pr.ProductId
                                 INNER JOIN Avis a ON pr.AvisId = a.Id
+                                INNER JOIN Company c ON a.CompanyId = c.Id
                                 WHERE a.ExternalId != 'base'
                                 AND a.ValidFrom <= CAST(GETDATE() AS DATE)
                                 AND a.ValidTo >= CAST(GETDATE() AS DATE)";
@@ -57,68 +57,91 @@ namespace DAL.Data.DAO
                 FROM 
                     Product p
                 INNER JOIN 
-                    Company c ON p.CompanyId = c.Id
-                INNER JOIN 
                     Price pr ON p.Id = pr.ProductId
                 INNER JOIN 
                     Avis a ON a.Id = pr.AvisId
+				INNER JOIN 
+                    Company c ON a.CompanyId = c.Id
                 WHERE 
                     p.id = @Id";
 
         private readonly string _getProducts = @"
-                       SELECT 
-            p.Id AS ProductId, 
-            p.ExternalId AS ProductExternalId, 
-            p.amount AS ProductAmount, 
-            p.Name AS ProductName, 
-            p.Description AS ProductDescription, 
-            p.ImageUrl AS ProductImageUrl, 
-            pr.Price AS Price, 
-            a.ValidFrom AS PriceValidFrom, 
-            a.ValidTo AS PriceValidTo, 
-            c.Name AS PriceRetailerName, 
-            a.ExternalId AS PriceExternalIdAvis,
-            nu.CarbohydratesPer100G, 
-            nu.EnergyKJ, 
-            nu.FatPer100G, 
-            nu.FiberPer100G, 
-            nu.ProteinPer100G, 
-            nu.productId, 
-            nu.SaturatedFatPer100G, 
-            nu.SugarsPer100G,
-            nu.SaltPer100G,
-            priceAgg.MaxPrice, 
-            priceAgg.MinPrice
-        FROM 
-            Product p
-        INNER JOIN 
-            Company c ON p.CompanyId = c.Id
-        LEFT JOIN 
-            NutritionInfo nu ON p.Id = nu.productId
-        INNER JOIN 
-            (SELECT 
-                 pr.ProductId, 
-                 MAX(pr.Price) AS MaxPrice, 
-                 MIN(pr.Price) AS MinPrice
-             FROM 
-                 Price pr
-             INNER JOIN 
-                 Avis a ON pr.AvisId = a.Id
-             WHERE 
-                 a.ExternalId != 'base' 
-                 AND a.ValidFrom <= CAST(GETDATE() AS DATE)
-                 AND a.ValidTo >= CAST(GETDATE() AS DATE)
-             GROUP BY 
-                 pr.ProductId
-            ) priceAgg ON p.Id = priceAgg.ProductId
-        INNER JOIN 
-            Price pr ON pr.ProductId = p.Id AND pr.Price = priceAgg.MaxPrice
-        INNER JOIN 
-            Avis a ON pr.AvisId = a.Id
-        WHERE 
-            a.ExternalId != 'base' 
-            AND a.ValidFrom <= CAST(GETDATE() AS DATE) 
-            AND a.ValidTo >= CAST(GETDATE() AS DATE)";
+            WITH RankedAvis AS (
+    SELECT
+        pr.ProductId,
+        pr.AvisId,
+        pr.Price,
+        a.ValidFrom,
+        a.ValidTo,
+        c.Name AS PriceRetailerName,
+        a.ExternalId AS PriceExternalIdAvis,
+        ROW_NUMBER() OVER (PARTITION BY pr.ProductId ORDER BY pr.Price DESC) AS RowNum
+    FROM
+        Price pr
+    INNER JOIN
+        Avis a ON pr.AvisId = a.Id
+    INNER JOIN
+        Company c ON a.CompanyId = c.Id
+    WHERE
+        a.ExternalId != 'base'
+        AND a.ValidFrom <= CAST(GETDATE() AS DATE)
+        AND a.ValidTo >= CAST(GETDATE() AS DATE)
+)
+
+SELECT 
+    p.Id AS ProductId, 
+    p.ExternalId AS ProductExternalId, 
+    p.amount AS ProductAmount, 
+    p.Name AS ProductName, 
+    p.Description AS ProductDescription, 
+    p.ImageUrl AS ProductImageUrl, 
+    pr.Price AS Price, 
+    a.ValidFrom AS PriceValidFrom, 
+    a.ValidTo AS PriceValidTo, 
+    c.Name as PriceRetailerName, 
+    a.ExternalId as PriceExternalIdAvis,
+    nu.CarbohydratesPer100G, 
+    nu.EnergyKJ, 
+    nu.FatPer100G, 
+    nu.FiberPer100G, 
+    nu.ProteinPer100G, 
+    nu.productId, 
+    nu.SaturatedFatPer100G, 
+    nu.SugarsPer100G,
+    nu.SaltPer100G,
+    priceAgg.MaxPrice, 
+    priceAgg.MinPrice
+FROM 
+    Product p
+LEFT JOIN 
+    NutritionInfo nu ON p.Id = nu.productId
+INNER JOIN 
+    (SELECT 
+         pr.ProductId, 
+         MAX(pr.Price) AS MaxPrice, 
+         MIN(pr.Price) AS MinPrice
+     FROM 
+         Price pr
+     INNER JOIN 
+         Avis a ON pr.AvisId = a.Id
+     WHERE 
+         a.ExternalId != 'base' 
+         AND a.ValidFrom <= CAST(GETDATE() AS DATE)
+         AND a.ValidTo >= CAST(GETDATE() AS DATE)
+     GROUP BY 
+         pr.ProductId
+    ) priceAgg ON p.Id = priceAgg.ProductId
+INNER JOIN 
+    RankedAvis pr ON pr.ProductId = p.Id
+    AND pr.RowNum = 1  -- Only pick the top-ranked Avis based on price
+LEFT JOIN 
+    Avis a ON pr.AvisId = a.Id
+LEFT JOIN 
+    Company c on a.CompanyId = c.Id
+WHERE 
+    a.ExternalId != 'base' 
+    AND a.ValidFrom <= CAST(GETDATE() AS DATE) 
+    AND a.ValidTo >= CAST(GETDATE() AS DATE)";
 
 
         private INutritionInfoDAO _nutritionInfoDAO;
@@ -496,12 +519,11 @@ namespace DAL.Data.DAO
             string imageUrl = reader.GetString(reader.GetOrdinal("ImageUrl"));
             string externalId = reader.GetString(reader.GetOrdinal("ExternalId"));
             float? amount = reader.IsDBNull(reader.GetOrdinal("Amount")) ? null : (float)reader.GetDouble(reader.GetOrdinal("Amount"));
-            int companyId = reader.GetInt32(reader.GetOrdinal("CompanyId"));
 
             List<Price> prices = await _priceDAO.GetPricesForProduct(productId);
             NutritionInfo nutritionInfo = await _nutritionInfoDAO.GetNutritionForProduct(productId);
 
-            return new Product(prices, productId, name, imageUrl, description, externalId, nutritionInfo, amount, companyId);
+            return new Product(prices, productId, name, imageUrl, description, externalId, nutritionInfo, amount);
         }
 
         public async Task<Dictionary<string, int>> CheckExistingProductIdsAsync(List<string> externalIds, int companyId, SqlConnection connection, SqlTransaction transaction)
@@ -754,7 +776,6 @@ namespace DAL.Data.DAO
                 StringBuilder countQueryBuilder = new StringBuilder(@"
                         SELECT COUNT(DISTINCT p.Id) 
                         FROM Product p
-                        INNER JOIN Company c ON p.CompanyId = c.Id
                         LEFT JOIN NutritionInfo nu ON p.Id = nu.productId
                         INNER JOIN (
                             SELECT 
@@ -770,6 +791,7 @@ namespace DAL.Data.DAO
                         ) priceAgg ON p.Id = priceAgg.ProductId
                         INNER JOIN Price pr ON pr.ProductId = p.Id AND pr.Price = priceAgg.MaxPrice
                         INNER JOIN Avis a ON pr.AvisId = a.Id
+                        INNER JOIN Company c ON a.CompanyId = c.Id
                         WHERE a.ExternalId != 'base'
                           AND a.ValidFrom <= CAST(GETDATE() AS DATE) 
                           AND a.ValidTo >= CAST(GETDATE() AS DATE)");

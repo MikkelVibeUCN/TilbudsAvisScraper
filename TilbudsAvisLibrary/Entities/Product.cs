@@ -13,11 +13,10 @@ namespace TilbudsAvisLibrary.Entities
         public string Description { get; set; }
         public string ExternalId { get; set; }
         public float? Amount { get; set; }  
-        public int CompanyId { get; set; }
         public NutritionInfo? NutritionInfo { get; set; }
 
         [JsonConstructor]
-        public Product(List<Price> prices, int? id, string name, string imageUrl, string description, string externalId, NutritionInfo? nutritionInfo, float? amount, int companyId)
+        public Product(List<Price> prices, int? id, string name, string imageUrl, string description, string externalId, NutritionInfo? nutritionInfo, float? amount)
         {
             Id = id;
             Name = name;
@@ -27,10 +26,9 @@ namespace TilbudsAvisLibrary.Entities
             Prices = prices;
             NutritionInfo = nutritionInfo;
             Amount = amount;
-            CompanyId = companyId;
         }
 
-        public Product(List<Price> prices, string name, string imageUrl, string description, string externalId, float amount, int companyId, NutritionInfo? nutritionInfo = null, int? id = null)
+        public Product(List<Price> prices, string name, string imageUrl, string description, string externalId, float amount, NutritionInfo? nutritionInfo = null, int? id = null)
         {
             Id = id;
             Name = name;
@@ -40,7 +38,6 @@ namespace TilbudsAvisLibrary.Entities
             Prices = prices;
             NutritionInfo = nutritionInfo;
             Amount = amount;
-            CompanyId = companyId;
         }
         public Product(List<Price> prices, string name, string imageUrl, string description, int id)
         {
