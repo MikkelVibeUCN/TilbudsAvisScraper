@@ -9,7 +9,7 @@ namespace TilbudsAvisLibrary.DTO
     public class NutritionInfoDTO
     {
         public int? Id { get; set; }
-        public float EnergyKJ { get; set; }
+        public float EnergyKcal { get; set; }
         public float FatPer100G { get; set; }
         public float SaturatedFatPer100G { get; set; }
         public float CarbohydratesPer100G { get; set; }
@@ -20,7 +20,7 @@ namespace TilbudsAvisLibrary.DTO
 
         public override string ToString()
         {
-            return $"Energy: {EnergyKJ} KJ / {EnergyKJ} Kcal\nFat: {FatPer100G} g\nSaturated Fat: {SaturatedFatPer100G} g\n" +
+            return $"Energy: {EnergyKcal} Kcal\nFat: {FatPer100G} g\nSaturated Fat: {SaturatedFatPer100G} g\n" +
                    $"Carbohydrates: {CarbohydratesPer100G} g\nSugars: {SugarsPer100G} g\nFiber: {FiberPer100G} g\nProtein: {ProteinPer100G} g\nSalt: {SaltPer100G} g";
         }
     }

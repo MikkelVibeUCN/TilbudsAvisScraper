@@ -26,7 +26,7 @@ namespace TIlbudsAvisScraperAPI.Tools
                     ValidFrom = validFrom,
                     ValidTo = validTo,
                     CompareUnit = price.CompareUnitString,
-                    CompanyName = companyName
+                    CompanyName = companyName,
                 });
             }
 
@@ -66,7 +66,7 @@ namespace TIlbudsAvisScraperAPI.Tools
         public static NutritionInfo MapToEntity(NutritionInfoDTO nutritionInfoDTO) => new NutritionInfo
         {
             CarbohydratesPer100G = nutritionInfoDTO.CarbohydratesPer100G,
-            EnergyKJ = nutritionInfoDTO.EnergyKJ,
+            EnergyKJ = nutritionInfoDTO.EnergyKcal,
             FatPer100G = nutritionInfoDTO.FatPer100G,
             FiberPer100G = nutritionInfoDTO.FiberPer100G,
             ProteinPer100G = nutritionInfoDTO.ProteinPer100G,
@@ -78,7 +78,7 @@ namespace TIlbudsAvisScraperAPI.Tools
         public static NutritionInfoDTO MapToDTO(NutritionInfo nutritionInfoDTO) => new NutritionInfoDTO
         {
             CarbohydratesPer100G = nutritionInfoDTO.CarbohydratesPer100G,
-            EnergyKJ = nutritionInfoDTO.EnergyKJ,
+            EnergyKcal = NutritionInfo.GetEnergyKcal(nutritionInfoDTO.EnergyKJ),
             FatPer100G = nutritionInfoDTO.FatPer100G,
             FiberPer100G = nutritionInfoDTO.FiberPer100G,
             ProteinPer100G = nutritionInfoDTO.ProteinPer100G,

@@ -29,6 +29,24 @@
 <div class="cta text-center mt-5 py-4 bg-light">
     <div class="container">
         <h2>Udforsk alle tilbud nu!</h2>
-        <a href="/Products" class="btn btn-primary btn-lg mt-3">Se tilbud</a>
+        <a href="/Products" class="btn btn-primary btn-lg mt-3 cta-button">Se tilbud</a>
     </div>
+
+    <style>
+        .cta-button {
+            background-color: #4e996e;
+            border: none; /* Added to remove the blue outline */
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #3e7d5a;
+            transform: scale(1.05);
+        }
+
+        .cta-button:focus {
+            outline: none; /* Added to remove the blue outline on focus */
+            box-shadow: none; /* Added to remove the blue outline on focus */
+        }
+    </style>
 </div>

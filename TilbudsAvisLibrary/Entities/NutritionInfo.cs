@@ -12,11 +12,6 @@ namespace TilbudsAvisLibrary.Entities
         private const float ConversionRate = 0.239006f;
         public int? Id { get; set; }
         public float EnergyKJ { get; set; }
-        [JsonIgnore]
-        public float EnergyKcal
-        {
-            get { return EnergyKJ * ConversionRate; }
-        }
         public float FatPer100G { get; set; }
         public float SaturatedFatPer100G { get; set; }
         public float CarbohydratesPer100G { get; set; }
@@ -41,9 +36,19 @@ namespace TilbudsAvisLibrary.Entities
 
         }
 
+        public static float GetEnergyKcal(float energyKJ)
+        {
+            return energyKJ * ConversionRate;
+        }
+
+        public static float GetKJFromKcal(float kcal)
+        {
+            return kcal / ConversionRate;
+        }
+
         public override string ToString()
         {
-            return $"Energy: {EnergyKJ} KJ / {EnergyKcal} Kcal\nFat: {FatPer100G} g\nSaturated Fat: {SaturatedFatPer100G} g\n" +
+            return $"Energy: {EnergyKJ} KJ / {GetEnergyKcal} Kcal\nFat: {FatPer100G} g\nSaturated Fat: {SaturatedFatPer100G} g\n" +
                    $"Carbohydrates: {CarbohydratesPer100G} g\nSugars: {SugarsPer100G} g\nFiber: {FiberPer100G} g\nProtein: {ProteinPer100G} g\nSalt: {SaltPer100G} g";
         }
 

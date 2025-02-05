@@ -46,6 +46,53 @@
             <canvas id="priceChart"></canvas>
         </div>
     </div>
+    @if (Model.NutritionInfo != null)
+    {
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h4>Næringsindhold per 100 g.</h4>
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <td>Energi</td>
+                            <td>@Model.NutritionInfo.EnergyKcal Kcal</td>
+                        </tr>
+                        <tr>
+                            <td>Fedt</td>
+                            <td>
+                                @Model.NutritionInfo.FatPer100G g
+                                <br />
+                                <small class="text-muted">Mættet fedt: @Model.NutritionInfo.SaturatedFatPer100G g</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Kulhydrater</td>
+                            <td>
+                                @Model.NutritionInfo.CarbohydratesPer100G g
+                                <br />
+                                <small class="text-muted">Sukkerarter: @Model.NutritionInfo.SugarsPer100G g</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Fiber</td>
+                            <td>@Model.NutritionInfo.FiberPer100G g</td>
+                        </tr>
+                        <tr>
+                            <td>Protein</td>
+                            <td>@Model.NutritionInfo.ProteinPer100G g</td>
+                        </tr>
+                        <tr>
+                            <td>Salt</td>
+                            <td>@Model.NutritionInfo.SaltPer100G g</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

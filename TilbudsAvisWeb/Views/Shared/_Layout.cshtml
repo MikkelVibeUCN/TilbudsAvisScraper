@@ -34,11 +34,12 @@
         }
 
         .navbar-custom {
-            background-color: #007bff;
+            background-color: #4e996e;
         }
 
             .navbar-custom .nav-link {
                 color: white;
+                transition: all 0.1s ease;
             }
 
             .navbar-custom .navbar-brand {
@@ -48,6 +49,7 @@
 
             .navbar-custom .nav-link:hover {
                 font-weight: bold;
+                transform: scale(1.1);
             }
     </style>
 </head>
@@ -55,7 +57,11 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-custom">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">TilbudsFinder.dk</a>
+                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/favicon.ico" alt="Logo" style="height: 30px; margin-right: 4px; margin-top: 4px; width: 34px;">
+                    TilbudsFinder.dk
+                </a>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>

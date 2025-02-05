@@ -37,6 +37,7 @@ namespace TIlbudsAvisScraperAPI.Tools
                         Id = firstProduct.Id,
                         ImageUrl = firstProduct.ImageUrl,
                         Name = firstProduct.Name,
+                        NutritionInfo = firstProduct.NutritionInfo,
                         Prices = new List<PriceDTO>()
                     };
                 }

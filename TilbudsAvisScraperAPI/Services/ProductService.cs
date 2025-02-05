@@ -31,7 +31,7 @@ namespace TIlbudsAvisScraperAPI.Services
 
         public async Task<ProductDTO?> GetProductAsync(int id)
         {
-            List<Company> companies = await _productDAO.GetProductWithInformationAsync(id);
+            List <Company> companies = await _productDAO.GetProductWithInformationAsync(id);
 
             return companies.Count == 0 ? null : EntityMapper.MapCompanyToFullProductDTO(companies);
         }

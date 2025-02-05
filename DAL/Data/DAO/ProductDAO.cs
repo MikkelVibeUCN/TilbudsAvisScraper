@@ -53,7 +53,16 @@ namespace DAL.Data.DAO
                    p.Id, p.ExternalId, p.Name, p.Description, p.ImageUrl, p.amount,      
                     c.*,     
 					pr.Id, pr.Price as PriceValue, pr.AvisId as ExternalAvisId, pr.CompareUnitString,       
-                    a.*         
+                    a.*,
+                    nu.productId as Id,
+                    nu.CarbohydratesPer100G, 
+                    nu.EnergyKJ, 
+                    nu.FatPer100G, 
+                    nu.FiberPer100G, 
+                    nu.ProteinPer100G, 
+                    nu.SaturatedFatPer100G, 
+                    nu.SugarsPer100G,
+                    nu.SaltPer100G
                 FROM 
                     Product p
                 INNER JOIN 
@@ -62,6 +71,8 @@ namespace DAL.Data.DAO
                     Avis a ON a.Id = pr.AvisId
 				INNER JOIN 
                     Company c ON a.CompanyId = c.Id
+				LEFT JOIN 
+					NutritionInfo nu on nu.productId = p.Id
                 WHERE 
                     p.id = @Id";
 
@@ -626,10 +637,12 @@ WHERE
 
             var parameters = new { Id = productID };
 
-            _ = await connection.QueryAsync<Product, Company, Price, Avis, object>(
+            _ = await connection.QueryAsync<Product, Company, Price, Avis, NutritionInfo?, object>(
                 _getProduct,
-                (product, company, price, avis) =>
+                (product, company, price, avis, nutritionInfo) =>
                 {
+                    product.NutritionInfo ??= nutritionInfo;
+
                     if (!companies.Any(c => c.Id == company.Id))
                     {
                         company.Aviser = new List<Avis>();
@@ -657,12 +670,11 @@ WHERE
                     return null;
                 },
                 param: parameters,
-                splitOn: "Id, Id, Id, Id"
+                splitOn: "Id, Id, Id, Id, Id"
             );
 
             return companies;
         }
-
         private Avis CreateAvis(SqlDataReader reader)
         {
             DateTime validFrom = reader.GetDateTime(reader.GetOrdinal("PriceValidFrom"));
@@ -759,7 +771,7 @@ WHERE
 
         private NutritionInfoDTO CreateNutritionInfoDTO(SqlDataReader reader) => new NutritionInfoDTO
         {
-            EnergyKJ = (float)reader.GetDouble(reader.GetOrdinal("EnergyKJ")),
+            EnergyKcal = NutritionInfo.GetEnergyKcal((float)reader.GetDouble(reader.GetOrdinal("EnergyKJ"))),
             FatPer100G = (float)reader.GetDouble(reader.GetOrdinal("FatPer100G")),
             SaturatedFatPer100G = (float)reader.GetDouble(reader.GetOrdinal("SaturatedFatPer100G")),
             CarbohydratesPer100G = (float)reader.GetDouble(reader.GetOrdinal("CarbohydratesPer100G")),

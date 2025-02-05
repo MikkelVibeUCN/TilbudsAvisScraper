@@ -13,6 +13,22 @@
     .card:hover .card-img-top {
         transform: scale(1.5);
     }
+
+    .cta-button {
+        background-color: #4e996e;
+        border: none; /* Added to remove the blue outline */
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+        .cta-button:hover {
+            background-color: #3e7d5a;
+            transform: scale(1.05);
+        }
+
+        .cta-button:focus {
+            outline: none; /* Added to remove the blue outline on focus */
+            box-shadow: none; /* Added to remove the blue outline on focus */
+        }
 </style>
 <form method="get" asp-action="Index">
     <div class="row mb-3">
@@ -42,7 +58,7 @@
         </div>
 
         <div class="col-md-3 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary">Søg</button>
+            <button type="submit" class="btn btn-primary cta-button">Søg</button>
         </div>
     </div>
 </form>
