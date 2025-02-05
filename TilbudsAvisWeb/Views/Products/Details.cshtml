@@ -109,21 +109,33 @@
         }))
         );
 
+    // Calculate the date 50 years ago from today
+    const today = new Date();
+    const cutoffDate = new Date();
+    cutoffDate.setFullYear(today.getFullYear() - 50);
+
+    // Filter out prices older than 50 years
+    const filteredPrices = priceData.filter(p => {
+        if (!p.ValidFrom) return false; // Ignore if no date
+        const priceDate = new Date(p.ValidFrom);
+        return priceDate >= cutoffDate;
+    });
+
     // Group the prices by company name
-    const companyPrices = priceData.reduce((acc, price) => {
+    const companyPrices = filteredPrices.reduce((acc, price) => {
         const company = price.CompanyName || 'Unknown Company'; // Default if no company name
         if (!acc[company]) {
             acc[company] = [];
         }
         acc[company].push({
             price: price.Price,
-            date: price.ValidFrom ? price.ValidFrom.substring(0, 10) : 'Dato fejl',
+            date: price.ValidFrom.substring(0, 10),
         });
         return acc;
     }, {});
 
     // Get unique dates and sort them chronologically
-    const labels = Array.from(new Set(priceData.map(p => p.ValidFrom ? p.ValidFrom.substring(0, 10) : 'Dato fejl')))
+    const labels = Array.from(new Set(filteredPrices.map(p => p.ValidFrom)))
         .map(dateString => new Date(dateString)) // Convert to Date objects
         .sort((a, b) => a - b) // Sort by date (chronologically)
         .map(date => date.toISOString().substring(0, 10)); // Convert back to 'YYYY-MM-DD' format for labels
@@ -133,7 +145,7 @@
         const data = labels.map(label => {
             // Get the price for the given date for the current company
             const price = companyPrices[company].find(p => p.date === label);
-            return price ? price.price : null; 
+            return price ? price.price : null;
         });
 
         return {
@@ -188,4 +200,5 @@
         return color;
     }
 </script>
+
 
