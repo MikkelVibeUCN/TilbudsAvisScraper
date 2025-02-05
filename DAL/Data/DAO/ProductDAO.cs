@@ -642,6 +642,10 @@ WHERE
                         currentCompany.Aviser.Add(avis);
                         avis.Products = new List<Product>();
                     }
+                    if (avis.Products == null)
+                    {
+                        avis.Products = new List<Product>();
+                    }
 
                     if (!avis.Products.Any(p => p.Id == product.Id))
                     {

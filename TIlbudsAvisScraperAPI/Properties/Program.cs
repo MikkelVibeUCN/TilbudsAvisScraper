@@ -12,7 +12,6 @@ namespace TIlbudsAvisScraperAPI.Properties
 
             string connectionString = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
 
-
             // Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddScoped<IAvisDAO>(provider => new AvisDAO(new ProductDAO(new NutritionInfoDAO(connectionString), new PriceDAO(connectionString), connectionString), connectionString));
