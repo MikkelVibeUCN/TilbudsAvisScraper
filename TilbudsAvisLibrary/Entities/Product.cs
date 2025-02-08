@@ -84,7 +84,7 @@ namespace TilbudsAvisLibrary.Entities
 
         public int TotalParameterAmount()
         {
-            int amount = 6;
+            int amount = 5;
             if(Prices.Count > 0)
             {
                 amount += Prices.Count * Prices[0].TotalParameterAmount();

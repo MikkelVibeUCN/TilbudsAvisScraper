@@ -66,10 +66,10 @@ namespace DesktopApplication
 
         public AvisDetailsViewModel(AvisDTO avisDTO, int companyId)
         {
-            CompanyId = companyId;
+            CompanyId = companyId;  
             SelectedAvis = avisDTO;
-            SelectedProduct = SelectedAvis.Products[0]; // Default selected product
-            FilteredProducts = new ObservableCollection<ProductDTO>(SelectedAvis.Products); // Initialize filtered products
+            SelectedProduct = SelectedAvis.Products[0];
+            FilteredProducts = new ObservableCollection<ProductDTO>(SelectedAvis.Products);
         }
 
         private void FilterProducts()
@@ -87,6 +87,5 @@ namespace DesktopApplication
             foreach (var product in filtered)
                 FilteredProducts.Add(product);
         }
-
     }
 }

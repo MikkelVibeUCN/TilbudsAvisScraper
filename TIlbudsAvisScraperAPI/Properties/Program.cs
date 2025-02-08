@@ -10,7 +10,7 @@ namespace TIlbudsAvisScraperAPI.Properties
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            string connectionString = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
+            //string connectionString = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
 
 
             // Add services to the container.

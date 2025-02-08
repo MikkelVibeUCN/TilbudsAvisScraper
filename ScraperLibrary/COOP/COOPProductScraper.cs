@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Entities;
+using System.ComponentModel.Design;
 
 namespace ScraperLibrary.COOP
 {
@@ -84,22 +85,12 @@ namespace ScraperLibrary.COOP
 
         private static List<ProductDTO>? CreateProducts(string productContainedHtml, int companyId, string externalAvisId)
         {
-
             List<ProductDTO> products = new List<ProductDTO>();
 
             string productInformation = GetInformationFromHtml<string>(productContainedHtml, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
-
-            string name = RemoveUselessPartsString(GetNameFromHtml(productContainedHtml));
-
-            if(name.Contains("Carlsberg eller Tuborg"))
-            {
-                Debug.WriteLine("BReak");
-            }
-
-            string description = GetDescriptionFromHtml(productInformation);
+            string name = RemoveUselessPartsString(GetNameFromHtml(productContainedHtml)).ToUpper();
+            string description = GetDescriptionFromHtml(productInformation).ToUpper();
             string imageUrl = GetImageUrlFromHtml(productContainedHtml);
-
-
 
             string[] compareUnitsInDescription = GetUnitsFromDescription(description);
 
@@ -240,19 +231,15 @@ namespace ScraperLibrary.COOP
 
             foreach (string unit in possibleUnitsToLookFor)
             {
-                // Search for the unit in the input string
                 int index = description.IndexOf(unit, StringComparison.OrdinalIgnoreCase);
 
-                // Continue searching for all occurrences of the unit
                 while (index != -1)
                 {
-                    // Check if the surrounding characters are valid
                     if (IsValidUnitPosition(description, unit, index))
                     {
                         units.Add(unit);
                     }
 
-                    // Continue searching for more occurrences of the unit
                     index = description.IndexOf(unit, index + unit.Length, StringComparison.OrdinalIgnoreCase);
                 }
             }
@@ -275,8 +262,9 @@ namespace ScraperLibrary.COOP
         private static string GetNameFromHtml(string productHtml)
         {
             string nameOfProduct = GetInformationFromHtml<string>(productHtml, "data-role=\"productInformation\"", "class=\"incito__view incito__text-view\">", "<");
-            nameOfProduct.Replace("&nbsp;", " ");
-            nameOfProduct.Replace("*", "");
+            nameOfProduct = nameOfProduct.Replace("&nbsp;", " ")
+                .Replace("&amp; ", "")
+                .Replace("*", "");
             return nameOfProduct;
         }
 
@@ -299,6 +287,8 @@ namespace ScraperLibrary.COOP
                 // Check for "-" and "x" in the description
                 description = ProcessDescription(description, '-', ChangeEstimateToAverage);
                 description = ProcessDescription(description, 'x', ChangeMultiplyToOneValue);
+
+                description = RemovePriceRelatedParts(description);
             }
             catch (Exception e)
             {
@@ -323,13 +313,55 @@ namespace ScraperLibrary.COOP
             return description;
         }
 
+        private static string RemovePriceRelatedParts(string description)
+        {
+            string[] priceRelatedParts = { "Kg-pris", "Liter-pris", "Literpris", "Stk-pris" };
+
+            foreach (string part in priceRelatedParts)
+            {
+                int index = description.IndexOf(part, StringComparison.OrdinalIgnoreCase);
+                if (index == 0)
+                {
+                    if (description.Contains("Kg-pris"))
+                    {
+                        description = "1 KG.";
+                    }
+                    else if (description.Contains("Liter-pris") || description.Contains("Literpris"))
+                    {
+                        description = "1 LTR.";
+
+                    }
+                    else if (description.Contains("Stk-pris"))
+                    {
+                        description = "1 STK.";
+                    }
+                }
+                else if (index != -1)
+                {
+                    description = description.Substring(0, index);
+                }
+            }
+            return description;
+        }
+
         private static string RemoveUselessPartsString(string description)
         {
             // remove min, formatting, "maks.", any double empty, " + pant."
-            description = description.Replace("Min.", "").Replace("&nbsp;", " ").Replace("&amp;", "").Replace("maks.", "").Replace("  ", " ").Replace(" + pant.", "");
+            description = description.Replace("Min.", "")
+                .Replace("&nbsp;", " ")
+                .Replace("&amp;", "")
+                .Replace("maks.", "")
+                .Replace("  ", " ")
+                .Replace(" + pant.", "")
+                .Replace("*", "");
+                
             if (description.StartsWith(" "))
             {
                 description = description.Substring(1);
+            }
+            if(description.EndsWith(" "))
+            {
+                description = description.Substring(0, description.Length - 1);
             }
             return description;
         }
@@ -341,14 +373,23 @@ namespace ScraperLibrary.COOP
 
         private static string GetCompareUnit(string stringToExtractFrom)
         {
-            string[] possibleUnits = { "Stk-pris", "Kg-pris", "Literpris", "Bdt.-pris"};
+            string[] possibleUnits = { "g", "kg", "ltr", "ml", "cl", "bakke", "stk" };
             foreach (string unit in possibleUnits)
             {
-                if (stringToExtractFrom.Contains(unit))
+                if (stringToExtractFrom.ToLower().Contains(unit))
                 {
-                    string newString = unit.Replace("pris", "").Replace(".-", "").Replace("-", "").Replace("Liter", "ltr").ToLower();
-                    Debug.WriteLine(newString);
-                    return newString;
+                    if (unit.Equals(possibleUnits[0]) || unit.Equals(possibleUnits[1])) 
+                    {
+                        return "kg";
+                    }
+                    else if (unit.Equals(possibleUnits[2]) || unit.Equals(possibleUnits[3]) || unit.Equals(possibleUnits[4]))
+                    {
+                        return "ltr";
+                    }
+                    else if (unit.Equals(possibleUnits[5]) || unit.Equals(possibleUnits[6]))
+                    {
+                        return "stk";
+                    }
                 }
             }
             return "";

@@ -65,7 +65,7 @@ namespace ScraperLibrary.Rema
             }
             return new NutritionInfoDTO
             {
-                EnergyKJ = energyKJ,
+                EnergyKcal = NutritionInfo.GetEnergyKcal(energyKJ),
                 FatPer100G = fat,
                 CarbohydratesPer100G = carbohydrates,
                 FiberPer100G = fiber,
@@ -74,8 +74,6 @@ namespace ScraperLibrary.Rema
                 SugarsPer100G = sugars,
             };
         }
-
-        
 
         public static string GetNameOfProduct(dynamic jsonResponse)
         {

@@ -20,12 +20,12 @@ namespace DAL.Data.DAO
 {
     public class ProductDAO : DAObject, IProductDAO
     {
-        private readonly string _addProductQuery = "INSERT INTO Product (ExternalId, Name, Description, ImageUrl, Amount, CompanyId) " +
-                       "VALUES (@ExternalId, @Name, @Description, @ImageUrl, @Amount, @CompanyId); " +
+        private readonly string _addProductQuery = "INSERT INTO Product (ExternalId, Name, Description, ImageUrl, Amount) " +
+                       "VALUES (@ExternalId, @Name, @Description, @ImageUrl, @Amount; " +
                        "SELECT SCOPE_IDENTITY();";
 
         private readonly string _addProductBatchQuery = @"
-                        INSERT INTO Product (ExternalId, Name, Description, ImageUrl, Amount, CompanyId)
+                        INSERT INTO Product (ExternalId, Name, Description, ImageUrl, Amount)
                         OUTPUT INSERTED.Id, INSERTED.ExternalId
                          VALUES {0};";
 
@@ -40,10 +40,10 @@ namespace DAL.Data.DAO
 
         private readonly string _getValidProductsCount = @"SELECT COUNT(*) AS ProductCount
             FROM Product p
-            INNER JOIN Company c ON p.CompanyId = c.Id
             INNER JOIN Price pr ON p.Id = pr.ProductId
             INNER JOIN NutritionInfo nu ON p.Id = nu.ProductId
             INNER JOIN Avis a ON pr.AvisId = a.Id
+            INNER JOIN Company c ON a.CompanyId = c.Id
             WHERE a.ExternalId != 'base'
             AND a.ValidFrom <= CAST(GETDATE() AS DATE)
             AND a.ValidTo >= CAST(GETDATE() AS DATE)";
@@ -201,7 +201,7 @@ WHERE
             throw new NotImplementedException();
         }
 
-        public async Task<Product?> GetProductFromExernalIdAndCompanyId(string inputExternalId, int companyId)
+        public async Task<Product?> GetProductFromExernalIdAndCompanyId(string inputExternalId)
         {
             try
             {
@@ -209,10 +209,9 @@ WHERE
                 {
                     await connection.OpenAsync();
 
-                    using (SqlCommand command = new SqlCommand("SELECT * FROM Product WITH (NOLOCK) WHERE ExternalId = @ExternalId AND CompanyId = @CompanyId", connection))
+                    using (SqlCommand command = new SqlCommand("SELECT * FROM Product WITH (NOLOCK) WHERE ExternalId = @ExternalId", connection))
                     {
                         command.Parameters.AddWithValue("@ExternalId", inputExternalId);
-                        command.Parameters.AddWithValue("@ExternalId", companyId);
 
                         using (SqlDataReader reader = await command.ExecuteReaderAsync())
                         {
@@ -308,7 +307,7 @@ WHERE
             }
         }
 
-        public async Task<int> Add(Product product, int baseAvisId, int avisId, string avisBaseExternalId, int companyId)
+        public async Task<int> Add(Product product, int baseAvisId, int avisId, string avisBaseExternalId)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
@@ -322,7 +321,6 @@ WHERE
                         command.Parameters.AddWithValue("@Description", product.Description);
                         command.Parameters.AddWithValue("@ImageUrl", product.ImageUrl);
                         command.Parameters.AddWithValue("@Amount", product.Amount);
-                        command.Parameters.AddWithValue("@CompanyId", companyId);
 
                         int generatedId = Convert.ToInt32(await command.ExecuteScalarAsync());
                         product.SetId(generatedId);
@@ -362,14 +360,13 @@ WHERE
                 {
                     var product = products[i];
 
-                    rows.Add($"(@ExternalId{i}, @Name{i}, @Description{i}, @ImageUrl{i}, @Amount{i}, @CompanyId{i})");
+                    rows.Add($"(@ExternalId{i}, @Name{i}, @Description{i}, @ImageUrl{i}, @Amount{i})");
 
                     command.Parameters.AddWithValue($"@ExternalId{i}", product.ExternalId);
                     command.Parameters.AddWithValue($"@Name{i}", product.Name);
                     command.Parameters.AddWithValue($"@Description{i}", product.Description);
                     command.Parameters.AddWithValue($"@ImageUrl{i}", product.ImageUrl);
                     command.Parameters.AddWithValue($"@Amount{i}", product.Amount);
-                    command.Parameters.AddWithValue($"@CompanyId{i}", context.CompanyId);
                 }
                 command.CommandText = string.Format(_addProductBatchQuery, string.Join(", ", rows));
 
@@ -401,7 +398,6 @@ WHERE
                         Debug.WriteLine(e.ToString());
                         throw;
                     }
-
                 }
             }
             await _nutritionInfoDAO.AddNutritionInfosInBatch(products, connection, transaction);
@@ -410,9 +406,7 @@ WHERE
             return addedProducts;
         }
 
-
-
-        public async Task<List<Product>> AddProducts(List<Product> products, int baseAvisId, int avisId, string avisExternalId, int companyId)
+        public async Task<List<Product>> AddProducts(List<Product> products, int baseAvisId, int avisId, string avisExternalId)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
@@ -421,18 +415,16 @@ WHERE
                 using (SqlTransaction transaction = connection.BeginTransaction())
                 {
                     BatchContext context = new(baseAvisId, avisId, avisExternalId);
-                    List<Product> addedProducts = await AddProducts(products, transaction, connection, baseAvisId, avisId, avisExternalId, companyId);
+                    List<Product> addedProducts = await AddProducts(products, transaction, connection, baseAvisId, avisId, avisExternalId);
                     transaction.Commit();
                     return addedProducts;
                 }
             }
         }
 
-        public async Task<List<Product>> RemoveExistingProductsAsync(List<Product> products, SqlConnection connection, SqlTransaction transaction, int baseAvisId, int avisId, string avisExternalId, int companyId)
+        public async Task<List<Product>> RemoveExistingProductsAsync(List<Product> products, SqlConnection connection, SqlTransaction transaction, int baseAvisId, int avisId, string avisExternalId)
         {
-            List<string> externalIds = products.Select(p => p.ExternalId).ToList();
-
-            var existingProducts = await CheckExistingProductIdsAsync(externalIds, companyId, connection, transaction);
+            var existingProducts = await CheckExistingProductIdsAsync(products, connection, transaction);
 
             List<Product> removedProducts = new List<Product>();
             List<Product> productsToAdd = new List<Product>();
@@ -470,13 +462,13 @@ WHERE
         }
 
 
-        public async Task<List<Product>> AddProducts(List<Product> products, SqlTransaction transaction, SqlConnection connection, int baseAvisId, int avisId, string avisExternalId, int companyId)
+        public async Task<List<Product>> AddProducts(List<Product> products, SqlTransaction transaction, SqlConnection connection, int baseAvisId, int avisId, string avisExternalId)
         {
-            products = await RemoveExistingProductsAsync(products, connection, transaction, baseAvisId, avisId, avisExternalId, companyId);
+            products = await RemoveExistingProductsAsync(products, connection, transaction, baseAvisId, avisId, avisExternalId);
 
             if (products.Count() > 10)
             {
-                var batchContext = new BatchContext(baseAvisId, avisId, avisExternalId, companyId);
+                var batchContext = new BatchContext(baseAvisId, avisId, avisExternalId);
                 return await AddProductsInBatch(products, connection, transaction, batchContext);
             }
 
@@ -484,7 +476,7 @@ WHERE
 
             foreach (Product product in products)
             {
-                Product? checkProduct = await GetProductFromExernalIdAndCompanyId(product.ExternalId, companyId);
+                Product? checkProduct = await GetProductFromExernalIdAndCompanyId(product.ExternalId);
                 if (checkProduct == null)
                 {
                     try
@@ -537,20 +529,26 @@ WHERE
             return new Product(prices, productId, name, imageUrl, description, externalId, nutritionInfo, amount);
         }
 
-        public async Task<Dictionary<string, int>> CheckExistingProductIdsAsync(List<string> externalIds, int companyId, SqlConnection connection, SqlTransaction transaction)
+        public async Task<Dictionary<string, int>> CheckExistingProductIdsAsync(List<Product> products, SqlConnection connection, SqlTransaction transaction)
         {
-            // Dictionary to hold existing external IDs and their corresponding database IDs
             Dictionary<string, int> existingProducts = new Dictionary<string, int>();
 
-            string sqlQuery = $"SELECT ExternalId, Id FROM Product WHERE ExternalId IN ({string.Join(", ", externalIds.Select((id, index) => $"@ExternalId{index}"))}) AND CompanyId = @CompanyId";
+            // Build the SQL query dynamically for each product
+            string sqlQuery = "SELECT ExternalId, Id FROM Product WHERE " +
+                              "(" + string.Join(" OR ", products.Select((product, index) =>
+                                  $"ExternalId = @ExternalId{index} OR (Name = @Name{index} AND Description = @Description{index})"))
+                              + ")";
 
             using (SqlCommand command = new SqlCommand(sqlQuery, connection, transaction))
             {
-                for (int i = 0; i < externalIds.Count; i++)
+                // Add parameters for each product
+                for (int i = 0; i < products.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@ExternalId{i}", externalIds[i]);
+                    command.Parameters.AddWithValue($"@ExternalId{i}", products[i].ExternalId);
+                    command.Parameters.AddWithValue($"@Name{i}", products[i].Name);
+                    command.Parameters.AddWithValue($"@Description{i}", products[i].Description);
                 }
-                command.Parameters.AddWithValue("CompanyId", companyId);
+
                 using (SqlDataReader reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
@@ -561,8 +559,11 @@ WHERE
                     }
                 }
             }
+
             return existingProducts;
         }
+
+
 
         public async Task<List<ProductDTO>> GetProducts(ProductQueryParameters parameters)
         {
@@ -767,8 +768,6 @@ WHERE
                 ExternalAvisId = externalAvisId
             };
         }
-
-
         private NutritionInfoDTO CreateNutritionInfoDTO(SqlDataReader reader) => new NutritionInfoDTO
         {
             EnergyKcal = NutritionInfo.GetEnergyKcal((float)reader.GetDouble(reader.GetOrdinal("EnergyKJ"))),
@@ -812,7 +811,6 @@ WHERE
                           AND a.ValidFrom <= CAST(GETDATE() AS DATE) 
                           AND a.ValidTo >= CAST(GETDATE() AS DATE)");
 
-                // Apply filters dynamically
                 if (!string.IsNullOrEmpty(parameters.Retailer))
                 {
                     countQueryBuilder.Append(" AND c.Name IN (@Retailers)");
@@ -820,13 +818,11 @@ WHERE
 
                 using (SqlCommand command = new SqlCommand(countQueryBuilder.ToString(), connection))
                 {
-                    // Add retailer parameter if provided
                     if (!string.IsNullOrEmpty(parameters.Retailer))
                     {
                         command.Parameters.AddWithValue("@Retailers", string.Join(",", parameters.Retailer));
                     }
 
-                    // Execute the query and retrieve the total count
                     totalCount = (int)await command.ExecuteScalarAsync();
                 }
             }

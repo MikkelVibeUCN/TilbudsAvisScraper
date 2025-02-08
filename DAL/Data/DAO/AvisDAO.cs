@@ -146,7 +146,7 @@ namespace DAL.Data.DAO
 
                             if(avis.Products.Count > 0)
                             {
-                                await _productDAO.AddProducts(avis.Products, transaction, connection, baseAvisId, avis.Id, BaseAvisExternalId, companyId);
+                                await _productDAO.AddProducts(avis.Products, transaction, connection, baseAvisId, avis.Id, BaseAvisExternalId);
                             }
 
                             transaction.Commit();
