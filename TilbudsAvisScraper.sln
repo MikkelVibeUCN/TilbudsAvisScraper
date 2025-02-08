@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APIIntegrationLibrary", "AP
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{E584CA8A-4017-4ACE-B3D2-C9FE937E8B17}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutomaticScraperConsoleApp", "..\AutomaticScraperConsoleApp\AutomaticScraperConsoleApp.csproj", "{EAE212D3-A315-435E-B04D-D2857E4D7027}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{E584CA8A-4017-4ACE-B3D2-C9FE937E8B17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E584CA8A-4017-4ACE-B3D2-C9FE937E8B17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E584CA8A-4017-4ACE-B3D2-C9FE937E8B17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAE212D3-A315-435E-B04D-D2857E4D7027}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAE212D3-A315-435E-B04D-D2857E4D7027}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAE212D3-A315-435E-B04D-D2857E4D7027}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAE212D3-A315-435E-B04D-D2857E4D7027}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
