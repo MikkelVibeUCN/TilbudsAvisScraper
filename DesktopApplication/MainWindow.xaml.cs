@@ -11,7 +11,7 @@ namespace DesktopApplication
         private const string DebugAPIUrl = "https://localhost:7133/api/v1";
         private const string ServerAPIUrl = "http://94.72.103.138:8801/api/v1/";
 
-        private static string APIUrl = DebugAPIUrl;
+        private static string APIUrl = ServerAPIUrl;
 
         private int permissionLevel = 0;
         private readonly TokenValidator _tokenValidation;

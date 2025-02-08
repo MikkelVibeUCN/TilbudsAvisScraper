@@ -424,7 +424,7 @@ WHERE
 
         public async Task<List<Product>> RemoveExistingProductsAsync(List<Product> products, SqlConnection connection, SqlTransaction transaction, int baseAvisId, int avisId, string avisExternalId)
         {
-            var existingProducts = await CheckExistingProductIdsAsync(products, connection, transaction);
+            await AddIdsToExistingProductsAsync(products, connection, transaction);
 
             List<Product> removedProducts = new List<Product>();
             List<Product> productsToAdd = new List<Product>();
@@ -433,7 +433,7 @@ WHERE
             {
                 foreach (var product in products)
                 {
-                    if (existingProducts.ContainsKey(product.ExternalId))
+                    if (product.Id != null)
                     {
                         removedProducts.Add(product);
 
@@ -442,8 +442,6 @@ WHERE
                         {
                             product.RemovePrice(priceToRemove);
                         }
-
-                        product.SetId(existingProducts[product.ExternalId]);
                     }
                     else
                     {
@@ -529,39 +527,66 @@ WHERE
             return new Product(prices, productId, name, imageUrl, description, externalId, nutritionInfo, amount);
         }
 
-        public async Task<Dictionary<string, int>> CheckExistingProductIdsAsync(List<Product> products, SqlConnection connection, SqlTransaction transaction)
+        public async Task<List<Product>> AddIdsToExistingProductsAsync(List<Product> products, SqlConnection connection, SqlTransaction transaction)
         {
-            Dictionary<string, int> existingProducts = new Dictionary<string, int>();
+            List<Product> updatedProducts = new List<Product>();
 
-            // Build the SQL query dynamically for each product
-            string sqlQuery = "SELECT ExternalId, Id FROM Product WHERE " +
-                              "(" + string.Join(" OR ", products.Select((product, index) =>
-                                  $"ExternalId = @ExternalId{index} OR (Name = @Name{index} AND Description = @Description{index})"))
-                              + ")";
+            // Create a dictionary to store matches found in the database
+            Dictionary<(string, string, string), int> foundProducts = new Dictionary<(string, string, string), int>();
+
+            // Build SQL query dynamically
+            string sqlQuery = "SELECT ExternalId, Name, Description, Id FROM Product WHERE " +
+                              string.Join(" OR ", products.Select((product, index) =>
+                                  $"ExternalId = @ExternalId{index} OR (Name = @Name{index} AND Description = @Description{index})"));
 
             using (SqlCommand command = new SqlCommand(sqlQuery, connection, transaction))
             {
                 // Add parameters for each product
                 for (int i = 0; i < products.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@ExternalId{i}", products[i].ExternalId);
-                    command.Parameters.AddWithValue($"@Name{i}", products[i].Name);
-                    command.Parameters.AddWithValue($"@Description{i}", products[i].Description);
+                    command.Parameters.Add(new SqlParameter($"@ExternalId{i}", SqlDbType.NVarChar) { Value = (object)products[i].ExternalId ?? DBNull.Value });
+                    command.Parameters.Add(new SqlParameter($"@Name{i}", SqlDbType.NVarChar) { Value = (object)products[i].Name ?? DBNull.Value });
+                    command.Parameters.Add(new SqlParameter($"@Description{i}", SqlDbType.NVarChar) { Value = (object)products[i].Description ?? DBNull.Value });
                 }
 
+                // Execute the query and store results in the dictionary
                 using (SqlDataReader reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
                     {
-                        string externalId = reader.GetString(0);
-                        int id = reader.GetInt32(1);
-                        existingProducts[externalId] = id;
+                        string dbExternalId = reader.GetString(0);
+                        string dbName = reader.GetString(1);
+                        string dbDescription = reader.GetString(2);
+                        int dbId = reader.GetInt32(3);
+
+                        // Store found products using a composite key of Name and Description
+                        foundProducts[(dbExternalId, dbName, dbDescription)] = dbId;
                     }
                 }
             }
 
-            return existingProducts;
+            // Assign IDs to input products based on matches
+            foreach (var product in products)
+            {
+                var keyByExternalId = foundProducts.Keys.FirstOrDefault(k => k.Item1 == product.ExternalId);
+                var keyByNameDescription = foundProducts.Keys.FirstOrDefault(k => k.Item2 == product.Name && k.Item3 == product.Description);
+
+                if (keyByExternalId != default)
+                {
+                    product.Id = foundProducts[keyByExternalId];
+                }
+                else if (keyByNameDescription != default)
+                {
+                    product.Id = foundProducts[keyByNameDescription];
+                }
+
+                updatedProducts.Add(product);
+            }
+
+            return updatedProducts;
         }
+
+
 
 
 
