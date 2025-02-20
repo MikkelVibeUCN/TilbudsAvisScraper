@@ -8,8 +8,8 @@ namespace DesktopApplication
     public partial class MainWindow : Window
     {
         private string Token;
-        private const string DebugAPIUrl = "https://localhost:7133/api/v1";
-        private const string ServerAPIUrl = "http://94.72.103.138:8801/api/v1/";
+        private const string DebugAPIUrl = "https://localhost:7133/v1";
+        private const string ServerAPIUrl = "http://api.tilbudsfinder.dk/v1/";
 
         private static string APIUrl = ServerAPIUrl;
 

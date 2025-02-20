@@ -5,10 +5,10 @@ using TIlbudsAvisScraperAPI.Services;
 namespace TIlbudsAvisScraperAPI.Controllers
 {
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("v1/[controller]")]
     public class APIUserController : ControllerBase
     {
-        const string baseURI = "api/v1/[controller]";
+        const string baseURI = "v1/[controller]";
         private readonly APIUserService _apiUserService;
 
 

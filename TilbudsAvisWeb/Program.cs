@@ -14,8 +14,8 @@ namespace TilbudsAvisWeb
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
-            string uri = "http://94.72.103.138:8801/api/v1/";
-            //string uri = "https://localhost:7133/api/v1/";
+            string uri = "http://api.tilbudsfinder.dk/v1/";
+            //string uri = "https://localhost:7133/v1/";
 
             // Add services to the container.
             builder.Services.AddScoped<IProductAPIRestClient>(provider => new ProductAPIRestClient(uri));
