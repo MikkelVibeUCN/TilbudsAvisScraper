@@ -368,7 +368,25 @@ namespace ScraperLibrary.COOP
 
         private static float GetPriceFromHtml(string productContainedHtml)
         {
-            try { return GetInformationFromHtml<float>(productContainedHtml, ",-", ">", ",", -10); } catch { return -1; }
+            try
+            {
+                if (productContainedHtml.Contains("superscript"))
+                {
+                    float wholeNumber = GetInformationFromHtml<float>(productContainedHtml, "data-single-line", "class=\"incito__view incito__text-view\">", "<");
+
+                    float secondNumber = GetInformationFromHtml<float>(productContainedHtml, "superscript", ">", "<");
+
+                    return CombineFloats(wholeNumber, secondNumber);
+                }
+                else
+                {
+                    return GetInformationFromHtml<float>(productContainedHtml, ",-", ">", ",", -10);
+                }
+            }
+            catch
+            {
+                return -1;
+            }
         }
 
         private static string GetCompareUnit(string stringToExtractFrom)
@@ -510,5 +528,11 @@ namespace ScraperLibrary.COOP
             }
             return html.LastIndexOf("<div data-id=\"", startIndex);
         }
+        private static float CombineFloats(float wholeNumber, float secondNumber)
+        {
+            float decimalPart = secondNumber / (float)Math.Pow(10, secondNumber.ToString().Length);
+            return wholeNumber + decimalPart;
+        }
+
     }
 }
