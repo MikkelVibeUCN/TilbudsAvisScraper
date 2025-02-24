@@ -68,7 +68,7 @@ namespace TIlbudsAvisScraperAPI.Tools
                 ImageUrl = product.ImageUrl,
                 Name = product.Name,
                 Prices = prices,
-                NutritionInfo = MapToDTO(product.NutritionInfo),
+                NutritionInfo = product.NutritionInfo != null ? MapToDTO(product.NutritionInfo) : null,
                 Id = product.Id
             };
         }
@@ -87,9 +87,16 @@ namespace TIlbudsAvisScraperAPI.Tools
 
         public static AvisDTO MapToDTO(Avis avis)
         {
-            ProductDTO productDtos = MapToDTO(avis.Products);
+            List<ProductDTO> productDtos = MapToDTO(avis.Products, avis);
 
-
+            return new AvisDTO()
+            {
+                ExternalId = avis.ExternalId,
+                Products = productDtos,
+                ValidFrom = avis.ValidFrom,
+                ValidTo = avis.ValidTo,
+                Id = avis.Id
+            };
         }
 
         public static ProductDTO? MapCompanyToFullProductDTO(List<Company> companies)

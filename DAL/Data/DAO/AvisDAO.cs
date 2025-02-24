@@ -20,6 +20,12 @@ namespace DAL.Data.DAO
             VALUES (@ExternalId, @CompanyId, @ValidFrom, @ValidTo); 
             SELECT SCOPE_IDENTITY();";
 
+        private const string _GetAvisQuery = "SELECT a.*, p.*, pr.*" +
+            "FROM Avis AS a" +
+            "INNER JOIN Price AS pr ON A.Id = pr.AvisId " +
+            "INNER JOIN Product AS p ON PR.ProductId = p.Id " +
+            "WHERE a.Id = @Id";
+
         private const string _PageQuery = "INSERT INTO Page(PdfUrl, PageNumber, AvisId) VALUES(@PdfUrl, @PageNumber, @AvisId) SELECT SCOPE_IDENTITY();";
 
         public AvisDAO(IProductDAO productDAO, string connectionString) : base(connectionString)
@@ -44,37 +50,28 @@ namespace DAL.Data.DAO
             }
         }
 
-        //public async Task<Avis?> Get(int id, int permissionLevel)
-        //{
-        //    using (SqlConnection connection = new SqlConnection(ConnectionString))
-        //    {
-        //        await connection.OpenAsync();
-        //
-        //        using (SqlCommand command = new SqlCommand("SELECT * FROM Avis WHERE Id = @Id", connection))
-        //        {
-        //            command.Parameters.AddWithValue("@Id", id);
-        //
-        //            using (SqlDataReader reader = await command.ExecuteReaderAsync())
-        //            {
-        //                if (await reader.ReadAsync())
-        //                {
-        //                    Avis avis = new Avis(
-        //                        reader.GetDateTime(reader.GetOrdinal("ValidFrom")),
-        //                        reader.GetDateTime(reader.GetOrdinal("ValidTo")),
-        //                        reader.GetString(reader.GetOrdinal("ExternalId"))
-        //                    );
-        //
-        //                    avis.SetId(id);
-        //
-        //                    return avis;
-        //                }
-        //                else
-        //                {
-        //                    throw new NotFoundException("Avis not found");
-        //                }
-        //            }
-        //        }
-        //
+        public async Task<int?> GetLatestAvisId(int companyId)
+        {
+            using (SqlConnection connection = new SqlConnection(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand("SELECT TOP 1 a.Id FROM Avis AS a WHERE a.CompanyId = @CompanyId ORDER BY A.[ValidFrom] DESC", connection))
+                {
+                    command.Parameters.AddWithValue("@CompanyId", companyId);
+
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        await reader.ReadAsync();
+                        if (reader.HasRows)
+                        {
+                            return reader.GetInt32(reader.GetOrdinal("Id"));
+                        }
+                        else { return -1; }
+                    }
+                }
+            }
+        }
 
         private async Task<int> GetIdOfAvisFromExternalId(string externalId)
         {
@@ -216,7 +213,7 @@ namespace DAL.Data.DAO
         }
         public Task Get(int id)
         {
-            throw new NotImplementedException();
+           
         }
     }
 }
