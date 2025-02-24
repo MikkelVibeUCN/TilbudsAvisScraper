@@ -18,5 +18,10 @@ namespace APIIntegrationLibrary.Client
         {
             return await CreateAsync(avis, $"{_defaultEndPoint}?companyId={companyId}&token={token}");
         }
+
+        public async Task<AvisDTO?> GetValidAsync(int companyId, string token)
+        {
+            return await GetAsync(null, $"{_defaultEndPoint}?companyId={companyId}&token={token}");
+        }
     }
 }

@@ -12,9 +12,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TilbudsAvisScraper\APIIntegrationLibrary\APIIntegrationLibrary.csproj" />
-    <ProjectReference Include="..\TilbudsAvisScraper\ScraperLibrary\ScraperLibrary.csproj" />
-    <ProjectReference Include="..\TilbudsAvisScraper\TilbudsAvisLibrary\TilbudsAvisLibrary.csproj" />
+    <ProjectReference Include="..\APIIntegrationLibrary\APIIntegrationLibrary.csproj" />
+    <ProjectReference Include="..\ScraperLibrary\ScraperLibrary.csproj" />
+    <ProjectReference Include="..\TilbudsAvisLibrary\TilbudsAvisLibrary.csproj" />
   </ItemGroup>
 
 </Project>

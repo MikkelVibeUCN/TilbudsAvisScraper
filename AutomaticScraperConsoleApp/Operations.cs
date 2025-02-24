@@ -22,15 +22,28 @@ namespace AutomaticScraperConsoleApp
             { 2, new _365AvisScraper() },
             { 3, new KvicklyAvisScraper() },
             { 4, new BrugsenAvisScraper() },
-            { 5, new SuperBrugsenAvisScraper()
-        }};
+            { 5, new SuperBrugsenAvisScraper() }
+        };
 
-        public static async Task<AvisDTO?> ScrapeAvis(int companyId, Action<int> progressCallback, CancellationToken token)
+        public static async Task<AvisDTO?> ScrapeAvis(int companyId)
         {
             if (!_scrapers.TryGetValue(companyId, out var scraper))
-                throw new ArgumentException($"Scraper not found for key: {companyId}");
+            {
+                Console.WriteLine($"Scraper not found for companyId: {companyId}");
+                return null;
+            }
 
-            return await scraper.GetAvis(progressCallback, token, companyId);
+            try
+            {
+                return await scraper.GetAvis(progress => Console.WriteLine($"Progress: {progress}%"), CancellationToken.None, companyId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error scraping companyId {companyId}: {ex.Message}");
+                return null;
+            }
         }
+
+        public static Dictionary<int, IAvisScraper> GetScrapers() => _scrapers;
     }
 }

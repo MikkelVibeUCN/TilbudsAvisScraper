@@ -17,12 +17,12 @@ namespace TIlbudsAvisScraperAPI.Controllers
     public class AvisController : ControllerBase
     {
         const string baseURI = "api/v1/[controller]";
-        private readonly IAvisDAO _avisDAO;
+        private readonly AvisService _avisService;
         private readonly APIUserService _apiUserService;
 
-        public AvisController(IAvisDAO avisDAO, APIUserService apiUserService)
+        public AvisController(AvisService avisService, APIUserService apiUserService)
         {
-            this._avisDAO = avisDAO;
+            this._avisService = avisService;
             this._apiUserService = apiUserService;
         }
 
@@ -34,8 +34,7 @@ namespace TIlbudsAvisScraperAPI.Controllers
             {
                 if(await _apiUserService.IsTokenValid(token, permissionLevelRequired))
                 {
-                    Avis mappedAvis = EntityMapper.MapToEntity(avis);
-                    int avisId = await _avisDAO.Add(mappedAvis, companyId);
+                    int avisId = await _avisService.Add(avis, companyId);
 
                     return Ok(avisId);
                 }
@@ -51,11 +50,13 @@ namespace TIlbudsAvisScraperAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(string token)
+        public async Task<IActionResult> Get(int companyId, string token)
         {
             int permissionLevelRequired = 1;
             if (await _apiUserService.IsTokenValid(token, permissionLevelRequired))
             {
+
+
                 return Ok();
             }
             else

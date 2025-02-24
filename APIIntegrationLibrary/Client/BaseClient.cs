@@ -67,7 +67,7 @@ namespace APIIntegrationLibrary.Client
             return response.Data ?? Enumerable.Empty<T>();
         }
 
-        public async Task<T?> GetAsync(int? id = null, string ? endpoint = null)
+        public async Task<T?> GetAsync(int? id = null, string? endpoint = null)
         {
             if(endpoint == null && id == null) { throw new Exception("Either endpoint or id must be provided"); }
 

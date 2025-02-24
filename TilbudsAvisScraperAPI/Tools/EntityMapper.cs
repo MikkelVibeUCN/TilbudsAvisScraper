@@ -1,4 +1,5 @@
-﻿using TilbudsAvisLibrary.DTO;
+﻿using Amazon.DynamoDBv2.Model.Internal.MarshallTransformations;
+using TilbudsAvisLibrary.DTO;
 using TilbudsAvisLibrary.Entities;
 
 namespace TIlbudsAvisScraperAPI.Tools
@@ -16,6 +17,79 @@ namespace TIlbudsAvisScraperAPI.Tools
                 ValidTo = avis.ValidTo,
                 ExternalId = avis.ExternalId
             };
+        }
+
+        public static PriceDTO MapToDTO(Price price, Avis avis)
+        {
+            return new PriceDTO()
+            {
+                ExternalAvisId = price.ExternalAvisId,
+                Price = price.PriceValue,
+                ValidFrom = avis.ValidFrom,
+                ValidTo = avis.ValidTo,
+            };
+        }
+
+        public static List<PriceDTO> MapToDTO(List<Price> prices, Avis avis)
+        {
+            List<PriceDTO> newPrices = new List<PriceDTO>();
+            foreach (Price price in prices)
+            {
+                newPrices.Add(MapToDTO(price, avis));
+            }
+            return newPrices;
+        }
+
+        public static NutritionInfoDTO MapToDTO(NutritionInfo nutritionInfo)
+        {
+            return new NutritionInfoDTO()
+            {
+                Id = nutritionInfo.Id,
+                EnergyKcal = NutritionInfo.GetEnergyKcal(nutritionInfo.EnergyKJ),
+                FatPer100G = nutritionInfo.FatPer100G,
+                SaturatedFatPer100G = nutritionInfo.SaturatedFatPer100G,
+                CarbohydratesPer100G = nutritionInfo.CarbohydratesPer100G,
+                SugarsPer100G = nutritionInfo.SugarsPer100G,
+                FiberPer100G = nutritionInfo.FiberPer100G,
+                ProteinPer100G = nutritionInfo.ProteinPer100G,
+                SaltPer100G = nutritionInfo.SaltPer100G
+            };
+        }
+
+        public static ProductDTO MapToDTO(Product product, Avis avis)
+        {
+            List<PriceDTO> prices = MapToDTO(product.Prices, avis);
+
+            return new ProductDTO()
+            {
+                Amount = product.Amount ??= 0,
+                Description = product.Description,
+                ExternalId = product.ExternalId,
+                ImageUrl = product.ImageUrl,
+                Name = product.Name,
+                Prices = prices,
+                NutritionInfo = MapToDTO(product.NutritionInfo),
+                Id = product.Id
+            };
+        }
+
+        public static List<ProductDTO> MapToDTO(List<Product> products, Avis avis)
+        {
+            List<ProductDTO> newList = new List<ProductDTO>();
+
+            foreach (Product p in products)
+            {
+                newList.Add(MapToDTO(p, avis));
+            }
+
+            return newList;
+        }
+
+        public static AvisDTO MapToDTO(Avis avis)
+        {
+            ProductDTO productDtos = MapToDTO(avis.Products);
+
+
         }
 
         public static ProductDTO? MapCompanyToFullProductDTO(List<Company> companies)
