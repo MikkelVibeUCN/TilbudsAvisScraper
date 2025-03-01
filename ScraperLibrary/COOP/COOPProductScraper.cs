@@ -28,15 +28,15 @@ namespace ScraperLibrary.COOP
         {
             var response = await CallUrl(ProductsLocationUrl, 5000);
             List<ProductDTO> products = new List<ProductDTO>();
-            List<string> productStrings = GetProductStrings(response);
-            HashSet<string> addedExternalIds = new HashSet<string>(); 
+            List<string> offerStrings = GetOfferStrings(response);
+            HashSet<string> addedExternalIds = new HashSet<string>();
 
-            for (int i = 0; i < productStrings.Count; i++)
+            for (int i = 0; i < offerStrings.Count; i++)
             {
                 try
                 {
-                    progressCallback((int)(((double)i / productStrings.Count) * 100));
-                    List<ProductDTO>? innerProducts = CreateProducts(productStrings[i], companyId, avisExternalId);
+                    progressCallback((int)(((double)i / offerStrings.Count) * 100));
+                    List<ProductDTO>? innerProducts = ConvertOfferToProducts(offerStrings[i], companyId, avisExternalId);
 
                     if (innerProducts != null)
                     {
@@ -58,8 +58,45 @@ namespace ScraperLibrary.COOP
             return products;
         }
 
+        private static List<ProductDTO>? ConvertOfferToProducts(string offerContainedHtml, int companyId, string externalAvisId)
+        {
+            List<ProductDTO> products = new List<ProductDTO>();
 
-        private static (Dictionary<string, int>, bool) CountStringOccurrencesAndCheck(string[] inputArray)
+            var (name, description, imageUrl, compareUnitsInDescription, prices, externalId) = ExtractBasicProductInfo(offerContainedHtml, externalAvisId);
+
+            if (prices == null)
+            {
+                return null;
+            }
+
+            var (units, hasMoreThanTwo) = CountUnitOccurrencesAndCheckForMultiple(compareUnitsInDescription);
+
+            if (hasMoreThanTwo)
+            {
+                ProcessMultipleProductOffer(units, description, prices, name, imageUrl, externalId, products);
+            }
+            else
+            {
+                ProcessSingleProductOffer(compareUnitsInDescription, prices, description, name, imageUrl, externalId, products);
+            }
+            return products;
+        }
+
+        private static (string name, string description, string imageUrl, string[] compareUnitsInDescription, List<PriceDTO>? prices, string externalId) ExtractBasicProductInfo(string offerContainedHtml, string externalAvisId)
+        {
+            string name = RemoveUselessPartsString(GetNameFromHtml(offerContainedHtml)).ToUpper();
+            string imageUrl = GetImageUrlFromHtml(offerContainedHtml);
+            string externalId = GetExternalIdFromOfferHtml(offerContainedHtml);
+            string description = CreateDescriptionFromHtml(offerContainedHtml).ToUpper();
+
+            string[] compareUnitsInDescription = GetUnitsFromDescription(description);
+
+            List<PriceDTO>? prices = CreatePrices(offerContainedHtml, GetCompareUnit(description), externalAvisId);
+
+            return (name, description, imageUrl, compareUnitsInDescription, prices, externalId);
+        }
+
+        private static (Dictionary<string, int>, bool) CountUnitOccurrencesAndCheckForMultiple(string[] inputArray)
         {
             Dictionary<string, int> stringCounts = new Dictionary<string, int>();
             bool hasMoreThanTwo = false;
@@ -83,106 +120,82 @@ namespace ScraperLibrary.COOP
             return (stringCounts, hasMoreThanTwo);
         }
 
-        private static List<ProductDTO>? CreateProducts(string productContainedHtml, int companyId, string externalAvisId)
+        
+
+        private static void ProcessMultipleProductOffer(Dictionary<string, int> units, string description, List<PriceDTO> prices, string name, string imageUrl, string externalId, List<ProductDTO> products)
         {
-            List<ProductDTO> products = new List<ProductDTO>();
-
-            string productInformation = GetInformationFromHtml<string>(productContainedHtml, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
-            string name = RemoveUselessPartsString(GetNameFromHtml(productContainedHtml)).ToUpper();
-            string description = GetDescriptionFromHtml(productInformation).ToUpper();
-            string imageUrl = GetImageUrlFromHtml(productContainedHtml);
-
-            string[] compareUnitsInDescription = GetUnitsFromDescription(description);
-
-            List<PriceDTO>? prices = CreatePrices(productContainedHtml, GetCompareUnit(description), externalAvisId);
-
-            if (prices == null)
+            foreach (var unit in units)
             {
-                // Ignore the product if it has no prices or if they cant be found
-                return null;
-            }
-
-            string externalId = GetExternalIdFromProductContainedHtml(productContainedHtml);
-
-            // If it has two of the same compare units then its likely to have another product in the description.
-            // Next up is checking if it has two compare units that measure different things like ml and g
-
-            var (units, hasMoreThanTwo) = CountStringOccurrencesAndCheck(compareUnitsInDescription);
-
-            if (hasMoreThanTwo)
-            {
-                Debug.WriteLine(description + " Is believed to have more than two");
-                foreach (var unit in units)
+                int count = unit.Value;
+                if (count > 1)
                 {
-                    int count = unit.Value;
-                    if (count > 1)
+                    int indexOffSet = 0;
+                    for (int i = 0; i < count; i++)
                     {
-                        int indexOffSet = 0;
-                        for (int i = 0; i < count; i++)
+                        float amountOfProductInTheProduct = GetAmountOfProductFromDescription(description, indexOffSet);
+
+                        indexOffSet += GetIndexOfAmountFromDescription(description, amountOfProductInTheProduct, indexOffSet);
+
+                        float amount = IProductScraper.GetAmountInProduct(amountOfProductInTheProduct, unit.Key, prices);
+
+                        ProductDTO product = new ProductDTO
                         {
-                            float amountOfProductInTheProduct = GetAmountOfProductFromDescription(description, indexOffSet);
-
-                            indexOffSet += GetIndexOfAmountFromDescription(description, amountOfProductInTheProduct, indexOffSet);
-
-                            float amount = IProductScraper.GetAmountInProduct(amountOfProductInTheProduct, unit.Key, prices);
-
-                            ProductDTO product = new ProductDTO
-                            {
-                                Prices = prices,
-                                Name = name,
-                                ImageUrl = imageUrl,
-                                Description = description,
-                                ExternalId = externalId + "---" + i,
-                                Amount = amount,
-                            };
-                            products.Add(product);
-                        }
+                            Prices = prices,
+                            Name = name,
+                            ImageUrl = imageUrl,
+                            Description = description,
+                            ExternalId = externalId + "---" + i,
+                            Amount = amount,
+                        };
+                        products.Add(product);
                     }
+                }
+            }
+        }
+
+        private static void ProcessSingleProductOffer(string[] compareUnitsInDescription, List<PriceDTO> prices, string description, string name, string imageUrl, string externalId, List<ProductDTO> products)
+        {
+            float amount = 0;
+
+            if (compareUnitsInDescription.Length == 0)
+            {
+                // Check for edgecase where prices stored in half kilo has no unit except for the compare unit
+                // If it is found set amount to 0.5 
+                if (prices[0].CompareUnit.Equals("kg"))
+                {
+                    amount = 0.5f;
+                }
+                else if (prices[0].CompareUnit.Equals("stk") || prices[0].CompareUnit.Equals("bdt"))
+                {
+                    amount = 1;
+                }
+                else
+                {
+                    throw new Exception("No compare unit found in description: " + description);
                 }
             }
             else
             {
-                float amount = 0;
+                string productInUnit = compareUnitsInDescription[0];
 
-                if (compareUnitsInDescription.Length == 0)
-                {
-                    // Check for edgecase where prices stored in half kilo has no unit except for the compare unit
-                    // If it is found set amount to 0.5 
-                    if (prices[0].CompareUnit.Equals("kg"))
-                    {
-                        amount = 0.5f;
-                    }
-                    else if(prices[0].CompareUnit.Equals("stk") || prices[0].CompareUnit.Equals("bdt"))
-                    {
-                        amount = 1;
-                    }
-                    else
-                    {
-                        throw new Exception("No compare unit found in description: " + description);
-                    }
-                }
-                else
-                {
-                    string productInUnit = compareUnitsInDescription[0];
+                float amountOfProductInTheProduct = GetAmountOfProductFromDescription(description);
 
-                    float amountOfProductInTheProduct = GetAmountOfProductFromDescription(description);
-
-                    amount = IProductScraper.GetAmountInProduct(amountOfProductInTheProduct, productInUnit, prices);
-                }
-
-                ProductDTO product = new ProductDTO
-                {
-                    Prices = prices,
-                    Name = name,
-                    ImageUrl = imageUrl,
-                    Description = description,
-                    ExternalId = externalId,
-                    Amount = amount,
-                };
-                products.Add(product);
+                amount = IProductScraper.GetAmountInProduct(amountOfProductInTheProduct, productInUnit, prices);
             }
-            return products;
+
+            ProductDTO product = new ProductDTO
+            {
+                Prices = prices,
+                Name = name,
+                ImageUrl = imageUrl,
+                Description = description,
+                ExternalId = externalId,
+                Amount = amount,
+            };
+            products.Add(product);
         }
+
+       
 
         private static int GetIndexOfAmountFromDescription(string description, float amount, int indexOffset = 0)
         {
@@ -194,7 +207,7 @@ namespace ScraperLibrary.COOP
             return 0;
         }
 
-        private static float GetAmountOfProductFromDescription(string description, int startIndex= 0)
+        private static float GetAmountOfProductFromDescription(string description, int startIndex = 0)
         {
             // first try parse until a " " is found
             // Then go to the next / and parse to " " again
@@ -216,9 +229,9 @@ namespace ScraperLibrary.COOP
 
         }
 
-        private static string GetImageUrlFromHtml(string productContainedHtml)
+        private static string GetImageUrlFromHtml(string offerContainedHtml)
         {
-            string url = GetInformationFromHtml<string>(productContainedHtml, "=\"https://image-transformer-api.tjek.com/", "\"", "\"");
+            string url = GetInformationFromHtml<string>(offerContainedHtml, "=\"https://image-transformer-api.tjek.com/", "\"", "\"");
             url = url.Replace("amp;", "");
             return url;
         }
@@ -268,7 +281,7 @@ namespace ScraperLibrary.COOP
             return nameOfProduct;
         }
 
-        private static string GetDescriptionFromHtml(string productInformation)
+        private static string CreateDescriptionFromHtml(string offerContainedHtml)
         {
             // altid gang to tal sammen hvis der er et x imellem to tal DONE
             // hvis der er - så tag gennemsnittet og brug det DONE
@@ -277,12 +290,14 @@ namespace ScraperLibrary.COOP
             // Tå tjek hvor mange navne der er ved at lede efter "eller", hvis der ikke er nogen eller så gem to produkter en med hver mængde
             // altid fjern "min" fra description DONE
 
+            string basicProductInformation = GetInformationFromHtml<string>(offerContainedHtml, "data-role=\"productInformation\"", "class=\"incito__view\">", "</div>");
+
             string searchString = "class=\"incito__view incito__text-view\">";
-            int firstInformationIndex = productInformation.IndexOf(searchString);
+            int firstInformationIndex = basicProductInformation.IndexOf(searchString);
             string description = "No description available";
             try
             {
-                description = GetInformationFromHtml<string>(productInformation, "class=\"incito__view incito__text-view\"", ">", "<", firstInformationIndex);
+                description = GetInformationFromHtml<string>(basicProductInformation, "class=\"incito__view incito__text-view\"", ">", "<", firstInformationIndex);
 
                 // Check for "-" and "x" in the description
                 description = ProcessDescription(description, '-', ChangeEstimateToAverage);
@@ -354,33 +369,33 @@ namespace ScraperLibrary.COOP
                 .Replace("  ", " ")
                 .Replace(" + pant.", "")
                 .Replace("*", "");
-                
+
             if (description.StartsWith(" "))
             {
                 description = description.Substring(1);
             }
-            if(description.EndsWith(" "))
+            if (description.EndsWith(" "))
             {
                 description = description.Substring(0, description.Length - 1);
             }
             return description;
         }
 
-        private static float GetPriceFromHtml(string productContainedHtml)
+        private static float GetPriceFromHtml(string offerContainedHtml)
         {
             try
             {
-                if (productContainedHtml.Contains("superscript"))
+                if (offerContainedHtml.Contains("superscript"))
                 {
-                    float wholeNumber = GetInformationFromHtml<float>(productContainedHtml, "data-single-line", "class=\"incito__view incito__text-view\">", "<");
+                    float wholeNumber = GetInformationFromHtml<float>(offerContainedHtml, "data-single-line", "class=\"incito__view incito__text-view\">", "<");
 
-                    float secondNumber = GetInformationFromHtml<float>(productContainedHtml, "superscript", ">", "<");
+                    float secondNumber = GetInformationFromHtml<float>(offerContainedHtml, "superscript", ">", "<");
 
                     return CombineFloats(wholeNumber, secondNumber);
                 }
                 else
                 {
-                    return GetInformationFromHtml<float>(productContainedHtml, ",-", ">", ",", -10);
+                    return GetInformationFromHtml<float>(offerContainedHtml, ",-", ">", ",", -10);
                 }
             }
             catch
@@ -396,7 +411,7 @@ namespace ScraperLibrary.COOP
             {
                 if (stringToExtractFrom.ToLower().Contains(unit))
                 {
-                    if (unit.Equals(possibleUnits[0]) || unit.Equals(possibleUnits[1])) 
+                    if (unit.Equals(possibleUnits[0]) || unit.Equals(possibleUnits[1]))
                     {
                         return "kg";
                     }
@@ -413,9 +428,9 @@ namespace ScraperLibrary.COOP
             return "";
         }
 
-        private static string GetExternalIdFromProductContainedHtml(string productContainedHtml)
+        private static string GetExternalIdFromOfferHtml(string offerContainedHtml)
         {
-            return GetInformationFromHtml<string>(productContainedHtml, "data-id=", "\"", "\"");
+            return GetInformationFromHtml<string>(offerContainedHtml, "data-id=", "\"", "\"");
         }
 
         private float CalculateAmount(float price, string compareUnit, string description)
@@ -423,9 +438,9 @@ namespace ScraperLibrary.COOP
             throw new NotImplementedException();
         }
 
-        private static List<PriceDTO>? CreatePrices(string productContainedHtml, string compareUnit, string externalAvisId)
+        private static List<PriceDTO>? CreatePrices(string offerContainedHtml, string compareUnit, string externalAvisId)
         {
-            float price = GetPriceFromHtml(productContainedHtml);
+            float price = GetPriceFromHtml(offerContainedHtml);
             if (price != -1)
             {
                 return new List<PriceDTO>
@@ -437,13 +452,13 @@ namespace ScraperLibrary.COOP
                         ExternalAvisId = externalAvisId
                     }
                 };
-                
+
             }
             else return null;
 
         }
 
-        private List<string> GetProductStrings(string html)
+        private List<string> GetOfferStrings(string html)
         {
             int currentIndex = html.IndexOf("<header id=\"coop-nav");
             if (currentIndex == -1) throw new Exception("Error retrieving product strings - cannot find the header id");
@@ -452,11 +467,9 @@ namespace ScraperLibrary.COOP
 
             while (true)
             {
-                // Find the next occurrence
                 int offerIndex = html.IndexOf("data-role=\"offer\"", currentIndex);
                 if (offerIndex == -1)
                 {
-                    // No more offer blocks found, break the loop
                     break;
                 }
 
@@ -465,17 +478,12 @@ namespace ScraperLibrary.COOP
                 {
                     throw new Exception("Error retrieving product string - cannot find the starting div for the offer");
                 }
-
-                // Extract the substring that starts at the <div
                 string partialHtml = html.Substring(startingDivIndex);
 
-                // Use GetOnlyProductString to retrieve the valid HTML structure for this product
                 string productString = GetOnlyProductString(partialHtml);
 
-                // Add the valid product HTML to the result list
                 productStrings.Add(productString);
 
-                // Move current index past this product for the next iteration
                 currentIndex = startingDivIndex + productString.Length;
             }
             return productStrings;
@@ -508,7 +516,6 @@ namespace ScraperLibrary.COOP
                 }
                 else
                 {
-                    // No div tags found
                     reachedEnd = true;
                 }
 
@@ -519,20 +526,11 @@ namespace ScraperLibrary.COOP
             }
             throw new Exception("No valid div structure found");
         }
-        private int GetIndexBackSearch(string html, int startPosition = 0)
-        {
-            int startIndex = html.IndexOf("data-role=\"offer", startPosition);
-            if (startIndex == -1)
-            {
-                return -1; // Return early if no match is found
-            }
-            return html.LastIndexOf("<div data-id=\"", startIndex);
-        }
+        
         private static float CombineFloats(float wholeNumber, float secondNumber)
         {
             float decimalPart = secondNumber / (float)Math.Pow(10, secondNumber.ToString().Length);
             return wholeNumber + decimalPart;
         }
-
     }
 }
