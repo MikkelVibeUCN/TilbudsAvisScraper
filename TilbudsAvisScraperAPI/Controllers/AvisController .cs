@@ -9,6 +9,8 @@ using System.Runtime.CompilerServices;
 using TilbudsAvisLibrary.Entities;
 using TIlbudsAvisScraperAPI.Services;
 using TIlbudsAvisScraperAPI.Tools;
+using Amazon.SQS.Model;
+using System.Diagnostics;
 
 namespace TIlbudsAvisScraperAPI.Controllers
 {
@@ -16,7 +18,6 @@ namespace TIlbudsAvisScraperAPI.Controllers
     [Route("v1/[controller]")]
     public class AvisController : ControllerBase
     {
-        const string baseURI = "v1/[controller]";
         private readonly IAvisDAO _avisDAO;
         private readonly APIUserService _apiUserService;
 
@@ -34,8 +35,15 @@ namespace TIlbudsAvisScraperAPI.Controllers
             {
                 if(await _apiUserService.IsTokenValid(token, permissionLevelRequired))
                 {
+
                     Avis mappedAvis = EntityMapper.MapToEntity(avis);
+
                     int avisId = await _avisDAO.Add(mappedAvis, companyId);
+
+                    if (avisId == 0)
+                    {
+                        return Conflict("Avis could not be created");
+                    }
 
                     return Ok(avisId);
                 }

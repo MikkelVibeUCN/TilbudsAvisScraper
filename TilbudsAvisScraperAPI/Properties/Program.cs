@@ -1,5 +1,6 @@
 using DAL.Data.DAO;
 using DAL.Data.Interfaces;
+using Microsoft.AspNetCore.HttpOverrides;
 using TIlbudsAvisScraperAPI.Services;
 
 namespace TIlbudsAvisScraperAPI.Properties
@@ -25,6 +26,18 @@ namespace TIlbudsAvisScraperAPI.Properties
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+
+            // Enable forwarded headers for NGINX
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.All;
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
+
+
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -34,7 +47,7 @@ namespace TIlbudsAvisScraperAPI.Properties
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            app.UseForwardedHeaders(); // Ensure this is before other middleware
 
             app.UseAuthorization();
 
