@@ -38,17 +38,7 @@ namespace ScraperLibrary.COOP
                     progressCallback((int)(((double)i / offerStrings.Count) * 100));
                     List<ProductDTO>? innerProducts = ConvertOfferToProducts(offerStrings[i], companyId, avisExternalId);
 
-                    if (innerProducts != null)
-                    {
-                        foreach (var product in innerProducts)
-                        {
-                            if (product?.ExternalId != null && addedExternalIds.Add(product.ExternalId))
-                            {
-                                // Avoid duplicates the retailers sometimes add the same product twice which fucks up the database
-                                products.Add(product);
-                            }
-                        }
-                    }
+                    if (innerProducts != null) products.AddRange(innerProducts);
                 }
                 catch (Exception e)
                 {
