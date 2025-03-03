@@ -18,7 +18,7 @@ namespace TilbudsAvisWeb
             //string uri = "https://localhost:7133/v1/";
 
             // Add services to the container.
-            builder.Services.AddScoped<IProductAPIRestClient>(provider => new ProductAPIRestClient(uri));
+            builder.Services.AddScoped<IProductAPIRestClient>(provider => new ProductAPIRestClient(uri, null));
 
             builder.Services.AddScoped<ProductService>();
 

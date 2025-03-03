@@ -18,8 +18,7 @@ namespace TIlbudsAvisScraperAPI.Services
 
         public async Task<bool> IsTokenValid(string token, int permissionLevelRequired)
         {
-            int permissionLevel = await GetPermissionLevel(token);
-            return permissionLevel >= permissionLevelRequired;
+            return await GetPermissionLevel(token) >= permissionLevelRequired;
         }
     }
 }
