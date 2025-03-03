@@ -117,10 +117,14 @@ namespace DAL.Data.DAO
             {
                 throw new DALException("Avis with external ID already exists");
             }
-            
+
+            Console.WriteLine("Avis not already existing"); 
+
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
                 await connection.OpenAsync();
+
+                Console.WriteLine("Connection opened");
 
                 using (SqlTransaction transaction = connection.BeginTransaction())
                 {
@@ -137,24 +141,36 @@ namespace DAL.Data.DAO
                             // Execute the query and get the generated ID
                             int generatedId = Convert.ToInt32(await command.ExecuteScalarAsync());
 
+                            Console.WriteLine("Temporary avis created with id: " + generatedId);
+
                             avis.SetId(generatedId);
 
                             int baseAvisId = await GetIdOfAvisFromExternalId(BaseAvisExternalId);
 
-                            if(avis.Products.Count > 0)
+                            Console.WriteLine("Found base avis with id: " + baseAvisId);
+
+
+                            int count = 0;
+                            if (avis.Products.Count > 0)
                             {
                                 await _productDAO.AddProducts(avis.Products, transaction, connection, baseAvisId, avis.Id, BaseAvisExternalId);
+                                count++;
                             }
+                            Console.WriteLine("Added " + count + " products");
+
 
                             transaction.Commit();
+
+                            Console.WriteLine("Transaction committed");
 
                             return generatedId;
                         }
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         transaction.Rollback();
-                        throw ex;
+                        Console.WriteLine("Rolled back transaction");
+                        throw;
                     }
                 }
             }

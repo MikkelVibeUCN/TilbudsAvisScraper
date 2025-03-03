@@ -7,7 +7,7 @@ namespace APIIntegrationLibrary.Client
 {
     public class ProductAPIRestClient : BaseClient<ProductDTO>, IProductAPIRestClient
     {
-        public ProductAPIRestClient(string uri) : base(uri, "Products")
+        public ProductAPIRestClient(string uri, string? token) : base(uri, "Products", token)
         {
         }
 
@@ -71,7 +71,6 @@ namespace APIIntegrationLibrary.Client
                 queryString += $"SearchTerm={parameters.SearchTerm}&";
             }
 
-            // Remove the trailing '&' if there are any query parameters added
             if (queryString.EndsWith("&"))
             {
                 queryString = queryString.Remove(queryString.Length - 1);

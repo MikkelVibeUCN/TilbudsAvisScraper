@@ -12,12 +12,17 @@ namespace DesktopApplication
         private readonly APIUserRestClient _APIRestUserClient;
         public TokenValidator(string APIUrl)
         {
-            _APIRestUserClient = new APIUserRestClient(APIUrl);
+            _APIRestUserClient = new APIUserRestClient(APIUrl,  null);
+        }
+         
+        public void SetAuthToken(string token)
+        {
+           _APIRestUserClient.SetAuthToken(token);
         }
 
-        public async Task<bool> IsTokenValidForAction(string token, int permissionRequired)
+        public async Task<bool> IsTokenValidForAction(int permissionRequired)
         {
-            return await _APIRestUserClient.IsTokenValidForAction(token, permissionRequired);
+            return await _APIRestUserClient.IsTokenValidForAction(permissionRequired);
         }
     }
 }

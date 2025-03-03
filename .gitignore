@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 databaselogin.txt
+/TilbudsAvisScraperAPI/Properties/launchSettings.json

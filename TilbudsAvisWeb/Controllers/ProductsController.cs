@@ -38,7 +38,7 @@ namespace TilbudsAvisWeb.Controllers
             ProductDTO? productDTO = await _productService.GetProductAsync(id);
             if(productDTO == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
             return View(productDTO);
         }

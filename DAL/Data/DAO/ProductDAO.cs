@@ -614,7 +614,7 @@ WHERE
                 {
                     "pricedesc" => "priceAgg.MaxPrice",
                     "priceasc" => "priceAgg.MinPrice",
-                    "name" => "p.Name",
+                    var s when s != null && s.StartsWith("name", StringComparison.OrdinalIgnoreCase) => "p.Name",
                     _ => "p.Id" // Default sorting by Product ID
                 };
 

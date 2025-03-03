@@ -13,10 +13,10 @@ namespace APIIntegrationLibrary.Client
 {
     public class AvisAPIRestClient : BaseClient<AvisDTO>, IAvisAPIRestClient
     {
-        public AvisAPIRestClient(string uri) : base(uri, "Avis") { }
+        public AvisAPIRestClient(string uri, string token) : base(uri, "Avis", token) { }
         public async Task<int> CreateAsync(AvisDTO avis, int companyId, string token)
         {
-            return await CreateAsync(avis, $"{_defaultEndPoint}?companyId={companyId}&token={token}");
+            return await CreateAsync(avis, $"{_defaultEndPoint}?companyId={companyId}");
         }
 
         public async Task<AvisDTO?> GetValidAsync(int companyId, string token)

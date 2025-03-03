@@ -9,14 +9,15 @@ using System.Runtime.CompilerServices;
 using TilbudsAvisLibrary.Entities;
 using TIlbudsAvisScraperAPI.Services;
 using TIlbudsAvisScraperAPI.Tools;
+using Amazon.SQS.Model;
+using System.Diagnostics;
 
 namespace TIlbudsAvisScraperAPI.Controllers
 {
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("v1/[controller]")]
     public class AvisController : ControllerBase
     {
-        const string baseURI = "api/v1/[controller]";
         private readonly AvisService _avisService;
         private readonly APIUserService _apiUserService;
 
@@ -27,14 +28,27 @@ namespace TIlbudsAvisScraperAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] AvisDTO avis, [FromQuery] int companyId, [FromQuery] string token)
+        public async Task<IActionResult> Create([FromBody] AvisDTO avis, [FromQuery] int companyId, [FromHeader(Name = "Authorization")] string authorization)
         {
             int permissionLevelRequired = 2;
+
+            if (string.IsNullOrEmpty(authorization) || !authorization.StartsWith("Bearer "))
+            {
+                return Unauthorized("Missing or invalid Authorization header");
+            }
+
+            var token = authorization.Substring("Bearer ".Length).Trim();
+
             try
             {
                 if(await _apiUserService.IsTokenValid(token, permissionLevelRequired))
                 {
                     int avisId = await _avisService.Add(avis, companyId);
+
+                    if (avisId == 0)
+                    {
+                        return Conflict("Avis could not be created");
+                    }
 
                     return Ok(avisId);
                 }
@@ -50,9 +64,17 @@ namespace TIlbudsAvisScraperAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(int companyId, string token)
+        public async Task<IActionResult> Get([FromHeader(Name = "Authorization")] string authorization, int companyId)
         {
             int permissionLevelRequired = 1;
+
+            if (string.IsNullOrEmpty(authorization) || !authorization.StartsWith("Bearer "))
+            {
+                return Unauthorized("Missing or invalid Authorization header");
+            }
+
+            var token = authorization.Substring("Bearer ".Length).Trim();
+
             if (await _apiUserService.IsTokenValid(token, permissionLevelRequired))
             {
 

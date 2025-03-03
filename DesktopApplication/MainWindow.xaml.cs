@@ -8,11 +8,10 @@ namespace DesktopApplication
     public partial class MainWindow : Window
     {
         private string Token;
-        private const string DebugAPIUrl = "https://localhost:7133/api/v1";
-        private const string ServerAPIUrl = "http://94.72.103.138:8801/api/v1/";
+        private const string DebugAPIUrl = "https://localhost:5001/v1";
+        private const string ServerAPIUrl = "https://api.tilbudsfinder.dk/v1/";
 
         private static string APIUrl = ServerAPIUrl;
-
         private int permissionLevel = 0;
         private readonly TokenValidator _tokenValidation;
         public MainWindow()
@@ -30,14 +29,10 @@ namespace DesktopApplication
 
         private async Task SubmitToken()
         {
-            // Hardcoded for testing replace
-            //EnableButtons();
-            //tokenInput.Visibility = Visibility.Collapsed;
-            //buttonGrid.Visibility = Visibility.Visible;
-            //return;
-
-
             string token = tokenInput.Text;
+
+            _tokenValidation.SetAuthToken(token);
+
             if (token == string.Empty)
             {
                 MessageBox.Show("Please enter a token.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -50,7 +45,7 @@ namespace DesktopApplication
             }
             try
             {
-                if (await _tokenValidation.IsTokenValidForAction(token, 3))
+                if (await _tokenValidation.IsTokenValidForAction(3))
                 {
                     EnableButtons();
 
@@ -68,10 +63,7 @@ namespace DesktopApplication
             {
                 MessageBox.Show("Internal error: " + e.ToString());
             }
-            
         }
-
-
 
         private void EnableButtons()
         {
