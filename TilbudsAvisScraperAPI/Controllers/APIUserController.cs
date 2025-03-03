@@ -19,7 +19,6 @@ namespace TIlbudsAvisScraperAPI.Controllers
             this._apiUserService = apiUserService;
         }
 
-        [Authorize]
         [HttpGet]
         public async Task<IActionResult> IsTokenValid([FromHeader(Name = "Authorization")] string authorization,[FromQuery] int permissionLevel)
         {

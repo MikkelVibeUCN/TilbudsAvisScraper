@@ -9,10 +9,9 @@ namespace DesktopApplication
     {
         private string Token;
         private const string DebugAPIUrl = "https://localhost:5001/v1";
-        private const string ServerAPIUrl = "http://api.tilbudsfinder.dk/v1/";
+        private const string ServerAPIUrl = "https://api.tilbudsfinder.dk/v1/";
 
         private static string APIUrl = ServerAPIUrl;
-
         private int permissionLevel = 0;
         private readonly TokenValidator _tokenValidation;
         public MainWindow()
@@ -30,12 +29,6 @@ namespace DesktopApplication
 
         private async Task SubmitToken()
         {
-            // Hardcoded for testing replace
-            //EnableButtons();
-            //tokenInput.Visibility = Visibility.Collapsed;
-            //buttonGrid.Visibility = Visibility.Visible;
-            //return;
-
             string token = tokenInput.Text;
 
             _tokenValidation.SetAuthToken(token);
@@ -71,8 +64,6 @@ namespace DesktopApplication
                 MessageBox.Show("Internal error: " + e.ToString());
             }
         }
-
-
 
         private void EnableButtons()
         {
