@@ -5,7 +5,6 @@ using ScraperLibrary._365_Discount;
 using ScraperLibrary.Interfaces;
 using TilbudsAvisLibrary.DTO;
 
-
 namespace AutomaticScraperConsoleApp
 {
     class Program
@@ -39,20 +38,42 @@ namespace AutomaticScraperConsoleApp
 
             foreach (var companyId in companyIds)
             {
-                var latestAvis = await _avisAPIRestClient.GetValidAsync(companyId, TOKEN);
-
-                await ScheduleNextScrape(companyId, latestAvis.ValidTo);
+                await ScheduleInitialScrape(companyId);
             }
         }
 
-        private static async Task ScheduleNextScrape(int companyId, DateTime expiryDate)
+        private static async Task ScheduleInitialScrape(int companyId)
         {
+            var latestAvis = await _avisAPIRestClient.GetValidAsync(companyId, TOKEN);
 
-            var timeUntilExpiry = expiryDate - DateTime.Now;
+            // For testing rescheduler
+            //Random random = new Random();
+            //bool createNull = random.Next(0, 2) == 1;
+            //
+            //if (createNull)
+            //{
+            //    latestAvis = null;
+            //}
 
-            if (timeUntilExpiry.TotalMilliseconds <= 0)
+            if (latestAvis != null)
             {
-                Console.WriteLine($"Expiry date already passed for companyId: {companyId}");
+                await ScheduleNextScrape(companyId, latestAvis.ValidTo.AddDays(1).AddHours(2));
+            }
+            else
+            {
+                Console.WriteLine($"Failed to fetch latest valid avis from database for companyId: {companyId}");
+                Console.WriteLine("Rescheduling...");
+                await ScheduleTaskAtSpecificTime(companyId, DateTime.Now.AddMinutes(1), async () => await ScheduleInitialScrape(companyId));
+            }
+        }
+
+        private static async Task ScheduleTaskAtSpecificTime(int companyId, DateTime targetTime, Func<Task> taskToSchedule)
+        {
+            var timeUntilTarget = targetTime - DateTime.Now;
+
+            if (timeUntilTarget.TotalMilliseconds <= 0)
+            {
+                await taskToSchedule();
                 return;
             }
 
@@ -60,19 +81,41 @@ namespace AutomaticScraperConsoleApp
             {
                 _schedules[companyId].Stop();
                 _schedules[companyId].Dispose();
+                _schedules.Remove(companyId);
             }
 
-            var timer = new System.Timers.Timer(timeUntilExpiry.TotalMilliseconds);
-            timer.Elapsed += async (sender, e) => await OnTimerElapsed(companyId);
+            var timer = new System.Timers.Timer(timeUntilTarget.TotalMilliseconds);
+            timer.Elapsed += async (sender, e) =>
+            {
+                await taskToSchedule();
+            };
             timer.AutoReset = false;
             timer.Start();
 
             _schedules[companyId] = timer;
 
-            Console.WriteLine($"Scheduled next scrape for companyId {companyId} at {expiryDate}");
+            Console.WriteLine($"Scheduled task to run at {targetTime} with companyId: {companyId}");
         }
 
-        private static async Task OnTimerElapsed(int companyId)
+
+        private static async Task ScheduleNextScrape(int companyId, DateTime expiryDate)
+        {
+            //Console.WriteLine($"Expiry date for {companyId} is: {expiryDate}");
+            var timeUntilExpiry = expiryDate - DateTime.Now;
+
+            if (timeUntilExpiry.TotalMilliseconds <= 0)
+            {
+                Console.WriteLine($"Expiry date already passed for companyId: {companyId}");
+                Console.WriteLine("Scraping now instead...");
+                await SaveNewAvis(companyId);
+                return;
+            }
+
+            await ScheduleTaskAtSpecificTime(companyId, expiryDate, async () => await SaveNewAvis(companyId));
+        }
+
+
+        private static async Task SaveNewAvis(int companyId)
         {
             Console.WriteLine($"Running scheduled scrape for companyId: {companyId}");
             var latestAvis = await Operations.ScrapeAvis(companyId);
@@ -81,12 +124,14 @@ namespace AutomaticScraperConsoleApp
             {
                 await _avisAPIRestClient.CreateAsync(latestAvis, companyId, TOKEN);
                 Console.WriteLine($"Saved avis with externalid {latestAvis.ExternalId} to database");
-                await ScheduleNextScrape(companyId, latestAvis.ValidTo);
+                await ScheduleNextScrape(companyId, latestAvis.ValidTo.AddDays(1).AddHours(2));
             }
-            Console.WriteLine($"Failed to scrape for companyId: {companyId}, rescheduling in 1 hour");
-            latestAvis = await _avisAPIRestClient.GetValidAsync(companyId, TOKEN);
+            else
+            {
+                Console.WriteLine($"Failed to scrape for companyId: {companyId}, rescheduling...");
 
-            await ScheduleNextScrape(companyId, latestAvis.ValidTo);
+                await ScheduleNextScrape(companyId, DateTime.Now.AddHours(1));
+            }
         }
     }
 }
