@@ -63,10 +63,10 @@ namespace TIlbudsAvisScraperAPI.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Get([FromHeader(Name = "Authorization")] string authorization, int companyId)
+        [HttpGet("LatestAvis")]
+        public async Task<IActionResult> Get([FromHeader(Name = "Authorization")] string authorization, [FromQuery] int companyId)
         {
-            int permissionLevelRequired = 1;
+            int permissionLevelRequired = 3;
 
             if (string.IsNullOrEmpty(authorization) || !authorization.StartsWith("Bearer "))
             {
@@ -77,9 +77,16 @@ namespace TIlbudsAvisScraperAPI.Controllers
 
             if (await _apiUserService.IsTokenValid(token, permissionLevelRequired))
             {
+                try
+                {
+                    AvisDTO avisDTO = await _avisService.GetLatestAvisForCompany(companyId);
 
-
-                return Ok();
+                    return Ok(avisDTO);
+                }
+                catch(Exception ex)
+                {
+                    return NotFound($"No avis found for companyId: {companyId}, message: {ex.Message}");
+                }
             }
             else
             {

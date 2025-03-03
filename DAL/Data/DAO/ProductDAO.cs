@@ -701,13 +701,6 @@ WHERE
 
             return companies;
         }
-        private Avis CreateAvis(SqlDataReader reader)
-        {
-            DateTime validFrom = reader.GetDateTime(reader.GetOrdinal("PriceValidFrom"));
-            DateTime validTo = reader.GetDateTime(reader.GetOrdinal("PriceValidTo"));
-
-            return new Avis(validFrom, validTo);
-        }
 
         private Product CreateProduct(SqlDataReader reader)
         {

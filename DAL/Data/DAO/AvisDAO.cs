@@ -1,5 +1,7 @@
 ﻿using DAL.Data.Exceptions;
 using DAL.Data.Interfaces;
+using Dapper;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.Design;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -20,11 +22,30 @@ namespace DAL.Data.DAO
             VALUES (@ExternalId, @CompanyId, @ValidFrom, @ValidTo); 
             SELECT SCOPE_IDENTITY();";
 
-        private const string _GetAvisQuery = "SELECT a.*, p.*, pr.*" +
-            "FROM Avis AS a" +
-            "INNER JOIN Price AS pr ON A.Id = pr.AvisId " +
-            "INNER JOIN Product AS p ON PR.ProductId = p.Id " +
-            "WHERE a.Id = @Id";
+        private const string _GetAvisQuery = @"SELECT 
+                A.Id AS AvisId,
+                A.ValidFrom,
+                A.ValidTo,
+                C.Name AS CompanyName,
+                P.Id AS ProductId,
+                P.Name AS ProductName,
+                P.Description,
+                P.ImageUrl,
+                P.amount,
+                PR.Id AS PriceId,
+                PR.Price,
+	            PR.ProductId AS ProductId,
+                PR.CompareUnitString
+            FROM[dbo].[Avis]
+                    AS A
+            JOIN[dbo].[Company]
+                    AS C
+                ON A.CompanyId = C.Id
+            JOIN [dbo].[Price] AS PR
+                ON A.Id = PR.AvisId
+            JOIN[dbo].[Product] AS P
+                ON PR.ProductId = P.Id
+            WHERE A.Id = @Id;";
 
         private const string _PageQuery = "INSERT INTO Page(PdfUrl, PageNumber, AvisId) VALUES(@PdfUrl, @PageNumber, @AvisId) SELECT SCOPE_IDENTITY();";
 
@@ -50,7 +71,7 @@ namespace DAL.Data.DAO
             }
         }
 
-        public async Task<int?> GetLatestAvisId(int companyId)
+        public async Task<int> GetLatestAvisId(int companyId)
         {
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
@@ -100,8 +121,8 @@ namespace DAL.Data.DAO
                 }
             }
         }
-    
-    public Task<List<Avis>> GetAll()
+
+        public Task<List<Avis>> GetAll()
         {
             throw new NotImplementedException();
         }
@@ -118,7 +139,7 @@ namespace DAL.Data.DAO
                 throw new DALException("Avis with external ID already exists");
             }
 
-            Console.WriteLine("Avis not already existing"); 
+            Console.WriteLine("Avis not already existing");
 
             using (SqlConnection connection = new SqlConnection(ConnectionString))
             {
@@ -211,7 +232,7 @@ namespace DAL.Data.DAO
                     }
                 }
             }
-        }  
+        }
 
         private async Task SavePages(Avis avis, SqlTransaction transaction, SqlConnection connection)
         {
@@ -227,9 +248,58 @@ namespace DAL.Data.DAO
                 }
             }
         }
-        public Task Get(int id)
+        public async Task<Avis?> Get(int id)
         {
-           
+            Avis? avis = null;
+            using (SqlConnection connection = new(ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new(_GetAvisQuery, connection))
+                {
+                    var result = await connection.QueryAsync<Avis, Product, Price, object>(
+                    _GetAvisQuery,
+                        (avisFromDb, product, price) =>
+                        {
+                            if (avis == null)
+                            {
+                                // Initialize the Avis object when it's first encountered in the result
+                                avis = new Avis
+                                {
+                                    Id = avisFromDb.Id,
+                                    ValidFrom = avisFromDb.ValidFrom,
+                                    ValidTo = avisFromDb.ValidTo,
+                                    Products = new List<Product>()
+                                };
+                            }
+
+                            // Ensure the product is added only once and map the Price for the Product
+                            if (product != null)
+                            {
+                                var existingProduct = avis.Products.FirstOrDefault(p => p.Id == product.Id);
+                                if (existingProduct == null)
+                                {
+                                    product.Prices = new List<Price>();  // Initialize the Prices list for this Product if it's the first time we encounter it
+                                    avis.Products.Add(product);
+                                }
+                                existingProduct = avis.Products.First(p => p.Id == product.Id);
+
+                                if (price != null && !existingProduct.Prices.Any(p => p.Id == price.Id))
+                                {
+                                    existingProduct.Prices.Add(price);
+                                }
+                            }
+
+                            return null;
+                        },
+                        param: new { Id = id },
+                        splitOn: "AvisId, ProductId, PriceId"
+                    );
+
+                }
+
+            }
+            return avis;
         }
     }
 }

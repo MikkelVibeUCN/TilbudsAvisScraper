@@ -6,6 +6,7 @@ namespace DAL.Data.Interfaces
     {
         Task<int> Add(Avis avis, int companyId);
         Task<bool> Delete(int id);
-        Task Get(int id);
+        Task<Avis?> Get(int id);
+        Task<int> GetLatestAvisId(int companyId);
     }
 }

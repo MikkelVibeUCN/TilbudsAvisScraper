@@ -14,9 +14,22 @@ namespace TIlbudsAvisScraperAPI.Services
             _avisDAO = avisDAO;
         }
 
-        public async Task<AvisDTO> GetValidAvisForCompany(int company)
+        public async Task<AvisDTO> GetLatestAvisForCompany(int company)
         {
-            Avis avis = await _avisDAO.Get(company);
+            int newestId = await _avisDAO.GetLatestAvisId(company);
+
+            if (newestId == -1)
+            {
+                throw new Exception("Failed to get latest avis from company");
+            }
+
+            Avis? avis = await _avisDAO.Get(newestId);
+
+            if (avis == null)
+            {
+                throw new Exception($"Failed to get avis with id {newestId}");
+            }
+
             return EntityMapper.MapToDTO(avis);
         }
 

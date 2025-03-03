@@ -45,5 +45,6 @@ namespace AutomaticScraperConsoleApp
         }
 
         public static Dictionary<int, IAvisScraper> GetScrapers() => _scrapers;
+
     }
 }

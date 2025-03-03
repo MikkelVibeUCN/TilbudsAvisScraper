@@ -10,13 +10,26 @@ namespace AutomaticScraperConsoleApp
 {
     class Program
     {
-        private const string URI = "http://api.tilbudsfinder.dk/v1/";
+        private static string URI;
+        private static string TOKEN;
         private static readonly Dictionary<int, System.Timers.Timer> _schedules = new Dictionary<int, System.Timers.Timer>();
-        private static readonly AvisAPIRestClient _avisAPIRestClient = new AvisAPIRestClient(URI);
+        private static AvisAPIRestClient _avisAPIRestClient;
         static async Task Main(string[] args)
         {
+            TOKEN = args[0];
+            URI = args[1];
+            if (TOKEN == null && URI == null) { return; }
+            _avisAPIRestClient = new AvisAPIRestClient(URI, TOKEN);
+            Console.WriteLine("Created RestClient with token");
             Console.WriteLine("Starting Automatic Scraper Console App...");
-            await ScheduleAllScrapers();
+            try
+            {
+                await ScheduleAllScrapers();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
             Console.ReadLine();
         }
 
@@ -26,17 +39,15 @@ namespace AutomaticScraperConsoleApp
 
             foreach (var companyId in companyIds)
             {
-                var latestAvis = await Operations.ScrapeAvis(companyId);
+                var latestAvis = await _avisAPIRestClient.GetValidAsync(companyId, TOKEN);
 
-                if (latestAvis != null)
-                {
-                    ScheduleNextScrape(companyId, latestAvis.ValidTo);
-                }
+                await ScheduleNextScrape(companyId, latestAvis.ValidTo);
             }
         }
 
-        private static void ScheduleNextScrape(int companyId, DateTime expiryDate)
+        private static async Task ScheduleNextScrape(int companyId, DateTime expiryDate)
         {
+
             var timeUntilExpiry = expiryDate - DateTime.Now;
 
             if (timeUntilExpiry.TotalMilliseconds <= 0)
@@ -68,14 +79,14 @@ namespace AutomaticScraperConsoleApp
 
             if (latestAvis != null)
             {
-                ScheduleNextScrape(companyId, latestAvis.ValidTo);
+                await _avisAPIRestClient.CreateAsync(latestAvis, companyId, TOKEN);
+                Console.WriteLine($"Saved avis with externalid {latestAvis.ExternalId} to database");
+                await ScheduleNextScrape(companyId, latestAvis.ValidTo);
             }
-            else
-            {
-                AvisDTO previousAvis = await _avisAPIRestClient.Get(companyId);
-                Console.WriteLine($"The avis couldnt be found for companyId: {companyId}. Scheduling the same avis in 1 hour");
-                ScheduleNextScrape(companyId, )
-            }
+            Console.WriteLine($"Failed to scrape for companyId: {companyId}, rescheduling in 1 hour");
+            latestAvis = await _avisAPIRestClient.GetValidAsync(companyId, TOKEN);
+
+            await ScheduleNextScrape(companyId, latestAvis.ValidTo);
         }
     }
 }
