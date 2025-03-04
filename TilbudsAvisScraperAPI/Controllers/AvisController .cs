@@ -28,9 +28,17 @@ namespace TIlbudsAvisScraperAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] AvisDTO avis, [FromQuery] int companyId, [FromQuery] string token)
+        public async Task<IActionResult> Create([FromBody] AvisDTO avis, [FromQuery] int companyId, [FromHeader(Name = "Authorization")] string authorization)
         {
             int permissionLevelRequired = 2;
+
+            if (string.IsNullOrEmpty(authorization) || !authorization.StartsWith("Bearer "))
+            {
+                return Unauthorized("Missing or invalid Authorization header");
+            }
+
+            var token = authorization.Substring("Bearer ".Length).Trim();
+
             try
             {
                 if(await _apiUserService.IsTokenValid(token, permissionLevelRequired))
@@ -59,9 +67,17 @@ namespace TIlbudsAvisScraperAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(string token)
+        public async Task<IActionResult> Get([FromHeader(Name = "Authorization")] string authorization)
         {
             int permissionLevelRequired = 1;
+
+            if (string.IsNullOrEmpty(authorization) || !authorization.StartsWith("Bearer "))
+            {
+                return Unauthorized("Missing or invalid Authorization header");
+            }
+
+            var token = authorization.Substring("Bearer ".Length).Trim();
+
             if (await _apiUserService.IsTokenValid(token, permissionLevelRequired))
             {
                 return Ok();
