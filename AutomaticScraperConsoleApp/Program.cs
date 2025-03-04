@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using APIIntegrationLibrary.Client;
 using ScraperLibrary._365_Discount;
@@ -100,7 +101,6 @@ namespace AutomaticScraperConsoleApp
 
         private static async Task ScheduleNextScrape(int companyId, DateTime expiryDate)
         {
-            //Console.WriteLine($"Expiry date for {companyId} is: {expiryDate}");
             var timeUntilExpiry = expiryDate - DateTime.Now;
 
             if (timeUntilExpiry.TotalMilliseconds <= 0)
@@ -119,16 +119,26 @@ namespace AutomaticScraperConsoleApp
         {
             Console.WriteLine($"Running scheduled scrape for companyId: {companyId}");
             var latestAvis = await Operations.ScrapeAvis(companyId);
+            bool isSuccessful = false;
 
             if (latestAvis != null)
             {
-                await _avisAPIRestClient.CreateAsync(latestAvis, companyId, TOKEN);
-                Console.WriteLine($"Saved avis with externalid {latestAvis.ExternalId} to database");
-                await ScheduleNextScrape(companyId, latestAvis.ValidTo.AddDays(1).AddHours(2));
+                try
+                {
+                    await _avisAPIRestClient.CreateAsync(latestAvis, companyId, TOKEN);
+                    isSuccessful = true;
+                    Console.WriteLine($"Saved avis with externalid {latestAvis.ExternalId} to database");
+                    await ScheduleNextScrape(companyId, latestAvis.ValidTo.AddDays(1).AddHours(2));
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Failed to create avis in database for companyId: {companyId}");
+                }
             }
-            else
+
+            if(!isSuccessful)
             {
-                Console.WriteLine($"Failed to scrape for companyId: {companyId}, rescheduling...");
+                Console.WriteLine("Rescheduling...");
 
                 await ScheduleNextScrape(companyId, DateTime.Now.AddHours(1));
             }
