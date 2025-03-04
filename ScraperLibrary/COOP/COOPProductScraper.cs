@@ -86,12 +86,12 @@ namespace ScraperLibrary.COOP
             return (name, description, imageUrl, compareUnitsInDescription, prices, externalId);
         }
 
-        private static (Dictionary<string, int>, bool) CountUnitOccurrencesAndCheckForMultiple(string[] inputArray)
+        private static (Dictionary<string, int>, bool) CountUnitOccurrencesAndCheckForMultiple(string[] unitInputArray)
         {
             Dictionary<string, int> stringCounts = new Dictionary<string, int>();
             bool hasMoreThanTwo = false;
 
-            foreach (string value in inputArray)
+            foreach (string value in unitInputArray)
             {
                 if (stringCounts.ContainsKey(value))
                 {
@@ -109,8 +109,6 @@ namespace ScraperLibrary.COOP
             }
             return (stringCounts, hasMoreThanTwo);
         }
-
-        
 
         private static void ProcessMultipleProductOffer(Dictionary<string, int> units, string description, List<PriceDTO> prices, string name, string imageUrl, string externalId, List<ProductDTO> products)
         {
