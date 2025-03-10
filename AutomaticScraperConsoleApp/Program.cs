@@ -119,12 +119,18 @@ namespace AutomaticScraperConsoleApp
         {
             Console.WriteLine($"Running scheduled scrape for companyId: {companyId}");
             var latestAvis = await Operations.ScrapeAvis(companyId);
+
             bool isSuccessful = false;
 
             if (latestAvis != null)
             {
                 try
                 {
+                    if (latestAvis.Products.Count < 10)
+                    {
+                        throw new Exception("Not enough products, likely issue with scraper lib");
+                    }
+
                     await _avisAPIRestClient.CreateAsync(latestAvis, companyId, TOKEN);
                     isSuccessful = true;
                     Console.WriteLine($"Saved avis with externalid {latestAvis.ExternalId} to database");
@@ -133,6 +139,7 @@ namespace AutomaticScraperConsoleApp
                 catch (Exception e)
                 {
                     Console.WriteLine($"Failed to create avis in database for companyId: {companyId}");
+                    Console.WriteLine(e.Message);
                 }
             }
 
