@@ -86,6 +86,11 @@ namespace ScraperLibrary.Rema
 
             string externalProductId = GetExternalProductId(productHtml);
 
+            if (string.IsNullOrEmpty(externalProductId))
+            {
+                throw new Exception("Failed to get externalProductId");
+            }
+
             int retryCount = 0;
             while (retryCount < 5)
             {
@@ -144,7 +149,7 @@ namespace ScraperLibrary.Rema
 
         private string GetExternalProductId(string productHtml)
         {
-            try { return GetInformationFromHtml<string>(productHtml, "product-grid-image", "https://cphapp.rema1000.dk/api/v1/catalog/store/1/item/", "/"); } catch { return ""; }
+            try { return GetInformationFromHtml<string>(productHtml, "product-grid-image", "https://api.digital.rema1000.dk/api/v1/catalog/store/1/item/", "/"); } catch { return ""; }
         }
 
     }

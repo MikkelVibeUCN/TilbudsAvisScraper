@@ -36,7 +36,7 @@ namespace ScraperLibrary
 
                 await page.WaitForSelectorAsync("main");
 
-                await Task.Delay(500 + random.Next(500) + additionalDelayMs);
+                await Task.Delay(1500 + random.Next(5000) + additionalDelayMs);
 
                 var content = await page.GetContentAsync();
 
