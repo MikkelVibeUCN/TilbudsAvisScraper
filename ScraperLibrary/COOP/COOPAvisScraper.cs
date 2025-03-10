@@ -44,7 +44,8 @@ namespace ScraperLibrary.COOP
 
                 var browser = await Puppeteer.LaunchAsync(new LaunchOptions
                 {
-                    Headless = true
+                    Headless = true,
+                    Args = new[] { "--no-sandbox", "--disable-setuid-sandbox" }
                 });
 
                 var page = await browser.NewPageAsync();
@@ -79,6 +80,7 @@ namespace ScraperLibrary.COOP
             }
             catch (Exception e)
             {
+                Console.WriteLine("Error in scraper unit: " + e.Message);
                 throw new CannotReachWebsiteException("Failed to get external avis id", e);
             }
         }

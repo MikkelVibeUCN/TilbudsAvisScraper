@@ -16,12 +16,18 @@ namespace AutomaticScraperConsoleApp
         private static AvisAPIRestClient _avisAPIRestClient;
         static async Task Main(string[] args)
         {
-            TOKEN = args[0];
-            URI = args[1];
-            if (TOKEN == null && URI == null) { return; }
+            TOKEN = Environment.GetEnvironmentVariable("TOKEN");
+            URI = Environment.GetEnvironmentVariable("API_URI");
+            if (TOKEN == null || URI == null)
+            {
+                Console.WriteLine("TOKEN or API_URI environment variables are not set.");
+                return;
+            }
+
             _avisAPIRestClient = new AvisAPIRestClient(URI, TOKEN);
             Console.WriteLine("Created RestClient with token");
             Console.WriteLine("Starting Automatic Scraper Console App...");
+
             try
             {
                 await ScheduleAllScrapers();
@@ -30,7 +36,22 @@ namespace AutomaticScraperConsoleApp
             {
                 Console.WriteLine(e.Message);
             }
-            Console.ReadLine();
+
+            // Keep the application running indefinitely
+            var cancellationTokenSource = new CancellationTokenSource();
+            Console.CancelKeyPress += (sender, e) =>
+            {
+                e.Cancel = true; // Prevent the process from terminating
+                cancellationTokenSource.Cancel();
+            };
+
+            // Wait indefinitely or until cancellation is requested
+            while (!cancellationTokenSource.Token.IsCancellationRequested)
+            {
+                await Task.Delay(1000, cancellationTokenSource.Token);
+            }
+
+            Console.WriteLine("Application is shutting down...");
         }
 
         private static async Task ScheduleAllScrapers()
@@ -45,28 +66,29 @@ namespace AutomaticScraperConsoleApp
 
         private static async Task ScheduleInitialScrape(int companyId)
         {
-            var latestAvis = await _avisAPIRestClient.GetValidAsync(companyId, TOKEN);
-
-            // For testing rescheduler
-            //Random random = new Random();
-            //bool createNull = random.Next(0, 2) == 1;
-            //
-            //if (createNull)
-            //{
-            //    latestAvis = null;
-            //}
-
-            if (latestAvis != null)
+            try
             {
-                await ScheduleNextScrape(companyId, latestAvis.ValidTo.AddDays(1).AddHours(2));
+                var latestAvis = await _avisAPIRestClient.GetValidAsync(companyId, TOKEN);
+
+                if (latestAvis != null)
+                {
+                    await ScheduleNextScrape(companyId, latestAvis.ValidTo.AddDays(1).AddHours(2));
+                }
+                else
+                {
+                    Console.WriteLine($"Failed to fetch latest valid avis, it was null for companyId: {companyId}");
+                    Console.WriteLine("Rescheduling...");
+                    await ScheduleTaskAtSpecificTime(companyId, DateTime.Now.AddMinutes(1), async () => await ScheduleInitialScrape(companyId));
+                }
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine($"Failed to fetch latest valid avis from database for companyId: {companyId}");
+                Console.WriteLine($"Exception {e.Message} when fetching latest avis companyId: {companyId}");
                 Console.WriteLine("Rescheduling...");
                 await ScheduleTaskAtSpecificTime(companyId, DateTime.Now.AddMinutes(1), async () => await ScheduleInitialScrape(companyId));
             }
-        }
+
+         }
 
         private static async Task ScheduleTaskAtSpecificTime(int companyId, DateTime targetTime, Func<Task> taskToSchedule)
         {
