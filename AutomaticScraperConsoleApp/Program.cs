@@ -13,7 +13,9 @@ namespace AutomaticScraperConsoleApp
         private static string URI;
         private static string TOKEN;
         private static readonly Dictionary<int, System.Timers.Timer> _schedules = new Dictionary<int, System.Timers.Timer>();
+        private static Dictionary<DateTime, DateTime> minNextScrapeTimePerDay = new Dictionary<DateTime, DateTime>(); // Tracks next available time per day
         private static AvisAPIRestClient _avisAPIRestClient;
+
         static async Task Main(string[] args)
         {
             TOKEN = Environment.GetEnvironmentVariable("TOKEN");
@@ -21,6 +23,13 @@ namespace AutomaticScraperConsoleApp
             if (TOKEN == null || URI == null)
             {
                 Console.WriteLine("TOKEN or API_URI environment variables are not set.");
+                return;
+            }
+
+            APIUserRestClient _userRestClient = new APIUserRestClient(URI, TOKEN);
+            if (!await _userRestClient.IsTokenValidForAction(3))
+            {
+                Console.WriteLine("Token not valid");
                 return;
             }
 
@@ -40,7 +49,7 @@ namespace AutomaticScraperConsoleApp
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) =>
             {
-                e.Cancel = true; // Prevent the process from terminating
+                e.Cancel = true;
                 cancellationTokenSource.Cancel();
             };
 
@@ -85,8 +94,7 @@ namespace AutomaticScraperConsoleApp
                 Console.WriteLine("Rescheduling...");
                 await ScheduleTaskAtSpecificTime(companyId, DateTime.Now.AddMinutes(1), async () => await ScheduleInitialScrape(companyId));
             }
-
-         }
+        }
 
         private static async Task ScheduleTaskAtSpecificTime(int companyId, DateTime targetTime, Func<Task> taskToSchedule)
         {
@@ -118,22 +126,27 @@ namespace AutomaticScraperConsoleApp
             Console.WriteLine($"Scheduled task to run at {targetTime} with companyId: {companyId}");
         }
 
-
         private static async Task ScheduleNextScrape(int companyId, DateTime expiryDate)
         {
-            var timeUntilExpiry = expiryDate - DateTime.Now;
+            DateTime scrapeDate = expiryDate.Date; 
+            DateTime scheduledTime;
 
-            if (timeUntilExpiry.TotalMilliseconds <= 0)
+            lock (minNextScrapeTimePerDay)
             {
-                Console.WriteLine($"Expiry date already passed for companyId: {companyId}");
-                Console.WriteLine("Scraping now instead...");
-                await SaveNewAvis(companyId);
-                return;
+                if (!minNextScrapeTimePerDay.ContainsKey(scrapeDate))
+                {
+                    scheduledTime = expiryDate;
+                }
+                else
+                {
+                    scheduledTime = minNextScrapeTimePerDay[scrapeDate].AddMinutes(15);
+                }
+
+                minNextScrapeTimePerDay[scrapeDate] = scheduledTime;
             }
 
-            await ScheduleTaskAtSpecificTime(companyId, expiryDate, async () => await SaveNewAvis(companyId));
+            await ScheduleTaskAtSpecificTime(companyId, scheduledTime, async () => await SaveNewAvis(companyId));
         }
-
 
         private static async Task SaveNewAvis(int companyId)
         {
@@ -163,7 +176,7 @@ namespace AutomaticScraperConsoleApp
                 }
             }
 
-            if(!isSuccessful)
+            if (!isSuccessful)
             {
                 Console.WriteLine("Rescheduling...");
 

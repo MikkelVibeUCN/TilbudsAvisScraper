@@ -45,10 +45,13 @@ namespace ScraperLibrary.COOP
                 var browser = await Puppeteer.LaunchAsync(new LaunchOptions
                 {
                     Headless = true,
-                    Args = new[] { "--no-sandbox", "--disable-setuid-sandbox" }
+                    Timeout = 30000,
+                    Args = new[] { "--no-sandbox", "--disable-setuid-sandbox,", "--disable-features=AudioServiceOutOfProcess", "--disable-features=UseOzonePlatform" }
                 });
 
                 var page = await browser.NewPageAsync();
+
+                await page.SetUserAgentAsync("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
 
                 string baseUrl = "https://squid-api.tjek.com/v2/catalogs/";
 
@@ -63,7 +66,12 @@ namespace ScraperLibrary.COOP
                         tcs.TrySetResult(request.Url.Substring(baseUrl.Length));
                     }
                 };
-                await page.GoToAsync(url);
+
+                await page.GoToAsync(url, new NavigationOptions
+                {
+                    Timeout = 30000,
+                    WaitUntil = new[] { WaitUntilNavigation.Networkidle2 } 
+                });
 
                 var timeoutTask = Task.Delay(timeoutMs);
 
