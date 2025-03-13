@@ -37,7 +37,6 @@ namespace AutomaticScraperConsoleApp
                 Console.WriteLine(e.Message);
             }
 
-            // Keep the application running indefinitely
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) =>
             {
@@ -45,7 +44,6 @@ namespace AutomaticScraperConsoleApp
                 cancellationTokenSource.Cancel();
             };
 
-            // Wait indefinitely or until cancellation is requested
             while (!cancellationTokenSource.Token.IsCancellationRequested)
             {
                 await Task.Delay(1000, cancellationTokenSource.Token);
