@@ -18,7 +18,6 @@ namespace ScraperLibrary
                 {
                     Headless = true,
                     Timeout = 30000,
-                    DumpIO = true,
                     Args = new[] { "--disable-web-security", "--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled", "--disable-features=AudioServiceOutOfProcess", "--disable-features=UseOzonePlatform" }
                 });
 
