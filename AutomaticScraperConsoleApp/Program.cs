@@ -26,6 +26,13 @@ namespace AutomaticScraperConsoleApp
                 return;
             }
 
+            APIUserRestClient _userRestClient = new APIUserRestClient(URI, TOKEN);
+            if (!await _userRestClient.IsTokenValidForAction(3))
+            {
+                Console.WriteLine("Token not valid");
+                return;
+            }
+
             _avisAPIRestClient = new AvisAPIRestClient(URI, TOKEN);
             Console.WriteLine("Created RestClient with token");
             Console.WriteLine("Starting Automatic Scraper Console App...");
