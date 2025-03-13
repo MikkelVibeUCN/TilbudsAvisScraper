@@ -17,22 +17,21 @@ namespace ScraperLibrary
                 using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
                 {
                     Headless = true,
-                    Args = new[] { "--disable-web-security", "--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled" }
+                    Timeout = 30000,
+                    DumpIO = true,
+                    Args = new[] { "--disable-web-security", "--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled", "--disable-features=AudioServiceOutOfProcess", "--disable-features=UseOzonePlatform" }
                 });
 
                 using var page = await browser.NewPageAsync();
 
-                // Set extra HTTP headers, including randomized user-agent
-                await page.SetExtraHttpHeadersAsync(new Dictionary<string, string>
-                        {
-                        { "user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" },
-                        { "upgrade-insecure-requests", "1" },
-                        { "accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8" },
-                        { "accept-encoding", "gzip, deflate, br" },
-                        { "accept-language", "en-US,en;q=0.9,en;q=0.8" }
+                await page.SetUserAgentAsync("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+                await page.GoToAsync(fullUrl, new NavigationOptions
+                {
+                    Timeout = 30000,
+                    WaitUntil = new[] { WaitUntilNavigation.Networkidle2 } 
                 });
 
-                await page.GoToAsync(fullUrl);
 
                 await page.WaitForSelectorAsync("main");
 
