@@ -59,13 +59,13 @@ namespace ScraperLibrary.Rema
             var getProductsTask = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalId, companyId);
             progressCallback(100);
 
-            return new AvisDTO
+            return RemoveDuplicateProductsFromAvis(new AvisDTO
             {
                 ExternalId = externalId,
                 ValidFrom = getDatesTask.Result.Item1,
                 ValidTo = getDatesTask.Result.Item2,
                 Products = getProductsTask
-            };
+            });
         }
 
         public string GetImageUrl(string input, int pageNumber)

@@ -26,7 +26,7 @@ namespace ScraperLibrary.COOP
             string avisExternalId,
             int companyId)
         {
-            var response = await CallUrl(ProductsLocationUrl, 5000);
+            var response = await CallUrl(ProductsLocationUrl, 10000);
             List<ProductDTO> products = new List<ProductDTO>();
             List<string> offerStrings = GetOfferStrings(response);
             HashSet<string> addedExternalIds = new HashSet<string>();
