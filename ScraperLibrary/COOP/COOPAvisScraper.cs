@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Entities;
 using TilbudsAvisLibrary.Exceptions;
+using ScraperLibrary.Exceptions;
 
 namespace ScraperLibrary.COOP
 {
@@ -101,14 +102,22 @@ namespace ScraperLibrary.COOP
             var getDatesTask = await GetAvisDates(AvisUrl, externalAvisId);
             progressCallback(44);
 
+            var validFrom = getDatesTask.Item1;
+            var validTo = getDatesTask.Item2;
+
+            if (validFrom > DateTime.Now)
+            {
+                throw new FutureValidFromException(validFrom);
+            }
+
             List<ProductDTO> products = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalAvisId, companyId);
             progressCallback(100);
 
             return new AvisDTO
             {
                 ExternalId = externalAvisId,
-                ValidFrom = getDatesTask.Item1,
-                ValidTo = getDatesTask.Item2,
+                ValidFrom = validFrom,
+                ValidTo = validTo,
                 Products = products
             };
         }

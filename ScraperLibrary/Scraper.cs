@@ -1,5 +1,6 @@
 ﻿using PuppeteerSharp;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace ScraperLibrary
 {
@@ -8,10 +9,8 @@ namespace ScraperLibrary
         protected HttpClient client = new HttpClient();
         public static async Task<string> CallUrl(string fullUrl, int additionalDelayMs = 0)
         {
-            // Download the browser if necessary
             await new BrowserFetcher().DownloadAsync();
 
-            // Randomize user agents
             var random = new Random();
             {
                 using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
@@ -41,6 +40,55 @@ namespace ScraperLibrary
                 return content;
             }
         }
+
+        public static T ExtractValueFromHtml<T>(string htmlContent, string startPattern, string endPattern, bool caseSensitive, int startOffset)
+        {
+            if (typeof(T) != typeof(int) && typeof(T) != typeof(float) && typeof(T) != typeof(string))
+                throw new InvalidOperationException("The specified type is not supported. Only int, float, and string are allowed.");
+
+            if (string.IsNullOrEmpty(htmlContent))
+                throw new ArgumentException("The HTML content cannot be null or empty.");
+
+            if (startOffset > htmlContent.Length)
+                throw new ArgumentException("The start offset is greater than the length of the HTML content.");
+
+            if (startPattern == endPattern)
+                throw new ArgumentException("The start and end patterns cannot be the same.");
+
+            var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+            int startIndex = htmlContent.IndexOf(startPattern, startOffset, comparison);
+            int endIndex = htmlContent.IndexOf(endPattern, startOffset, comparison);
+
+            if (startIndex > endIndex)
+            {
+                Console.WriteLine("Swapping start and end patterns.");
+                (startPattern, endPattern) = (endPattern, startPattern);
+            }
+
+            if (startIndex == -1 || endIndex == -1)
+                throw new InvalidOperationException("Start or end pattern not found in the HTML content.");
+
+            startIndex += startPattern.Length;
+            string extractedString = htmlContent.Substring(startIndex, endIndex - startIndex);
+
+            try
+            {
+                if (typeof(T) == typeof(int))
+                    return (T)(object)int.Parse(extractedString, CultureInfo.InvariantCulture);
+                else if (typeof(T) == typeof(float))
+                    return (T)(object)float.Parse(extractedString, CultureInfo.InvariantCulture);
+                else
+                    return (T)(object)extractedString;
+            }
+            catch (FormatException ex)
+            {
+                throw new InvalidOperationException($"Failed to convert extracted string to the specified type. {typeof(T).Name}", ex);
+            }
+        }
+
+
+
         protected static dynamic GetInformationFromHtml<T>(string html, string searchPattern, string startSearchKey, string endSearchKey, int startIndexModifier = 0, bool ignoreCase = false)
         {
             if(ignoreCase)
@@ -57,6 +105,7 @@ namespace ScraperLibrary
                 startIndex = html.IndexOf(startSearchKey, startIndex + startIndexModifier) + startSearchKey.Length; // Move past the startSearchKey
                 int endIndex = html.IndexOf(endSearchKey, startIndex); // Find the closing tag
                 string information = html.Substring(startIndex, endIndex - startIndex).Trim();
+
                 if (typeof(T) == typeof(float)) { return float.Parse(information); }
                 else if (typeof(T) == typeof(int)) { return int.Parse(information); }
                 else if (typeof(T) == typeof(string)) { return information; }

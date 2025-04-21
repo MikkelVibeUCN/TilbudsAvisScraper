@@ -64,13 +64,6 @@ namespace ScraperLibrary.Rema
                     }
 
                     currentIndex = endIndex + endPattern.Length;
-
-
-                    //// HARDCODED STOP FOR TESTING REMOVE FOR PROD
-                    //if(products.Count > 15)
-                    //{
-                    //    reachedEnd = true;
-                    //}
                 }
                 else
                 {

@@ -6,6 +6,7 @@ using System.Collections;
 using System.Globalization;
 using System.Collections.Generic;
 using TilbudsAvisLibrary.DTO;
+using ScraperLibrary.Exceptions;
 
 namespace ScraperLibrary.Rema
 {
@@ -22,23 +23,63 @@ namespace ScraperLibrary.Rema
         public async Task<string> FindExternalAvisId(string url)
         {
             var response = await CallUrl(url);
-
             File.WriteAllText("resultNoKommende.html", response);
 
+            const string searchPattern = "a href=\"/avis/";
+            const string startSearchKey = "a href=\"/avis/";
+            const string endSearchKey = "\"";
 
-            string rarePatternAssosiatedWithComingAvis = "Kommende";
-            string avisPattern = "a href=\"/avis/";
+            int currentIndex = 0;
 
-            if (response.Contains(rarePatternAssosiatedWithComingAvis))
+            while (currentIndex < response.Length)
             {
-                int indexOfKommendeAvis = response.IndexOf(avisPattern);
+                int start = response.IndexOf(searchPattern, currentIndex);
+                if (start == -1)
+                    break;
 
-                response = response.Substring(indexOfKommendeAvis + 50);
+                int hrefStart = start + searchPattern.Length;
+                int hrefEnd = response.IndexOf("\"", hrefStart);
+                if (hrefEnd == -1)
+                    break;
+
+                string href = response.Substring(start, hrefEnd - start + 1);
+
+                // Try to find the closing </a> tag to grab the full block
+                int closeTag = response.IndexOf("</a>", hrefEnd);
+                if (closeTag == -1)
+                    break;
+
+                int blockLength = closeTag + 4 - start;
+                string fullBlock = response.Substring(start, blockLength);
+
+                // Check if it contains "Uge {number}" and does NOT contain "Kommende"
+                if (fullBlock.Contains("Uge ") && !fullBlock.Contains("Kommende") && TryExtractUgeNumber(fullBlock))
+                {
+                    string externalId = GetInformationFromHtml<string>(href, searchPattern, startSearchKey, endSearchKey);
+                    return externalId;
+                }
+
+                currentIndex = closeTag + 4;
             }
-            string externalId = GetInformationFromHtml<string>(response, avisPattern, avisPattern, "\"");
 
-            return externalId;
+            throw new InvalidOperationException("No valid 'avis' found: all are either missing 'Uge {number}' or marked as 'Kommende'.");
         }
+
+        private bool TryExtractUgeNumber(string htmlBlock)
+        {
+            int ugeIndex = htmlBlock.IndexOf("Uge ");
+            if (ugeIndex == -1) return false;
+
+            int start = ugeIndex + 4;
+            if (start >= htmlBlock.Length) return false;
+
+            // Check if a number follows "Uge "
+            int end = start;
+            while (end < htmlBlock.Length && char.IsDigit(htmlBlock[end])) end++;
+
+            return end > start; // If there's at least one digit
+        }
+
 
         public async Task<string> FindAvisUrl(string url)
         {
@@ -53,8 +94,18 @@ namespace ScraperLibrary.Rema
             string externalId = await FindExternalAvisId(avisUrl);
             progressCallback(6);
 
-            var getDatesTask = GetAvisDates("https://rema1000.dk/avis", externalId);
+            var getDatesTask = await GetAvisDates("https://rema1000.dk/avis", externalId);
             progressCallback(12);
+
+            var validFrom = getDatesTask.Item1;
+            var validTo = getDatesTask.Item2;
+
+            if (validFrom > DateTime.Now)
+            {
+                throw new FutureValidFromException(validFrom);
+            }
+
+
             //var getPagesTask = Task.Run(() => GetPagesFromUrl(avisUrl));
             var getProductsTask = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalId, companyId);
             progressCallback(100);
@@ -62,8 +113,8 @@ namespace ScraperLibrary.Rema
             return new AvisDTO
             {
                 ExternalId = externalId,
-                ValidFrom = getDatesTask.Result.Item1,
-                ValidTo = getDatesTask.Result.Item2,
+                ValidFrom = validFrom,
+                ValidTo = validTo,
                 Products = getProductsTask
             };
         }

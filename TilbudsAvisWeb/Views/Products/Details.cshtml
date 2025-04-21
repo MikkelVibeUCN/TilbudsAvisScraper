@@ -98,7 +98,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // Create data from PriceDTO with custom serialization
     const priceData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
         Model.Prices.Select(p => new
         {
@@ -109,21 +108,23 @@
         }))
         );
 
-    // Calculate the date 50 years ago from today
-    const today = new Date();
-    const cutoffDate = new Date();
-    cutoffDate.setFullYear(today.getFullYear() - 50);
+    // Firma-specifikke farver
+    const companyColors = {
+        "Rema1000": "#0D2C5D",
+        "365 Discount": "#00AA46",
+        "Kvickly": "#C31414",
+        "Default": "#777777"
+    };
 
-    // Filter out prices older than 50 years
+    // Filtrer priser ældre end 50 år
+    const currentDate = new Date();
     const filteredPrices = priceData.filter(p => {
-        if (!p.ValidFrom) return false; // Ignore if no date
-        const priceDate = new Date(p.ValidFrom);
-        return priceDate >= cutoffDate;
+        const validFromDate = new Date(p.ValidFrom);
+        return (currentDate - validFromDate) / (1000 * 60 * 60 * 24 * 365.25) <= 50;
     });
 
-    // Group the prices by company name
     const companyPrices = filteredPrices.reduce((acc, price) => {
-        const company = price.CompanyName || 'Unknown Company'; // Default if no company name
+        const company = price.CompanyName || 'Ukendt Firma';
         if (!acc[company]) {
             acc[company] = [];
         }
@@ -134,32 +135,28 @@
         return acc;
     }, {});
 
-    // Get unique dates and sort them chronologically
     const labels = Array.from(new Set(filteredPrices.map(p => p.ValidFrom)))
-        .map(dateString => new Date(dateString)) // Convert to Date objects
-        .sort((a, b) => a - b) // Sort by date (chronologically)
-        .map(date => date.toISOString().substring(0, 10)); // Convert back to 'YYYY-MM-DD' format for labels
+        .map(dateString => new Date(dateString))
+        .sort((a, b) => a - b)
+        .map(date => date.toLocaleDateString('da-DK')); // Dansk datoformat
 
-    // Create datasets for each company
     const datasets = Object.keys(companyPrices).map(company => {
         const data = labels.map(label => {
-            // Get the price for the given date for the current company
-            const price = companyPrices[company].find(p => p.date === label);
+            const price = companyPrices[company].find(p => new Date(p.date).toLocaleDateString('da-DK') === label);
             return price ? price.price : null;
         });
 
         return {
             label: company,
             data: data,
-            borderColor: getRandomColor(),
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: companyColors[company] || companyColors['Default'], // Brug firmaets farve eller sort som standard
+            backgroundColor: companyColors[company] + "33",
             fill: true,
             tension: 0.1,
             spanGaps: true
         };
     });
 
-    // Create chart
     const ctx = document.getElementById('priceChart').getContext('2d');
     const priceChart = new Chart(ctx, {
         type: 'line',
@@ -186,19 +183,25 @@
                         text: 'Pris'
                     }
                 }
+            },
+            onClick: (event, elements) => {
+                if (elements.length > 0) {
+                    const elementIndex = elements[0].index;
+                    const datasetIndex = elements[0].datasetIndex;
+                    const company = priceChart.data.datasets[datasetIndex].label;
+                    const date = priceChart.data.labels[elementIndex];
+                    redirectToNewspaper(company, date);
+                }
             }
         }
     });
 
-    // Function to generate random colors for each company line
-    function getRandomColor() {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
-        }
-        return color;
+    function redirectToNewspaper(company, date) {
+        // Her kan du tilføje logik til at hente den korrekte URL fra et endpoint
+        const url = `https://example.dk/${company}/${date}`;
+        window.location.href = url;
     }
+
 </script>
 
 

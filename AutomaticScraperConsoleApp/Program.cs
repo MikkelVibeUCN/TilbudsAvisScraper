@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using APIIntegrationLibrary.Client;
 using ScraperLibrary._365_Discount;
+using ScraperLibrary.Exceptions;
 using ScraperLibrary.Interfaces;
 using TilbudsAvisLibrary.DTO;
 
@@ -151,37 +152,43 @@ namespace AutomaticScraperConsoleApp
         private static async Task SaveNewAvis(int companyId)
         {
             Console.WriteLine($"Running scheduled scrape for companyId: {companyId}");
-            var latestAvis = await Operations.ScrapeAvis(companyId);
 
             bool isSuccessful = false;
 
-            if (latestAvis != null)
+            try
             {
-                try
-                {
-                    if (latestAvis.Products.Count < 10)
-                    {
-                        throw new Exception("Not enough products, likely issue with scraper lib");
-                    }
+                AvisDTO latestAvis = await Operations.ScrapeAvis(companyId);
 
-                    await _avisAPIRestClient.CreateAsync(latestAvis, companyId, TOKEN);
-                    isSuccessful = true;
-                    Console.WriteLine($"Saved avis with externalid {latestAvis.ExternalId} to database");
-                    await ScheduleNextScrape(companyId, latestAvis.ValidTo.AddDays(1).AddHours(2));
-                }
-                catch (Exception e)
+                if (latestAvis.Products.Count < 10)
                 {
-                    Console.WriteLine($"Failed to create avis in database for companyId: {companyId}");
-                    Console.WriteLine(e.Message);
+                    throw new Exception("Not enough products, likely issue with scraper lib");
                 }
+
+                await _avisAPIRestClient.CreateAsync(latestAvis, companyId, TOKEN);
+                isSuccessful = true;
+
+                Console.WriteLine($"Saved avis with externalid {latestAvis.ExternalId} to database");
+                await ScheduleNextScrape(companyId, latestAvis.ValidTo.AddDays(1).AddHours(2));
+            }
+            catch (FutureValidFromException ex)
+            {
+                var rescheduleTime = ex.ValidFrom.AddMinutes(5); // reschedule shortly after it's valid
+                Console.WriteLine($"Avis not valid yet. Rescheduling for {rescheduleTime}");
+                await ScheduleNextScrape(companyId, rescheduleTime);
+                return;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Failed to create avis for companyId: {companyId}");
+                Console.WriteLine("Error: " + e.Message);
             }
 
             if (!isSuccessful)
             {
                 Console.WriteLine("Rescheduling...");
-
                 await ScheduleNextScrape(companyId, DateTime.Now.AddHours(1));
             }
         }
+
     }
 }
