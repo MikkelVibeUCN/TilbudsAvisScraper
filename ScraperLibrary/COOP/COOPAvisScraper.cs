@@ -41,14 +41,7 @@ namespace ScraperLibrary.COOP
         {
             try
             {
-                await new BrowserFetcher().DownloadAsync();
-
-                var browser = await Puppeteer.LaunchAsync(new LaunchOptions
-                {
-                    Headless = true,
-                    Timeout = 30000,
-                    Args = new[] { "--no-sandbox", "--disable-setuid-sandbox,", "--disable-features=AudioServiceOutOfProcess", "--disable-features=UseOzonePlatform" }
-                });
+                IBrowser browser = await GetBrowser();
 
                 var page = await browser.NewPageAsync();
 
@@ -77,8 +70,6 @@ namespace ScraperLibrary.COOP
                 var timeoutTask = Task.Delay(timeoutMs);
 
                 var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
-
-                await browser.CloseAsync();
 
                 if (completedTask == timeoutTask)
                 {
@@ -113,13 +104,13 @@ namespace ScraperLibrary.COOP
             List<ProductDTO> products = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalAvisId, companyId);
             progressCallback(100);
 
-            return new AvisDTO
+            return RemoveDuplicateProductsFromAvis(new AvisDTO
             {
                 ExternalId = externalAvisId,
                 ValidFrom = validFrom,
                 ValidTo = validTo,
                 Products = products
-            };
+            });
         }
 
         private static async Task<(DateTime, DateTime)> GetAvisDates(string url, string externalAvisId)

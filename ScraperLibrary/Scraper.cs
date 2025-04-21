@@ -1,25 +1,37 @@
 ﻿using PuppeteerSharp;
 using System.Diagnostics;
-using System.Globalization;
+using System.Threading;
+using TilbudsAvisLibrary.DTO;
 
 namespace ScraperLibrary
 {
     public abstract class Scraper
     {
         protected HttpClient client = new HttpClient();
-        public static async Task<string> CallUrl(string fullUrl, int additionalDelayMs = 0)
-        {
-            await new BrowserFetcher().DownloadAsync();
+        private static IBrowser _browser;
 
-            var random = new Random();
+        protected static async Task<IBrowser> GetBrowser()
+        {
+            if (_browser == null)
             {
-                using var browser = await Puppeteer.LaunchAsync(new LaunchOptions
+                await new BrowserFetcher().DownloadAsync();
+
+                _browser = await Puppeteer.LaunchAsync(new LaunchOptions
                 {
                     Headless = true,
                     Timeout = 30000,
                     Args = new[] { "--disable-web-security", "--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled", "--disable-features=AudioServiceOutOfProcess", "--disable-features=UseOzonePlatform" }
                 });
+            }
+            return _browser;
+        }
 
+        public static async Task<string> CallUrl(string fullUrl, int additionalDelayMs = 0)
+        {
+            IBrowser browser = await GetBrowser();
+
+            var random = new Random();
+            {
                 using var page = await browser.NewPageAsync();
 
                 await page.SetUserAgentAsync("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
@@ -30,14 +42,19 @@ namespace ScraperLibrary
                     WaitUntil = new[] { WaitUntilNavigation.Networkidle2 } 
                 });
 
-
                 await page.WaitForSelectorAsync("main");
 
                 await Task.Delay(1500 + random.Next(5000) + additionalDelayMs);
 
-                var content = await page.GetContentAsync();
+                var getContentTask = page.GetContentAsync();
+                var timeoutTask = Task.Delay(30000);
 
-                return content;
+                if (await Task.WhenAny(getContentTask, timeoutTask) == getContentTask)
+                {
+                    return await getContentTask;
+                }
+
+                throw new TimeoutException($"GetContentAsync timed out");
             }
         }
 
@@ -229,6 +246,24 @@ namespace ScraperLibrary
                 }
             }
             return convertedUnits.ToArray();
+        }
+        public static AvisDTO RemoveDuplicateProductsFromAvis(AvisDTO avis)
+        {
+            HashSet<string> externalIds = new HashSet<string>();
+
+            foreach (ProductDTO product in avis.Products.ToList())
+            {
+                if (externalIds.Contains(product.ExternalId))
+                {
+                    avis.Products.Remove(product);
+                }
+                else
+                {
+                    externalIds.Add(product.ExternalId);
+                }
+            }
+
+            return avis;
         }
     }
 }
