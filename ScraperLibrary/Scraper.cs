@@ -1,8 +1,8 @@
 ﻿using PuppeteerSharp;
 using System.Diagnostics;
+using System.Globalization;
 using System.Threading;
 using TilbudsAvisLibrary.DTO;
-
 namespace ScraperLibrary
 {
     public abstract class Scraper

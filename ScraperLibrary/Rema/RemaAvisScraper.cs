@@ -31,6 +31,9 @@ namespace ScraperLibrary.Rema
 
             int currentIndex = 0;
 
+            string kommendeWithUgeExternalId = null;
+            int ugeCount = 0;
+
             while (currentIndex < response.Length)
             {
                 int start = response.IndexOf(searchPattern, currentIndex);
@@ -44,7 +47,6 @@ namespace ScraperLibrary.Rema
 
                 string href = response.Substring(start, hrefEnd - start + 1);
 
-                // Try to find the closing </a> tag to grab the full block
                 int closeTag = response.IndexOf("</a>", hrefEnd);
                 if (closeTag == -1)
                     break;
@@ -52,18 +54,37 @@ namespace ScraperLibrary.Rema
                 int blockLength = closeTag + 4 - start;
                 string fullBlock = response.Substring(start, blockLength);
 
-                // Check if it contains "Uge {number}" and does NOT contain "Kommende"
-                if (fullBlock.Contains("Uge ") && !fullBlock.Contains("Kommende") && TryExtractUgeNumber(fullBlock))
+                if (fullBlock.Contains("Uge ") && TryExtractUgeNumber(fullBlock))
                 {
+                    ugeCount++;
+
                     string externalId = GetInformationFromHtml<string>(href, searchPattern, startSearchKey, endSearchKey);
-                    return externalId;
+
+                    if (!fullBlock.Contains("Kommende"))
+                    {
+                        // Priority 1: "Uge" + not "Kommende"
+                        return externalId;
+                    }
+                    else
+                    {
+                        // Save in case it's the only one
+                        kommendeWithUgeExternalId = externalId;
+                    }
                 }
 
                 currentIndex = closeTag + 4;
             }
 
-            throw new InvalidOperationException("No valid 'avis' found: all are either missing 'Uge {number}' or marked as 'Kommende'.");
+            if (ugeCount == 1 && kommendeWithUgeExternalId != null)
+            {
+                // Priority 2: only one "Uge" and it's "Kommende"
+                return kommendeWithUgeExternalId;
+            }
+
+            // Priority 3: no valid Uge entries
+            throw new InvalidOperationException("No valid 'avis' found with 'Uge {number}'.");
         }
+
 
         private bool TryExtractUgeNumber(string htmlBlock)
         {
@@ -81,19 +102,12 @@ namespace ScraperLibrary.Rema
         }
 
 
-        public async Task<string> FindAvisUrl(string url)
-        {
-            return url + "/" + await FindExternalAvisId(url) + "/1";
-        }
-
         public async Task<AvisDTO> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
-            string avisUrl = await FindAvisUrl(_remaAvisPageUrl);
+            string externalId = await FindExternalAvisId(_remaAvisPageUrl);
             progressCallback(4);
 
-            string externalId = await FindExternalAvisId(avisUrl);
-            progressCallback(6);
-
+            
             var getDatesTask = await GetAvisDates("https://rema1000.dk/avis", externalId);
             progressCallback(12);
 

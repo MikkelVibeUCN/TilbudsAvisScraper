@@ -173,7 +173,7 @@ namespace AutomaticScraperConsoleApp
             catch (FutureValidFromException ex)
             {
                 var rescheduleTime = ex.ValidFrom.AddMinutes(5); // reschedule shortly after it's valid
-                Console.WriteLine($"Avis not valid yet. Rescheduling for {rescheduleTime}");
+                Console.WriteLine($"Avis not valid yet. Rescheduling");
                 await ScheduleNextScrape(companyId, rescheduleTime);
                 return;
             }
