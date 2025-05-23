@@ -19,21 +19,28 @@ namespace AutomaticScraperConsoleApp
         private static readonly Dictionary<DateTime, DateTime> _minNextScrapeTimePerDay = new();
 
         // Custom logging method with timestamp
+        private static readonly string _logFilePath = "scraper_log.txt";
         private static void Log(string message)
         {
-            Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}");
+            var logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] {message}";
+            Console.WriteLine(logEntry);
+            File.AppendAllText(_logFilePath, logEntry + Environment.NewLine);
         }
 
-        // Log an error with timestamp
         private static void LogError(string message, Exception ex = null)
         {
-            Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] ERROR: {message}");
+            var logEntry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] ERROR: {message}";
+            Console.WriteLine(logEntry);
+            File.AppendAllText(_logFilePath, logEntry + Environment.NewLine);
+
             if (ex != null)
             {
-                Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Exception: {ex.Message}");
-                Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Stack trace: {ex.StackTrace}");
+                var exceptionLog = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] Exception: {ex.Message}\n{ex.StackTrace}";
+                Console.WriteLine(exceptionLog);
+                File.AppendAllText(_logFilePath, exceptionLog + Environment.NewLine);
             }
         }
+
 
         static async Task Main(string[] args)
         {
