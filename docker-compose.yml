@@ -22,7 +22,7 @@ services:
       dockerfile: docker/Dockerfile.web
     image: my-web-image
     ports:
-      - "5001:80"
+      - "5001:8080"
     deploy:
       replicas: 1
       restart_policy:
