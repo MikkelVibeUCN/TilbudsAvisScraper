@@ -1,7 +1,7 @@
 ﻿using TilbudsAvisLibrary.DTO;
 using TilbudsAvisLibrary.Entities;
 
-namespace TIlbudsAvisScraperAPI.Tools
+namespace TilbudsAvisScraperAPI.Tools
 {
     public static class ProductDTOMapper
     {

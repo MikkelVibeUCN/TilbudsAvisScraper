@@ -1,9 +1,9 @@
 ﻿using DAL.Data.Interfaces;
 using TilbudsAvisLibrary.DTO;
 using TilbudsAvisLibrary.Entities;
-using TIlbudsAvisScraperAPI.Tools;
+using TilbudsAvisScraperAPI.Tools;
 
-namespace TIlbudsAvisScraperAPI.Services
+namespace TilbudsAvisScraperAPI.Services
 {
     public class AvisService
     {

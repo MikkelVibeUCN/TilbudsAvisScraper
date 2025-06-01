@@ -2,9 +2,9 @@ using DAL.Data.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using TilbudsAvisLibrary;
 using TilbudsAvisLibrary.Entities;
-using TIlbudsAvisScraperAPI.Services;
+using TilbudsAvisScraperAPI.Services;
 
-namespace TIlbudsAvisScraperAPI.Controllers
+namespace TilbudsAvisScraperAPI.Controllers
 {
     [ApiController]
     [Route("v1/[controller]")]

@@ -1,7 +1,7 @@
 ﻿using DAL.Data.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace TIlbudsAvisScraperAPI.Services
+namespace TilbudsAvisScraperAPI.Services
 {
     public class APIUserService
     {

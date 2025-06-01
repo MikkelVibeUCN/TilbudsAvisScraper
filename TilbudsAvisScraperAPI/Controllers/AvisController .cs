@@ -7,12 +7,12 @@ using Microsoft.Extensions.Primitives;
 using System.Data.SqlClient;
 using System.Runtime.CompilerServices;
 using TilbudsAvisLibrary.Entities;
-using TIlbudsAvisScraperAPI.Services;
-using TIlbudsAvisScraperAPI.Tools;
+using TilbudsAvisScraperAPI.Services;
+using TilbudsAvisScraperAPI.Tools;
 using Amazon.SQS.Model;
 using System.Diagnostics;
 
-namespace TIlbudsAvisScraperAPI.Controllers
+namespace TilbudsAvisScraperAPI.Controllers
 {
     [ApiController]
     [Route("v1/[controller]")]

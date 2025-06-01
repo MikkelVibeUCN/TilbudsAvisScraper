@@ -1,9 +1,9 @@
 using DAL.Data.DAO;
 using DAL.Data.Interfaces;
 using Microsoft.AspNetCore.HttpOverrides;
-using TIlbudsAvisScraperAPI.Services;
+using TilbudsAvisScraperAPI.Services;
 
-namespace TIlbudsAvisScraperAPI.Properties
+namespace TilbudsAvisScraperAPI.Properties
 {
     public class Program
     {

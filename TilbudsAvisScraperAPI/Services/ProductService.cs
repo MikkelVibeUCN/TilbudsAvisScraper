@@ -1,10 +1,10 @@
 ﻿using TilbudsAvisLibrary.DTO;
 using DAL.Data.Interfaces;
 using TilbudsAvisLibrary;
-using TIlbudsAvisScraperAPI.Tools;
+using TilbudsAvisScraperAPI.Tools;
 using TilbudsAvisLibrary.Entities;
 
-namespace TIlbudsAvisScraperAPI.Services
+namespace TilbudsAvisScraperAPI.Services
 {
     public class ProductService
     {

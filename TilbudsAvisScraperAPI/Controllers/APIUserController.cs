@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using TIlbudsAvisScraperAPI.Services;
+using TilbudsAvisScraperAPI.Services;
 
-namespace TIlbudsAvisScraperAPI.Controllers
+namespace TilbudsAvisScraperAPI.Controllers
 {
     [ApiController]
     [Route("v1/[controller]")]
