@@ -21,17 +21,17 @@ COPY ["DAL/DAL.csproj", "DAL/"]
 COPY ["TilbudsAvisLibrary/TilbudsAvisLibrary.csproj", "TilbudsAvisLibrary/"]
 
 # Run restore on the main API project (will resolve project references too)
-RUN dotnet restore "API/API.csproj"
+RUN dotnet restore "TilbudsAvisScraperAPI/TilbudsAvisScraperAPI.csproj"
 
 # Now copy the full source tree
 COPY . .
 
 # Build the project
-WORKDIR "/src/API"
-RUN dotnet build "API.csproj" -c Release -o /app/build
+WORKDIR "/src/TilbudsAvisScraperAPI"
+RUN dotnet build "TilbudsAvisScraperAPI.csproj" -c Release -o /app/build
 
 # Publish the app
-RUN dotnet publish "API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "TilbudsAvisScraperAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # ----------------------------
 # Final image
