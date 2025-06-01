@@ -1,0 +1,42 @@
+# ----------------------------
+# Base image for runtime
+# ----------------------------
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+
+# ----------------------------
+# Build and publish stage
+# ----------------------------
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+# Copy project files for restore
+WORKDIR /src
+
+# Copy all .csproj files (API + dependencies)
+COPY ["API/API.csproj", "API/"]
+COPY ["APIIntegrationLibrary/APIIntegrationLibrary.csproj", "APIIntegrationLibrary/"]
+COPY ["DAL/DAL.csproj", "DAL/"]
+COPY ["TilbudsAvisLibrary/TilbudsAvisLibrary.csproj", "TilbudsAvisLibrary/"]
+
+# Run restore on the main API project (will resolve project references too)
+RUN dotnet restore "API/API.csproj"
+
+# Now copy the full source tree
+COPY . .
+
+# Build the project
+WORKDIR "/src/API"
+RUN dotnet build "API.csproj" -c Release -o /app/build
+
+# Publish the app
+RUN dotnet publish "API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# ----------------------------
+# Final image
+# ----------------------------
+FROM base AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+ENTRYPOINT ["dotnet", "API.dll"]

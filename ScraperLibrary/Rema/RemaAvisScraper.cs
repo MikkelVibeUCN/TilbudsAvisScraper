@@ -119,7 +119,6 @@ namespace ScraperLibrary.Rema
                 throw new FutureValidFromException(validFrom);
             }
 
-
             //var getPagesTask = Task.Run(() => GetPagesFromUrl(avisUrl));
             var getProductsTask = await _productScraper.GetAllProductsFromPage(progressCallback, token, externalId, companyId);
             progressCallback(100);

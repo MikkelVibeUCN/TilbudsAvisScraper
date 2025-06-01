@@ -1,0 +1,33 @@
+# ---- Base image for runtime ----
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 8080
+
+# ---- Build image ----
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy project files
+COPY ["TilbudsAvisWeb/TilbudsAvisWeb.csproj", "TilbudsAvisWeb/"]
+COPY ["APIIntegrationLibrary/APIIntegrationLibrary.csproj", "APIIntegrationLibrary/"]
+
+# Restore dependencies
+RUN dotnet restore "TilbudsAvisWeb/TilbudsAvisWeb.csproj"
+
+# Copy the rest of the code
+COPY . .
+
+# Build the project
+WORKDIR "/src/TilbudsAvisWeb"
+RUN dotnet build "TilbudsAvisWeb.csproj" -c Release -o /app/build
+
+# ---- Publish image ----
+FROM build AS publish
+RUN dotnet publish "TilbudsAvisWeb.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# ---- Final runtime image ----
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+ENTRYPOINT ["dotnet", "TilbudsAvisWeb.dll"]

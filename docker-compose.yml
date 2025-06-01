@@ -1,21 +1,33 @@
+version: "3.7"
+
 services:
-  tilbudsavisscraperapi:
-    image: ${DOCKER_REGISTRY-}tilbudsavisscraperapi
+  api:
     build:
       context: .
-      dockerfile: TIlbudsAvisScraperAPI/Dockerfile
+      dockerfile: docker/Dockerfile.api
+    image: my-api-image
     ports:
-      - "8080:8080"  # Map port 8080 (host) to 8080 (container) for HTTP
-      - "8081:8081"  # Map port 8081 (host) to 8081 (container) for HTTPS
-    environment:
-      ASPNETCORE_ENVIRONMENT: "Development"  # Set the environment
-      ASPNETCORE_HTTP_PORTS: "5000"          # Configure HTTP ports
-      ASPNETCORE_HTTPS_PORTS: "5001"         # Configure HTTPS ports
-    volumes:
-      - .:/app  # Mount the current directory to /app in the container
-    networks:
-      - my-dotnet-api-network  # Use a specific network
+      - "5000:80"
+    secrets:
+      - source: mssqldb-connectionstring
+        target: connection_string 
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
-networks:
-  my-dotnet-api-network:
-    driver: bridge  # Use the default bridge network
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    image: my-web-image
+    ports:
+      - "5001:80"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+secrets:
+  mssqldb-connectionstring:
+    external: true

@@ -11,7 +11,17 @@ namespace TIlbudsAvisScraperAPI.Properties
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            string connectionString = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
+            string connectionString;
+
+            var secretPath = "/run/secrets/connection_string";
+            if (File.Exists(secretPath))
+            {
+                connectionString = File.ReadAllText(secretPath);
+            }
+            else
+            {
+                connectionString = Environment.GetEnvironmentVariable("CONNECTIONSTRING");
+            }
 
             // Add services to the container.
             builder.Services.AddControllers();
@@ -27,17 +37,13 @@ namespace TIlbudsAvisScraperAPI.Properties
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-
             // Enable forwarded headers for NGINX
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.All;
                 options.KnownNetworks.Clear();
-                options.KnownProxies.Clear();
+                options.KnownProxies.Clear(); 
             });
-
-
-
 
             var app = builder.Build();
 
