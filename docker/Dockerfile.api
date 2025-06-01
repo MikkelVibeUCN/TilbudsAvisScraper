@@ -15,7 +15,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy all .csproj files (API + dependencies)
-COPY ["API/API.csproj", "API/"]
+COPY ["TilbudsAvisScraperAPI/TilbudsAvisScraperAPI.csproj", "TilbudsAvisScraperAPI/"]
 COPY ["APIIntegrationLibrary/APIIntegrationLibrary.csproj", "APIIntegrationLibrary/"]
 COPY ["DAL/DAL.csproj", "DAL/"]
 COPY ["TilbudsAvisLibrary/TilbudsAvisLibrary.csproj", "TilbudsAvisLibrary/"]
@@ -39,4 +39,4 @@ RUN dotnet publish "API.csproj" -c Release -o /app/publish /p:UseAppHost=false
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "API.dll"]
+ENTRYPOINT ["dotnet", "TilbudsAvisScraperAPI.dll"]
