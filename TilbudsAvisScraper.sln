@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TilbudsAvisLibrary", "Tilbu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScraperLibrary", "ScraperLibrary\ScraperLibrary.csproj", "{8EC6BCBA-3ABD-475A-998B-8143D3C23852}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TIlbudsAvisScraperAPI", "TIlbudsAvisScraperAPI\TIlbudsAvisScraperAPI.csproj", "{C6F168A4-D7DB-4C57-9034-FCE11D7034EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TilbudsAvisScraperAPI", "TIlbudsAvisScraperAPI\TilbudsAvisScraperAPI.csproj", "{C6F168A4-D7DB-4C57-9034-FCE11D7034EE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DAL", "DAL\DAL.csproj", "{D14C592F-B573-407A-89F0-F0A409DDB1AD}"
 EndProject
