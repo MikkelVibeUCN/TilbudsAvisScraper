@@ -29,13 +29,13 @@ namespace ScraperLibrary.Lidl
             // Get the products
             List<ProductDTO> products = await _lidlProductScraper.GetAllProductsFromPage(progressCallback, token, avisId, companyId, response.flyer.products);
 
-            return new AvisDTO
+            return RemoveDuplicateProductsFromAvis(new AvisDTO
             {
                 ExternalId = avisId,
                 ValidFrom = offerStart,
                 ValidTo = offerEnd,
                 Products = products
-            };
+            });
         }
 
         public async Task<string> GetAvisId()

@@ -43,10 +43,6 @@ namespace ScraperLibrary.Lidl
                 products.Add(newProduct);
 
                 int progress = (int)(((double)(i + 1) / entries.Count) * 100);
-                if(progress == 49)
-                {
-
-                }
                 progressCallback(progress);
             }
 

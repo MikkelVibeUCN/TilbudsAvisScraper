@@ -19,7 +19,7 @@ namespace ScraperLibrary.Rema
 
         }
 
-        public async Task<List<ProductDTO>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId)
+        public async Task<List<ProductDTO>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId, dynamic JSON = null)
         {
             string result = await CallUrl(_remaProductPageUrl);
             int lengthOfResult = result.Length;

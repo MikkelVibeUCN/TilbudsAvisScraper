@@ -5,7 +5,7 @@ namespace ScraperLibrary.Interfaces
 {
     public interface IProductScraper
     {
-        Task<List<ProductDTO>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId);
+        Task<List<ProductDTO>> GetAllProductsFromPage(Action<int> progressCallback, CancellationToken token, string avisExternalId, int companyId, dynamic JSON = null);
 
         public static float GetAmountInProduct(float amountInProduct, string productInUnit, List<PriceDTO> pricesAssosiated)
         {

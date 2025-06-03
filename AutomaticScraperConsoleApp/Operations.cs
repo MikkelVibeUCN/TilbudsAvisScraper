@@ -3,6 +3,7 @@ using ScraperLibrary.COOP.Brugsen;
 using ScraperLibrary.COOP.Kvickly;
 using ScraperLibrary.COOP.SuperBrugsen;
 using ScraperLibrary.Interfaces;
+using ScraperLibrary.Lidl;
 using ScraperLibrary.Rema;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,8 @@ namespace AutomaticScraperConsoleApp
             { 2, new _365AvisScraper() },
             { 3, new KvicklyAvisScraper() },
             { 4, new BrugsenAvisScraper() },
-            { 5, new SuperBrugsenAvisScraper() }
+            { 5, new SuperBrugsenAvisScraper() },
+            { 7, new LidlAvisScraper() }
         };
 
         public static async Task<AvisDTO> ScrapeAvis(int companyId)

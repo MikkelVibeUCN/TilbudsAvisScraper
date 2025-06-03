@@ -24,7 +24,8 @@ namespace ScraperLibrary.COOP
             Action<int> progressCallback,
             CancellationToken token,
             string avisExternalId,
-            int companyId)
+            int companyId,
+            dynamic JSON = null)
         {
             var response = await CallUrl(ProductsLocationUrl, 10000);
             List<ProductDTO> products = new List<ProductDTO>();
