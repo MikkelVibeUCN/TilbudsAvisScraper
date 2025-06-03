@@ -26,7 +26,7 @@
     <ProjectReference Include="..\DAL\DAL.csproj" />
     <ProjectReference Include="..\ScraperLibrary\ScraperLibrary.csproj" />
     <ProjectReference Include="..\TilbudsAvisLibrary\TilbudsAvisLibrary.csproj" />
-    <ProjectReference Include="..\TIlbudsAvisScraperAPI\TilbudsAvisScraperAPI.csproj" />
+    <ProjectReference Include="..\TilbudsAvisScraperAPI\TilbudsAvisScraperAPI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
