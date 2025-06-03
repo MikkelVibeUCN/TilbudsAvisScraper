@@ -114,6 +114,11 @@ namespace DAL.Data.DAO
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@ExternalId", externalId);
+
+                    if (companyId.HasValue)
+                    {
+                        command.Parameters.AddWithValue("@CompanyId", companyId.Value);
+                    }
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         await reader.ReadAsync();
