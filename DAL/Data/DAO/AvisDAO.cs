@@ -94,7 +94,7 @@ namespace DAL.Data.DAO
             }
         }
 
-        private async Task<int> GetIdOfAvisFromExternalId(string externalId)
+        private async Task<int> GetIdOfAvisFromExternalId(string externalId, int? companyId = null)
         {
             if (CachedExtIdToAvisIdRequests.ContainsKey(externalId))
             {
@@ -104,7 +104,14 @@ namespace DAL.Data.DAO
             {
                 await connection.OpenAsync();
 
-                using (SqlCommand command = new SqlCommand("Select Id from avis with (NOLOCK) where ExternalId = @ExternalId", connection))
+                string query = "Select Id from avis with (NOLOCK) where ExternalId = @ExternalId";
+
+                if (companyId.HasValue)
+                {
+                    query += " AND CompanyId = @CompanyId";
+                }
+
+                using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@ExternalId", externalId);
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
@@ -166,7 +173,7 @@ namespace DAL.Data.DAO
 
                             avis.SetId(generatedId);
 
-                            int baseAvisId = await GetIdOfAvisFromExternalId(BaseAvisExternalId);
+                            int baseAvisId = await GetIdOfAvisFromExternalId(BaseAvisExternalId, companyId);
 
                             Console.WriteLine("Found base avis with id: " + baseAvisId);
 
