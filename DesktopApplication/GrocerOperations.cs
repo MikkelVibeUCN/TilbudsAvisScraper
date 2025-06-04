@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Exceptions;
+using ScraperLibrary.Lidl;
+using ScraperLibrary.Meny;
 
 namespace DesktopApplication
 {
@@ -25,7 +27,9 @@ namespace DesktopApplication
                 { "365 Discount", new _365AvisScraper() },
                 { "Kvickly", new KvicklyAvisScraper() },
                 { "Brugsen", new BrugsenAvisScraper() },
-                { "SuperBrugsen", new SuperBrugsenAvisScraper() }
+                { "SuperBrugsen", new SuperBrugsenAvisScraper() },
+                { "Lidl", new LidlAvisScraper() },
+                { "Meny", new MenyAvisScraper() }
             };
         }
 

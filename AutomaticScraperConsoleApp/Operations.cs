@@ -4,6 +4,7 @@ using ScraperLibrary.COOP.Kvickly;
 using ScraperLibrary.COOP.SuperBrugsen;
 using ScraperLibrary.Interfaces;
 using ScraperLibrary.Lidl;
+using ScraperLibrary.Meny;
 using ScraperLibrary.Rema;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,8 @@ namespace AutomaticScraperConsoleApp
             { 3, new KvicklyAvisScraper() },
             { 4, new BrugsenAvisScraper() },
             { 5, new SuperBrugsenAvisScraper() },
-            { 7, new LidlAvisScraper() }
+            { 7, new LidlAvisScraper() },
+            { 8, new MenyAvisScraper() }
         };
 
         public static async Task<AvisDTO> ScrapeAvis(int companyId)

@@ -1,4 +1,5 @@
-﻿using PuppeteerSharp;
+﻿using Newtonsoft.Json;
+using PuppeteerSharp;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
@@ -265,5 +266,29 @@ namespace ScraperLibrary
 
             return avis;
         }
+        public static async Task<T> EvaluateJsPropertyAsync<T>(string fullUrl, string jsExpression, string? waitForExpression = null)
+        {
+            IBrowser browser = await GetBrowser();
+            using var page = await browser.NewPageAsync();
+
+            await page.SetUserAgentAsync("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+            await page.GoToAsync(fullUrl, new NavigationOptions
+            {
+                Timeout = 30000,
+                WaitUntil = new[] { WaitUntilNavigation.Networkidle2 }
+            });
+
+            // Optionally wait for a specific JS condition before evaluating
+            if (!string.IsNullOrEmpty(waitForExpression))
+                await page.WaitForExpressionAsync(waitForExpression);
+
+            // Evaluate JS and get JSON
+            var json = await page.EvaluateExpressionAsync<string>($"JSON.stringify({jsExpression})");
+
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+
     }
+
 }
