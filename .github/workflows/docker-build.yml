@@ -3,6 +3,15 @@ name: Build, Push, and Deploy
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'docker/**'
+      - 'TilbudsAvisWeb/**'
+      - 'TilbudsAvisScraperAPI/**'
+      - 'ScraperLibrary/**'
+      - 'DAL/**'
+      - 'APIIntegrationLibrary/**'
+      - 'docker-compose.yml'
+      - '.github/**'
 
 env:
   REGISTRY: ghcr.io
@@ -66,4 +75,3 @@ jobs:
             docker compose -f docker-compose.yml pull
             docker stack deploy -c docker-compose.yml TilbudsFinder
           EOF
-
