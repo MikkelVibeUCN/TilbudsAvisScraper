@@ -10,20 +10,16 @@ using System.Text;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.DTO;
 
-namespace ScraperLibrary.Meny
+namespace ScraperLibrary.Dagrofa.Meny
 {
     public class MenyAvisScraper : Scraper, IAvisScraper
     {
         const string menyAvisUrl = "https://ugensavis.meny.dk/";
-        private readonly MenyProductScraper _menyProductScraper;
+        private readonly MenyProductScraper _menyProductScraper = new MenyProductScraper();
 
         public async Task<AvisDTO> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             List<string> urls = await GetAllChunkUrls();
-            var json = await GetFormattedJsonForAllChunks(urls);
-
-            // Remove non-product items from the JSON
-            json = RemoveNonProductsFromJSON(json);
 
             // Get the AvisID from the first chunk URL
             string avisId = GetAvisIdFromChunk(urls[0]);
@@ -32,12 +28,15 @@ namespace ScraperLibrary.Meny
             var response = await CallUrl(menyAvisUrl);
             var dates = IAvisScraper.ExtractAvisPeriodFromHTML(response);
 
+            var products = await GetProductsFromAPI().;
+
             List<ProductDTO> products = await _menyProductScraper.GetAllProductsFromPage(
                 progressCallback,
                 token,
                 avisId,
                 companyId,
-                json
+
+
             );
 
             return RemoveDuplicateProductsFromAvis(new AvisDTO
@@ -47,16 +46,12 @@ namespace ScraperLibrary.Meny
                 ValidFrom = dates.ValidFrom,
                 Products = products,
             });
-
-
-
-            
         }
 
 
         private async Task<List<string>> GetAllChunkUrls()
         {
-            EnrichmentsDTO enrichments = await Scraper.EvaluateJsPropertyAsync<EnrichmentsDTO>(
+            EnrichmentsDTO enrichments = await EvaluateJsPropertyAsync<EnrichmentsDTO>(
                 menyAvisUrl,
                 "window.staticSettings.enrichments",
                 "window.staticSettings && window.staticSettings.enrichments"
@@ -75,61 +70,10 @@ namespace ScraperLibrary.Meny
         }
 
 
-        private async Task<dynamic> GetFormattedJsonForChunkUrl(string chunkUrl)
+        private async Task<dynamic> GetProductsFromAPI()
         {
-            HttpResponseMessage response = await client.GetAsync(chunkUrl);
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"Failed to retrieve chunk URL: {chunkUrl}, Status Code: {response.StatusCode}");
-            }
-            string json = await response.Content.ReadAsStringAsync();
-
-            if (string.IsNullOrEmpty(json))
-            {
-                throw new Exception("Failed to retrieve JSON from chunk URL");
-            }
-
-            // Parse the JSON and return it as a dynamic object
-            return JObject.Parse(json);
-        }
-
-
-        private async Task<JObject> GetFormattedJsonForAllChunks(List<string> chunkUrls)
-        {
-            var fetchTasks = chunkUrls.Select(GetFormattedJsonForChunkUrl).ToList();
-            var chunks = await Task.WhenAll(fetchTasks);
-
-            var combinedJson = new JObject();
-
-            foreach (var chunk in chunks)
-            {
-                combinedJson.Merge(chunk, new JsonMergeSettings
-                {
-                    MergeArrayHandling = MergeArrayHandling.Concat,
-                    MergeNullValueHandling = MergeNullValueHandling.Ignore
-                });
-            }
-
-            return combinedJson;
-        }
-
-        private dynamic RemoveNonProductsFromJSON(dynamic json)
-        {
-            if (json.enrichments == null || !(json.enrichments is JArray))
-                return json;
-
-            var filtered = new JArray();
-
-            foreach (var item in json.enrichments)
-            {
-                if (item["price"] != null && item["price"].Type != JTokenType.Null)
-                {
-                    filtered.Add(item);
-                }
-            }
-
-            json.enrichments = filtered;
-            return json;
+            string url = "https://longjohnapi-meny.azurewebsites.net/Product/query?merchantId=558155&pageNumber=0&pageSize=10000&displayedInStore=true&globalAdvertisements=true";
+            return await client.GetAsync(url);
         }
 
         private string GetAvisIdFromChunk(string chunkUrl)
