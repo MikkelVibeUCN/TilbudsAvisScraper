@@ -68,5 +68,9 @@ jobs:
               docker rm scraper-container
             fi
 
-            docker run -d --name scraper-container ghcr.io/${{ env.IMAGE_NAME }}-scraper:latest
+            docker run -d --name scraper-container \
+              -e TOKEN="${{ secrets.TOKEN }}" \
+              -e API_URI="${{ secrets.API_URI }}" \
+              ghcr.io/${{ env.IMAGE_NAME }}-scraper:latest
+
           EOF
