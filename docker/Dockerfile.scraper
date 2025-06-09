@@ -1,8 +1,9 @@
 # ---- Base image for runtime ----
 FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 
-# Install necessary packages for Chromium/Puppeteer
+# Install necessary packages for Chromium/Puppeteer and Chromium browser itself
 RUN apt-get update && apt-get install -y \
+    chromium \
     wget \
     ca-certificates \
     fonts-liberation \
@@ -40,7 +41,7 @@ COPY ["TilbudsAvisLibrary/TilbudsAvisLibrary.csproj", "TilbudsAvisLibrary/"]
 # Restore dependencies
 RUN dotnet restore "AutomaticScraperConsoleApp/AutomaticScraperConsoleApp.csproj"
 
-# Copy everything else
+# Copy all source files
 COPY . .
 
 # Build
@@ -54,7 +55,9 @@ RUN dotnet publish "AutomaticScraperConsoleApp.csproj" -c Release -o /app/publis
 # ---- Final runtime image ----
 FROM base AS final
 WORKDIR /app
+
+# Copy published app from build stage
 COPY --from=publish /app/publish .
 
-# Start the console app
+# Entrypoint for your app
 ENTRYPOINT ["dotnet", "AutomaticScraperConsoleApp.dll"]
