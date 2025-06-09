@@ -1,4 +1,4 @@
-name: Build, Push, and Deploy
+name: ConsoleScraper build and deploy
 
 on:
   push:
@@ -53,17 +53,20 @@ jobs:
         if: success()
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.HOMESERVER_DEPLOY_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.HOMESERVER_DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.HOMESERVER_HOST }} >> ~/.ssh/known_hosts
 
-          ssh root@${{ secrets.HOMESERVER_HOST }} << 'EOF'
+          ssh root@${{ secrets.HOMESERVER_HOST }} << EOF
             set -e
             cd /var/apps/Scraper/TilbudsAvisScraper
             git pull
             docker pull ghcr.io/${{ env.IMAGE_NAME }}-scraper:latest
-            docker stop scraper-container || true
-            docker rm scraper-container || true
-            docker run -d --name scraper-container ghcr.io/${{ env.IMAGE_NAME }}-scraper:latest
 
+            if docker ps -a --format '{{.Names}}' | grep -q '^scraper-container$'; then
+              docker stop scraper-container
+              docker rm scraper-container
+            fi
+
+            docker run -d --name scraper-container ghcr.io/${{ env.IMAGE_NAME }}-scraper:latest
           EOF
