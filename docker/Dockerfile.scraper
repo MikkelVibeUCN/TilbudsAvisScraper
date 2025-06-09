@@ -1,0 +1,35 @@
+# ---- Base image for runtime ----
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
+WORKDIR /app
+
+# ---- Build image ----
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy project files
+COPY ["AutomaticScraperConsoleApp/AutomaticScraperConsoleApp.csproj", "AutomaticScraperConsoleApp/"]
+COPY ["APIIntegrationLibrary/APIIntegrationLibrary.csproj", "APIIntegrationLibrary/"]
+COPY ["ScraperLibrary/ScraperLibrary.csproj", "ScraperLibrary/"]
+COPY ["TilbudsAvisLibrary/TilbudsAvisLibrary.csproj", "TilbudsAvisLibrary/"]
+
+# Restore dependencies
+RUN dotnet restore "AutomaticScraperConsoleApp/AutomaticScraperConsoleApp.csproj"
+
+# Copy everything else
+COPY . .
+
+# Build
+WORKDIR "/src/AutomaticScraperConsoleApp"
+RUN dotnet build "AutomaticScraperConsoleApp.csproj" -c Release -o /app/build
+
+# ---- Publish image ----
+FROM build AS publish
+RUN dotnet publish "AutomaticScraperConsoleApp.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# ---- Final runtime image ----
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Start the console app
+ENTRYPOINT ["dotnet", "AutomaticScraperConsoleApp.dll"]
