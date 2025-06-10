@@ -49,8 +49,6 @@ namespace ScraperLibrary.Lidl
             return Task.FromResult(products);
         }
 
-
-
         private ProductDTO CreateProduct(dynamic productJSON, string avisExternalId)
         {
             // Get the easy ones first like id, price, imageUrl and title

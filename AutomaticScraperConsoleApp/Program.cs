@@ -63,22 +63,22 @@ namespace AutomaticScraperConsoleApp
                 Log("Validating token...");
                 var userClient = new APIUserRestClient(URI, TOKEN);
 
-                try
-                {
-                    bool isValid = await userClient.IsTokenValidForAction(3);
-                    Log($"Token validation result: {isValid}");
+                // Initialize the token validator service
+                var tokenValidator = new TokenValidatorService(
+                    userClient,
+                    Log,
+                    LogError
+                );
 
-                    if (!isValid)
-                    {
-                        LogError("Token not valid.");
-                        return;
-                    }
-                }
-                catch (Exception ex)
+                // Validate the token
+                bool isTokenValid = await tokenValidator.ValidateTokenAsync();
+
+                if (!isTokenValid)
                 {
-                    LogError("Error during token validation", ex);
-                    return;
+                    return; // Exit if token validation failed
                 }
+
+                // Continue with your application logic...
 
                 _avisAPIRestClient = new AvisAPIRestClient(URI, TOKEN);
                 Log("API client initialized");
@@ -136,6 +136,8 @@ namespace AutomaticScraperConsoleApp
                 LogError("CRITICAL ERROR in Main", ex);
             }
         }
+
+
 
         private static async Task ScheduleAllScrapers()
         {
