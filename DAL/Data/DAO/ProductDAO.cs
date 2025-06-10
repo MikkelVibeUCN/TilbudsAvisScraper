@@ -15,6 +15,7 @@ using Emgu.CV;
 using System.Data;
 using Dapper;
 using TilbudsAvisLibrary.DTO;
+using Emgu.CV.CvEnum;
 
 namespace DAL.Data.DAO
 {
@@ -76,8 +77,7 @@ namespace DAL.Data.DAO
                 WHERE 
                     p.id = @Id";
 
-        private readonly string _getProducts = @"
-            WITH RankedAvis AS (
+        private readonly string _rankedAvisQuery = @"WITH RankedAvis AS (
     SELECT
         pr.ProductId,
         pr.AvisId,
@@ -86,73 +86,99 @@ namespace DAL.Data.DAO
         a.ValidTo,
         c.Name AS PriceRetailerName,
         a.ExternalId AS PriceExternalIdAvis,
-        ROW_NUMBER() OVER (PARTITION BY pr.ProductId ORDER BY pr.Price DESC) AS RowNum
+        ROW_NUMBER() OVER (PARTITION BY pr.ProductId ORDER BY pr.Price DESC) AS RowNum,
+        CASE WHEN @SearchTerm IS NOT NULL THEN
+            -- Exact match in name (highest priority)
+            CASE WHEN p.Name = @SearchTerm THEN 1000 ELSE 0 END +
+            
+            -- Exact word match in name
+            CASE WHEN ' ' + UPPER(p.Name) + ' ' LIKE '% ' + UPPER(@SearchTerm) + ' %' THEN 500 ELSE 0 END +
+            
+            -- Starts with search term
+            CASE WHEN UPPER(p.Name) LIKE UPPER(@SearchTerm) + '%' THEN 300 ELSE 0 END +
+            
+            -- Contains as separate word (word boundary)
+            CASE WHEN UPPER(p.Name) LIKE '% ' + UPPER(@SearchTerm) + '%' OR 
+                      UPPER(p.Name) LIKE '%' + UPPER(@SearchTerm) + ' %' THEN 200 ELSE 0 END +
+            
+            -- Position-based scoring (earlier occurrence = higher score)
+            CASE WHEN CHARINDEX(UPPER(@SearchTerm), UPPER(p.Name)) > 0 
+                 THEN (100 - CHARINDEX(UPPER(@SearchTerm), UPPER(p.Name))) 
+                 ELSE 0 END +
+            
+            -- Description matches (lower priority)
+            CASE WHEN p.Description IS NOT NULL AND UPPER(p.Description) LIKE '% ' + UPPER(@SearchTerm) + ' %' THEN 50 ELSE 0 END +
+            CASE WHEN p.Description IS NOT NULL AND UPPER(p.Description) LIKE UPPER(@SearchTerm) + '%' THEN 30 ELSE 0 END +
+            CASE WHEN p.Description IS NOT NULL AND UPPER(p.Description) LIKE '%' + UPPER(@SearchTerm) + '%' THEN 10 ELSE 0 END
+        ELSE NULL END AS SearchRank
     FROM
         Price pr
     INNER JOIN
         Avis a ON pr.AvisId = a.Id
     INNER JOIN
         Company c ON a.CompanyId = c.Id
+    INNER JOIN
+        Product p ON pr.ProductId = p.Id
     WHERE
         a.ExternalId != 'base'
         AND a.ValidFrom <= CAST(GETDATE() AS DATE)
         AND a.ValidTo >= CAST(GETDATE() AS DATE)
-)
-
-SELECT 
-    p.Id AS ProductId, 
-    p.ExternalId AS ProductExternalId, 
-    p.amount AS ProductAmount, 
-    p.Name AS ProductName, 
-    p.Description AS ProductDescription, 
-    p.ImageUrl AS ProductImageUrl, 
-    pr.Price AS Price, 
-    a.ValidFrom AS PriceValidFrom, 
-    a.ValidTo AS PriceValidTo, 
-    c.Name as PriceRetailerName, 
-    a.ExternalId as PriceExternalIdAvis,
-    nu.CarbohydratesPer100G, 
-    nu.EnergyKJ, 
-    nu.FatPer100G, 
-    nu.FiberPer100G, 
-    nu.ProteinPer100G, 
-    nu.productId, 
-    nu.SaturatedFatPer100G, 
-    nu.SugarsPer100G,
-    nu.SaltPer100G,
-    priceAgg.MaxPrice, 
-    priceAgg.MinPrice
-FROM 
-    Product p
-LEFT JOIN 
-    NutritionInfo nu ON p.Id = nu.productId
-INNER JOIN 
-    (SELECT 
-         pr.ProductId, 
-         MAX(pr.Price) AS MaxPrice, 
-         MIN(pr.Price) AS MinPrice
-     FROM 
-         Price pr
-     INNER JOIN 
-         Avis a ON pr.AvisId = a.Id
-     WHERE 
-         a.ExternalId != 'base' 
-         AND a.ValidFrom <= CAST(GETDATE() AS DATE)
-         AND a.ValidTo >= CAST(GETDATE() AS DATE)
-     GROUP BY 
-         pr.ProductId
-    ) priceAgg ON p.Id = priceAgg.ProductId
-INNER JOIN 
-    RankedAvis pr ON pr.ProductId = p.Id
-    AND pr.RowNum = 1  -- Only pick the top-ranked Avis based on price
-LEFT JOIN 
-    Avis a ON pr.AvisId = a.Id
-LEFT JOIN 
-    Company c on a.CompanyId = c.Id
-WHERE 
-    a.ExternalId != 'base' 
-    AND a.ValidFrom <= CAST(GETDATE() AS DATE) 
-    AND a.ValidTo >= CAST(GETDATE() AS DATE)";
+)";
+        private readonly string _getProducts = @"
+        SELECT 
+            p.Id AS ProductId, 
+            p.ExternalId AS ProductExternalId, 
+            p.amount AS ProductAmount, 
+            p.Name AS ProductName, 
+            p.Description AS ProductDescription, 
+            p.ImageUrl AS ProductImageUrl, 
+            pr.Price AS Price, 
+            a.ValidFrom AS PriceValidFrom, 
+            a.ValidTo AS PriceValidTo, 
+            c.Name as PriceRetailerName, 
+            a.ExternalId as PriceExternalIdAvis,
+            nu.CarbohydratesPer100G, 
+            nu.EnergyKJ, 
+            nu.FatPer100G, 
+            nu.FiberPer100G, 
+            nu.ProteinPer100G, 
+            nu.productId, 
+            nu.SaturatedFatPer100G, 
+            nu.SugarsPer100G,
+            nu.SaltPer100G,
+            priceAgg.MaxPrice, 
+            priceAgg.MinPrice
+        FROM 
+            Product p
+        LEFT JOIN 
+            NutritionInfo nu ON p.Id = nu.productId
+        INNER JOIN 
+            (SELECT 
+                 pr.ProductId, 
+                 MAX(pr.Price) AS MaxPrice, 
+                 MIN(pr.Price) AS MinPrice
+             FROM 
+                 Price pr
+             INNER JOIN 
+                 Avis a ON pr.AvisId = a.Id
+             WHERE 
+                 a.ExternalId != 'base' 
+                 AND a.ValidFrom <= CAST(GETDATE() AS DATE)
+                 AND a.ValidTo >= CAST(GETDATE() AS DATE)
+             GROUP BY 
+                 pr.ProductId
+            ) priceAgg ON p.Id = priceAgg.ProductId
+        INNER JOIN 
+            RankedAvis pr ON pr.ProductId = p.Id
+            AND pr.RowNum = 1  -- Only pick the top-ranked Avis based on price
+        LEFT JOIN 
+            Avis a ON pr.AvisId = a.Id
+        LEFT JOIN 
+            Company c on a.CompanyId = c.Id
+        WHERE 
+            a.ExternalId != 'base' 
+            AND a.ValidFrom <= CAST(GETDATE() AS DATE) 
+            AND a.ValidTo >= CAST(GETDATE() AS DATE)";
 
 
         private INutritionInfoDAO _nutritionInfoDAO;
@@ -598,7 +624,7 @@ WHERE
             {
                 await connection.OpenAsync();
 
-                StringBuilder queryBuilder = new StringBuilder(_getProducts);
+                StringBuilder queryBuilder = new StringBuilder(_rankedAvisQuery + _getProducts);
 
                 if (!string.IsNullOrEmpty(parameters.Retailer))
                 {
@@ -607,15 +633,19 @@ WHERE
 
                 if (!string.IsNullOrEmpty(parameters.SearchTerm))
                 {
+                    // Basic search filter remains
                     queryBuilder.Append(" AND (p.Name LIKE '%' + @SearchTerm + '%' OR p.Description LIKE '%' + @SearchTerm + '%')");
+
+                    queryBuilder.Append(" AND pr.SearchRank >= @RankThreshold");
                 }
 
+                // Enhanced sorting logic
                 string sortColumn = parameters.SortBy?.ToLower() switch
                 {
                     "pricedesc" => "priceAgg.MaxPrice",
                     "priceasc" => "priceAgg.MinPrice",
                     var s when s != null && s.StartsWith("name", StringComparison.OrdinalIgnoreCase) => "p.Name",
-                    _ => "p.Id" // Default sorting by Product ID
+                    _ => string.IsNullOrEmpty(parameters.SearchTerm) ? "p.Id" : "COALESCE(pr.SearchRank, 0) DESC, p.Id"
                 };
 
                 string sortDirection = string.IsNullOrEmpty(parameters.SortBy) || !parameters.SortBy.EndsWith("Desc", StringComparison.OrdinalIgnoreCase)
@@ -623,7 +653,6 @@ WHERE
                     : "DESC";
 
                 queryBuilder.Append($" ORDER BY {sortColumn} {sortDirection}");
-
                 queryBuilder.Append(" OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY");
 
                 using (SqlCommand command = new SqlCommand(queryBuilder.ToString(), connection))
@@ -636,6 +665,12 @@ WHERE
                     if (!string.IsNullOrEmpty(parameters.SearchTerm))
                     {
                         command.Parameters.AddWithValue("@SearchTerm", parameters.SearchTerm);
+
+                        command.Parameters.AddWithValue("@RankThreshold", parameters.Threshold);
+                    }
+                    else
+                    {
+                        command.Parameters.AddWithValue("@SearchTerm", DBNull.Value);
                     }
 
                     command.Parameters.AddWithValue("@Offset", parameters.PageNumber * parameters.PageSize);

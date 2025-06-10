@@ -26,6 +26,7 @@ namespace TilbudsAvisWeb.Controllers
             ViewBag.CurrentPage = parameters.PageNumber;
             ViewBag.TotalPages = totalPages;
             ViewBag.CurrentSearchTerm = parameters.SearchTerm;
+            ViewBag.Threshold = parameters.Threshold;
 
             IEnumerable<ProductDTO> products = await _productService.GetProductsAsync(parameters);
 

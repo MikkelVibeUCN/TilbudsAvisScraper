@@ -71,6 +71,11 @@ namespace APIIntegrationLibrary.Client
                 queryString += $"SearchTerm={parameters.SearchTerm}&";
             }
 
+            if(parameters.Threshold != 200)
+            {
+                queryString += $"Threshold={parameters.Threshold}&";
+            }
+            
             if (queryString.EndsWith("&"))
             {
                 queryString = queryString.Remove(queryString.Length - 1);
