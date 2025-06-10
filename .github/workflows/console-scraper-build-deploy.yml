@@ -2,7 +2,7 @@ name: ConsoleScraper build and deploy
 
 on:
   push:
-    branches: [ CICD ]
+    branches: [ master ]
     paths:
       - 'docker/**'
       - 'ScraperLibrary/**'
