@@ -110,33 +110,55 @@ namespace ScraperLibrary.Lidl
 
         private string CreateDescription(float amount, string compareUnit)
         {
-            switch (compareUnit.ToLower())
+            const float KG_TO_GRAMS = 1000f;
+            const float LITER_TO_CL = 100f;
+            const float MIN_KG_THRESHOLD = 1f;
+            const float MIN_LITER_THRESHOLD = 1f;
+
+            return compareUnit.ToUpperInvariant() switch
             {
-                case "kg":
-                    if (amount >= 1)
-                    {
-                        return $"{FormatAmount(amount)} KG.";
-                    }
-                    return $"{FormatAmount(amount * 1000)} GR.";
-                case "liter":
-                    if (amount >= 1)
-                    {
-                        return $"{FormatAmount(amount)} LTR.";
-                    }
-                    return $"{FormatAmount(amount * 100)} CL.";
-                case "stk":
-                    return $"{FormatAmount(amount)} STK.";
-                default:
-                    throw new Exception("Unknown compare unit: " + compareUnit);
+                "KG" => CreateWeightDescription(amount),
+                "LITER" => CreateVolumeDescription(amount),
+                "STK" => CreateCountDescription(amount),
+                _ => throw new ArgumentException($"Unknown compare unit: {compareUnit}", nameof(compareUnit))
+            };
+
+            string CreateWeightDescription(float kg)
+            {
+                if (kg >= MIN_KG_THRESHOLD)
+                {
+                    return $"{FormatAmount(kg)} KG.";
+                }
+
+                var grams = Math.Round(kg * KG_TO_GRAMS, 0);
+                return $"{FormatAmount((float)grams)} GR.";
+            }
+
+            string CreateVolumeDescription(float liters)
+            {
+                if (liters >= MIN_LITER_THRESHOLD)
+                {
+                    return $"{FormatAmount(liters)} LTR.";
+                }
+
+                var centiliters = Math.Round(liters * LITER_TO_CL, 2);
+                return $"{FormatAmount((float)centiliters)} CL.";
+            }
+
+            string CreateCountDescription(float count)
+            {
+                return $"{FormatAmount(count)} STK.";
             }
 
             string FormatAmount(float value)
             {
-                return value % 1 == 0 ? ((int)value).ToString() : value.ToString("0.##");
+                var rounded = (float)Math.Round(value, 2);
+
+                return rounded % 1 == 0
+                    ? ((int)rounded).ToString()
+                    : rounded.ToString("0.##");
             }
-
         }
-
         private float CalculateAmount(float pricePer, float pricePerUnit)
         {
             // Based on the price calculate the amount in each
@@ -150,10 +172,11 @@ namespace ScraperLibrary.Lidl
             string[] possibleSearchIdentifies = { "Pr. kg", "Pr. liter", "Pr. stk" };
 
             // Clauses to catch edgecases
-            switch(unprocessedDescription)
+            switch (unprocessedDescription)
             {
                 case "/stk":
                 case "/pk":
+                case "/bk":
                 case "/sæt":
                 case "/par":
                 case "/sæt./stk":
@@ -161,29 +184,27 @@ namespace ScraperLibrary.Lidl
                     return ("stk", price);
             }
 
-            // Specific instance where it starts with / and is followed by a number
-            if(Regex.IsMatch(unprocessedDescription, @"^/\d+")) 
-            {
-                if(!unprocessedDescription.Contains("stk")) 
-                {
-
-                }
-                float quantity = float.Parse(unprocessedDescription.Substring(1).Replace("stk", "").Trim(), locale);
-
-                return ("stk", price / quantity);
-
-            }
-
+            // Check if description contains a "Pr. [unit]" pattern first
             foreach (string possibleUnit in possibleSearchIdentifies)
             {
                 if (unprocessedDescription.Contains(possibleUnit, StringComparison.OrdinalIgnoreCase))
                 {
                     // Extract the unit after "Pr. "
                     string unit = possibleUnit.Substring(3).Trim();
-
                     float pricePerUnit = ExtractPricePerUnit(unprocessedDescription);
-
                     return (unit, pricePerUnit);
+                }
+            }
+
+            // Specific instance where it starts with / and is followed by a number
+            if (Regex.IsMatch(unprocessedDescription, @"^/\d+"))
+            {
+                // Extract the number after the slash
+                Match match = Regex.Match(unprocessedDescription, @"^/(\d+)");
+                if (match.Success)
+                {
+                    float quantity = float.Parse(match.Groups[1].Value, locale);
+                    return ("stk", price / quantity);
                 }
             }
 
