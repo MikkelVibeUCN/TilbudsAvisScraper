@@ -154,6 +154,7 @@ namespace ScraperLibrary.Lidl
             {
                 case "/stk":
                 case "/pk":
+                case "/bk":
                 case "/sæt":
                 case "/par":
                 case "/sæt./stk":
