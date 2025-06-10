@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Exceptions;
+using ScraperLibrary.Lidl;
 
 namespace DesktopApplication
 {
@@ -25,8 +26,9 @@ namespace DesktopApplication
                 { "365 Discount", new _365AvisScraper() },
                 { "Kvickly", new KvicklyAvisScraper() },
                 { "Brugsen", new BrugsenAvisScraper() },
-                { "SuperBrugsen", new SuperBrugsenAvisScraper() }
-            };
+                { "SuperBrugsen", new SuperBrugsenAvisScraper() },
+                { "Lidl", new LidlAvisScraper() }
+        };
         }
 
         public async Task<AvisDTO?> ScrapeAvis(string scraperKey, Action<int> progressCallback, CancellationToken token, int companyId)

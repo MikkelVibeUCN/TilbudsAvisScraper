@@ -24,6 +24,7 @@ namespace DesktopApplication
             { "Kvickly", 3 },
             { "SuperBrugsen", 4 },
             { "Brugsen", 5 },
+            { "Lidl", 7 }
         };
 
         private void PopulateComboBox()
