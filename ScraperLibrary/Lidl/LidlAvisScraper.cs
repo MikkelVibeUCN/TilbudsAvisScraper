@@ -20,7 +20,7 @@ namespace ScraperLibrary.Lidl
             // Get the json
             string url = _endPointUrl.Replace("(FLYER ID HERE)", avisId);
 
-            dynamic response = await GetJSON(url);
+            dynamic response = await GetJSON<dynamic>(url);
 
             // Set the dates for the paper (offerStartDate and offerEndDate)
             DateTime offerStart = response.flyer.offerStartDate;
@@ -84,21 +84,6 @@ namespace ScraperLibrary.Lidl
             }
 
             throw new Exception("No valid Tilbudsavis found on the page.");
-        }
-
-        private async Task<dynamic> GetJSON(string url)
-        {
-            // Get the json data
-
-            HttpResponseMessage response = await client.GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonString = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<dynamic>(jsonString);
-            }
-
-            throw new Exception($"Failed to fetch JSON from {url}. Status code: {response.StatusCode}.");
         }
     }
 }

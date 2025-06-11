@@ -14,9 +14,13 @@ namespace ScraperLibrary.Dagrofa.Meny
 {
     public class MenyAvisScraper : Scraper, IAvisScraper
     {
-        const string menyAvisUrl = "https://ugensavis.meny.dk/";
-        private readonly MenyProductScraper _menyProductScraper = new MenyProductScraper();
+        private const string menyAvisUrl = "https://ugensavis.meny.dk/";
 
+        private readonly IProductScraper _dagrafaProductScraper;
+        public MenyAvisScraper()
+        {
+            _dagrafaProductScraper = new MenyProductScraper();
+        }
         public async Task<AvisDTO> GetAvis(Action<int> progressCallback, CancellationToken token, int companyId)
         {
             List<string> urls = await GetAllChunkUrls();
@@ -28,15 +32,11 @@ namespace ScraperLibrary.Dagrofa.Meny
             var response = await CallUrl(menyAvisUrl);
             var dates = IAvisScraper.ExtractAvisPeriodFromHTML(response);
 
-            var products = await GetProductsFromAPI().;
-
-            List<ProductDTO> products = await _menyProductScraper.GetAllProductsFromPage(
+            List<ProductDTO> products = await _dagrafaProductScraper.GetAllProductsFromPage(
                 progressCallback,
                 token,
                 avisId,
-                companyId,
-
-
+                companyId
             );
 
             return RemoveDuplicateProductsFromAvis(new AvisDTO
@@ -70,15 +70,8 @@ namespace ScraperLibrary.Dagrofa.Meny
         }
 
 
-        private async Task<dynamic> GetProductsFromAPI()
-        {
-            string url = "https://longjohnapi-meny.azurewebsites.net/Product/query?merchantId=558155&pageNumber=0&pageSize=10000&displayedInStore=true&globalAdvertisements=true";
-            return await client.GetAsync(url);
-        }
-
         private string GetAvisIdFromChunk(string chunkUrl)
         {
-
             string[] parts = chunkUrl.Split(new[] { "/Papers/" }, StringSplitOptions.None);
 
             if (parts.Length > 1)

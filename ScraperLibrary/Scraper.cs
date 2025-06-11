@@ -266,7 +266,7 @@ namespace ScraperLibrary
 
             return avis;
         }
-        public static async Task<T> EvaluateJsPropertyAsync<T>(string fullUrl, string jsExpression, string? waitForExpression = null)
+        protected static async Task<T> EvaluateJsPropertyAsync<T>(string fullUrl, string jsExpression, string? waitForExpression = null)
         {
             IBrowser browser = await GetBrowser();
             using var page = await browser.NewPageAsync();
@@ -289,6 +289,19 @@ namespace ScraperLibrary
             return JsonConvert.DeserializeObject<T>(json);
         }
 
+        protected async Task<T> GetJSON<T>(string url)
+        {
+            // Get the json data
+            HttpResponseMessage response = await client.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonString = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<T>(jsonString);
+            }
+
+            throw new Exception($"Failed to fetch JSON from {url}. Status code: {response.StatusCode}.");
+        }
     }
 
 }

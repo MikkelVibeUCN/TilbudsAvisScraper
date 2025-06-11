@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TilbudsAvisLibrary.Exceptions;
 using ScraperLibrary.Lidl;
-using ScraperLibrary.Meny;
+using ScraperLibrary.Dagrofa.Meny;
 
 namespace DesktopApplication
 {
