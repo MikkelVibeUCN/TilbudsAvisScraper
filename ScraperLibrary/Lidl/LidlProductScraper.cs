@@ -176,6 +176,7 @@ namespace ScraperLibrary.Lidl
                 case "/pk":
                 case "/bk":
                 case "/sæt":
+                case "/bdt":
                 case "/par":
                 case "/sæt./stk":
                 case "/stk./pk":
