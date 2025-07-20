@@ -26,6 +26,7 @@ services:
       - ConnectionStrings__DefaultFile=/run/secrets/db-connection-string
       - ScraperSettings__TokenFile=/run/secrets/token
       - ScraperSettings__ApiUriFile=/run/secrets/api-uri
+      - ASPNETCORE_URLS=http://+:8080
     depends_on:
       - postgres
     deploy:
