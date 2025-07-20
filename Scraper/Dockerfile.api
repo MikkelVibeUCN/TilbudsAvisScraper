@@ -1,16 +1,28 @@
-# ------------------ BUILD STAGE ------------------
+# ----------------- BUILD STAGE -----------------
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy only csproj and restore
-COPY ["Scraper.csproj", "./"]
+# Copy solution file and all project files
+COPY ../Scraper.sln ./
+COPY ../Scraper/Scraper.csproj Scraper/
+COPY ../APIIntegrationLibrary/APIIntegrationLibrary.csproj APIIntegrationLibrary/
+COPY ../ScraperLibrary/ScraperLibrary.csproj ScraperLibrary/
+COPY ../TilbudsAvisLibrary/TilbudsAvisLibrary.csproj TilbudsAvisLibrary/
+
+# Restore all projects
 RUN dotnet restore
 
-# Copy everything and publish
-COPY . .
+# Copy full source code
+COPY ../Scraper/ Scraper/
+COPY ../APIIntegrationLibrary/ APIIntegrationLibrary/
+COPY ../ScraperLibrary/ ScraperLibrary/
+COPY ../TilbudsAvisLibrary/ TilbudsAvisLibrary/
+
+# Publish Scraper
+WORKDIR /src/Scraper
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
-# ------------------ RUNTIME STAGE ------------------
+# ----------------- RUNTIME STAGE -----------------
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
