@@ -14,6 +14,11 @@ string ReadSecret(string path)
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(8080); // Bind Kestrel to all IPs
+});
+
 // Read secrets
 var connectionString = ReadSecret("/run/secrets/db-connection-string");
 var token = ReadSecret("/run/secrets/token");
