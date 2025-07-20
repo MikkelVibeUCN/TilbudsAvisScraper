@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hangfire" Version="1.8.20" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.20.12" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\APIIntegrationLibrary\APIIntegrationLibrary.csproj" />
+    <ProjectReference Include="..\ScraperLibrary\ScraperLibrary.csproj" />
+    <ProjectReference Include="..\TilbudsAvisLibrary\TilbudsAvisLibrary.csproj" />
+  </ItemGroup>
+
+</Project>
