@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using APIIntegrationLibrary.Client;
-using AutomaticScraperConsoleApp;
 using Microsoft.Extensions.Options;
-using Scraper.Config;
 using ScraperLibrary.Exceptions;
 using Hangfire;
 
