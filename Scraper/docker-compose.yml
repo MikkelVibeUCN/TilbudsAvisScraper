@@ -17,8 +17,10 @@ services:
   api:
     image: ghcr.io/mikkelvibeucn/scraper-api:latest
     ports:
-      - "5000:8080"
-    
+      - target: 8080
+        published: 5000
+        protocol: tcp
+        mode: host
     secrets:
       - db-connection-string
       - token
