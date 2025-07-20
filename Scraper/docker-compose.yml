@@ -1,6 +1,7 @@
-﻿version: '3.8'
+﻿version: "3.8"
 
 services:
+
   postgres:
     image: postgres:15
     environment:
@@ -14,9 +15,7 @@ services:
         constraints: [node.role == manager]
 
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
+    image: ghcr.io/mikkelvibeucn/scraper-api:latest
     ports:
       - "5000:80"
     secrets:
