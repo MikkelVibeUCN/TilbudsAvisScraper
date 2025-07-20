@@ -1,0 +1,44 @@
+﻿version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: scraperdb
+      POSTGRES_USER: scraperuser
+      POSTGRES_PASSWORD: scraperpass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "5000:80"
+    secrets:
+      - db-connection-string
+      - token
+      - api-uri
+    environment:
+      - ConnectionStrings__DefaultFile=/run/secrets/db-connection-string
+      - ScraperSettings__TokenFile=/run/secrets/token
+      - ScraperSettings__ApiUriFile=/run/secrets/api-uri
+    depends_on:
+      - postgres
+    deploy:
+      replicas: 1
+
+secrets:
+  db-connection-string:
+    external: true
+  token:
+    external: true
+  api-uri:
+    external: true
+
+volumes:
+  pgdata:
