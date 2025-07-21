@@ -55,11 +55,14 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.HOMESERVER_HOST }} >> ~/.ssh/known_hosts
 
-          ssh root@${{ secrets.HOMESERVER_HOST }} << 'EOF'
-            set -e
-            cd /var/apps/NewScraper/TilbudsAvisScraper/Scraper
-            git pull
-            echo "Pulling latest Scraper API image..."
-            docker pull ghcr.io/${GITHUB_REPOSITORY,,}-scraperapi:latest
-            docker stack deploy -c docker-compose.yml scraper
+          IMAGE_TAG="ghcr.io/${{ env.IMAGE_NAME }}-scraperapi:latest"
+
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.HOMESERVER_HOST }} \
+            IMAGE_TAG="$IMAGE_TAG" 'bash -s' <<'EOF'
+              set -e
+              cd /var/apps/NewScraper/TilbudsAvisScraper/Scraper
+              git pull
+              echo "Pulling latest Scraper API image: $IMAGE_TAG"
+              docker pull "$IMAGE_TAG"
+              docker stack deploy -c docker-compose.yml scraper
           EOF
