@@ -45,8 +45,9 @@ jobs:
           file: Scraper/Dockerfile.api
           push: true
           tags: |
-            ghcr.io/${{ env.IMAGE_NAME }}-api:${{ env.GIT_SHA }}
-            ghcr.io/${{ env.IMAGE_NAME }}-api:latest
+            ghcr.io/${{ env.IMAGE_NAME }}:${{ env.GIT_SHA }}
+            ghcr.io/${{ env.IMAGE_NAME }}:latest
+
 
       - name: Deploy to Home Server
         if: success()
