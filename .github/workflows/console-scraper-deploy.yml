@@ -57,7 +57,7 @@ jobs:
 
           ssh root@${{ secrets.HOMESERVER_HOST }} << 'EOF'
             set -e
-            cd /var/apps/NewScraper/TilbudsAvisScraper
+            cd /var/apps/NewScraper/TilbudsAvisScraper/Scraper
             git pull
 
             echo "Redeploying Docker stack..."
