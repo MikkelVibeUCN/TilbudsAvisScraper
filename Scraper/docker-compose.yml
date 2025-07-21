@@ -15,7 +15,7 @@ services:
         constraints: [node.role == manager]
 
   api:
-    image: ghcr.io/mikkelvibeucn/scraper-api:latest
+    image: ghcr.io/mikkelvibeucn/tilbudsavisscraper-api:latest
     ports:
       - target: 8080
         published: 5000
