@@ -51,3 +51,5 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 app.MapControllers();
 
 app.Run();
+
+Console.WriteLine("Scraper API has started successfully.");
