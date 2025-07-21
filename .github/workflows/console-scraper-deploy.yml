@@ -31,11 +31,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set lowercase image name and Git SHA
+      - name: Set image name manually and Git SHA
         id: vars
         run: |
-          echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=mikkelvibeucn/scraper-api" >> $GITHUB_ENV
           echo "GIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
 
       - name: Build and push Scraper API image
         uses: docker/build-push-action@v5
