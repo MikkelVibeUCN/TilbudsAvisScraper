@@ -18,11 +18,10 @@ var connectionString = ReadSecret("/run/secrets/db-connection-string");
 var token = ReadSecret("/run/secrets/token");
 var apiUri = ReadSecret("/run/secrets/api-uri");
 
-// Inject ScraperSettings using DI
-builder.Services.AddSingleton(new ScraperSettings
+builder.Services.Configure<ScraperSettings>(options =>
 {
-    Token = token,
-    ApiUri = apiUri
+    options.Token = token;
+    options.ApiUri = apiUri;
 });
 
 // Hangfire setup
@@ -46,8 +45,5 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 });
 
 app.MapControllers();
-
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("Scraper API started successfully.");
 
 app.Run();
