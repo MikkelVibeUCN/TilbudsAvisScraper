@@ -52,4 +52,5 @@ app.MapControllers();
 
 app.Run();
 
-Console.WriteLine("Scraper API has started successfully.");
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Scraper API started successfully.");
