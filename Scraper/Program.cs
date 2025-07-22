@@ -51,4 +51,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
     Authorization = new[] { new AllowAllUsersAuthorizationFilter() }
 });
 
+app.MapControllers(); // <== THIS is what makes [ApiController] routes work
+
+
 app.Run();
