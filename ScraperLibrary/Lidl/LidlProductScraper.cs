@@ -25,6 +25,8 @@ namespace ScraperLibrary.Lidl
         {
             List<ProductDTO> products = new();
 
+
+
             // Cast JSON to JObject to get key-value pairs
             var jsonObject = JSON as JObject;
             if (jsonObject == null)
@@ -34,13 +36,25 @@ namespace ScraperLibrary.Lidl
 
             for (int i = 0; i < entries.Count; i++)
             {
+
                 if (token.IsCancellationRequested)
                     token.ThrowIfCancellationRequested();
 
                 var productData = entries[i].Value;
 
-                ProductDTO newProduct = CreateProduct(productData, avisExternalId);
-                products.Add(newProduct);
+                try
+                {
+                    ProductDTO newProduct = CreateProduct(productData, avisExternalId);
+
+                    products.Add(newProduct);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error processing product at index {i}: {ex.Message}");
+                    // Optionally, you can log the error or handle it as needed
+                }
+
+
 
                 int progress = (int)(((double)(i + 1) / entries.Count) * 100);
                 progressCallback(progress);
@@ -54,8 +68,17 @@ namespace ScraperLibrary.Lidl
         private ProductDTO CreateProduct(dynamic productJSON, string avisExternalId)
         {
             // Get the easy ones first like id, price, imageUrl and title
+
             string id = productJSON.productId;
+
             string name = productJSON.title;
+
+            if (name.Equals("LUPILU® Bleer tubes"))
+            {
+                Console.WriteLine();
+            }
+
+
             string imageUrl = productJSON.image;
 
             float price = productJSON.price;
@@ -63,10 +86,17 @@ namespace ScraperLibrary.Lidl
             // Find compare unit and price per said unit
             string unprocessedDescription = productJSON.basicPrice;
 
+
+
+
             (string compareUnit, float pricePerUnit) = FindCompareUnitAndPrice(unprocessedDescription, price);
 
             // Calculate the amount based on the price and compare unit
             float amount = CalculateAmount(price, pricePerUnit);
+
+            string description = CreateDescription(amount, compareUnit);
+
+            File.AppendAllText("ProductNames.txt", unprocessedDescription + " After: " + description + "(price " + price + ")" + Environment.NewLine);
 
             // Create prices
             List<PriceDTO> prices = CreatePrices(avisExternalId, compareUnit, price, productJSON.strokePrice);
@@ -81,7 +111,7 @@ namespace ScraperLibrary.Lidl
                 Description = CreateDescription(amount, compareUnit),
             };
         }
-       
+
         public PriceDTO CreatePrice(string externalAvisId, string compareUnit, float price)
         {
             return new PriceDTO
@@ -100,7 +130,7 @@ namespace ScraperLibrary.Lidl
             // If product has strokePrice its the same as a base price so save it to the companies base
             if (strokePrice != null)
             {
-                string strokePriceText = (string) strokePrice.Value;
+                string strokePriceText = (string)strokePrice.Value;
 
                 prices.Add(CreatePrice("base", compareUnit, float.Parse(strokePriceText.Replace("-", ""), locale)));
             }
@@ -120,7 +150,11 @@ namespace ScraperLibrary.Lidl
                 "KG" => CreateWeightDescription(amount),
                 "LITER" => CreateVolumeDescription(amount),
                 "STK" => CreateCountDescription(amount),
-                _ => throw new ArgumentException($"Unknown compare unit: {compareUnit}", nameof(compareUnit))
+                // Handle legacy units that might still come through
+                "LTR" => CreateVolumeDescription(amount),
+                "GR" => $"{FormatAmount(amount)} GR.", // Direct gram formatting - don't convert
+                "CL" => $"{FormatAmount(amount)} CL.", // Direct cl formatting - don't convert
+                _ => CreateCountDescription(amount) // Default everything else to STK
             };
 
             string CreateWeightDescription(float kg)
@@ -156,9 +190,10 @@ namespace ScraperLibrary.Lidl
 
                 return rounded % 1 == 0
                     ? ((int)rounded).ToString()
-                    : rounded.ToString("0.##");
+                    : rounded.ToString("0.##", CultureInfo.InvariantCulture);
             }
         }
+
         private float CalculateAmount(float pricePer, float pricePerUnit)
         {
             // Based on the price calculate the amount in each
@@ -169,63 +204,133 @@ namespace ScraperLibrary.Lidl
 
         private (string, float) FindCompareUnitAndPrice(string unprocessedDescription, float price)
         {
-            string[] possibleSearchIdentifies = { "Pr. kg", "Pr. liter", "Pr. stk" };
+            unprocessedDescription = unprocessedDescription.ToLowerInvariant();
 
-            // Clauses to catch edgecases
-            switch (unprocessedDescription)
+            // Normalize common delimiters
+            unprocessedDescription = unprocessedDescription.Replace(",", "."); // Decimal comma
+
+            // Weight-based units (convert to KG)
+            if (IsWeightUnit(unprocessedDescription))
             {
-                case "/stk":
-                case "/pk":
-                case "/bk":
-                case "/sæt":
-                case "/par":
-                case "/sæt./stk":
-                case "/stk./pk":
-                    return ("stk", price);
+                return HandleWeightUnits(unprocessedDescription, price);
             }
 
-            // Check if description contains a "Pr. [unit]" pattern first
-            foreach (string possibleUnit in possibleSearchIdentifies)
+            // Volume-based units (convert to LITER)  
+            if (IsVolumeUnit(unprocessedDescription))
             {
-                if (unprocessedDescription.Contains(possibleUnit, StringComparison.OrdinalIgnoreCase))
-                {
-                    // Extract the unit after "Pr. "
-                    string unit = possibleUnit.Substring(3).Trim();
-                    float pricePerUnit = ExtractPricePerUnit(unprocessedDescription);
-                    return (unit, pricePerUnit);
-                }
+                return HandleVolumeUnits(unprocessedDescription, price);
             }
 
-            // Specific instance where it starts with / and is followed by a number
-            if (Regex.IsMatch(unprocessedDescription, @"^/\d+"))
-            {
-                // Extract the number after the slash
-                Match match = Regex.Match(unprocessedDescription, @"^/(\d+)");
-                if (match.Success)
-                {
-                    float quantity = float.Parse(match.Groups[1].Value, locale);
-                    return ("stk", price / quantity);
-                }
-            }
-
-            throw new Exception("Compare unit not found in description: " + unprocessedDescription);
+            // Everything else becomes STK
+            return HandleCountUnits(unprocessedDescription, price);
         }
+
+        private bool IsWeightUnit(string description)
+        {
+            // Check for weight-related patterns
+            return Regex.IsMatch(description, @"pr\.?\s*(kg|kilo|kilogram|1/2\s*kg|½\s*kg|100\s*g|gr|gram)", RegexOptions.IgnoreCase) ||
+                   Regex.IsMatch(description, @"/(kg|kilo|kilogram|gr|gram)$", RegexOptions.IgnoreCase) ||
+                   Regex.IsMatch(description, @"\b(kg|kilo|kilogram|gr|gram)\b", RegexOptions.IgnoreCase);
+        }
+
+        private bool IsVolumeUnit(string description)
+        {
+            // Check for volume-related patterns  
+            return Regex.IsMatch(description, @"pr\.?\s*(liter|litr|ltr|l|cl|ml|centiliter|milliliter)", RegexOptions.IgnoreCase) ||
+                   Regex.IsMatch(description, @"/(liter|litr|ltr|l|cl|ml)$", RegexOptions.IgnoreCase) ||
+                   Regex.IsMatch(description, @"\b(liter|litr|ltr|l|cl|ml|centiliter|milliliter)\b", RegexOptions.IgnoreCase);
+        }
+
+        private (string, float) HandleWeightUnits(string description, float price)
+        {
+            // Handle specific weight patterns
+            if (Regex.IsMatch(description, @"pr\.?\s*1/2\s*kg", RegexOptions.IgnoreCase) ||
+                Regex.IsMatch(description, @"pr\.?\s*½\s*kg", RegexOptions.IgnoreCase))
+            {
+                return ("kg", ExtractPricePerUnit(description) * 2); // Price per kg
+            }
+
+            if (Regex.IsMatch(description, @"pr\.?\s*kg", RegexOptions.IgnoreCase))
+            {
+                return ("kg", ExtractPricePerUnit(description));
+            }
+
+            if (Regex.IsMatch(description, @"pr\.?\s*100\s*g", RegexOptions.IgnoreCase))
+            {
+                return ("kg", ExtractPricePerUnit(description) * 10); // Convert 100g price to kg price
+            }
+
+            // Default weight fallback - assume it's per piece if no clear weight unit
+            return ("stk", price);
+        }
+
+        private (string, float) HandleVolumeUnits(string description, float price)
+        {
+            // Handle specific volume patterns
+            if (Regex.IsMatch(description, @"pr\.?\s*(liter|litr|ltr|l)\b", RegexOptions.IgnoreCase))
+            {
+                return ("liter", ExtractPricePerUnit(description));
+            }
+
+            if (Regex.IsMatch(description, @"pr\.?\s*cl", RegexOptions.IgnoreCase))
+            {
+                return ("liter", ExtractPricePerUnit(description) * 100); // Convert cl to liter
+            }
+
+            if (Regex.IsMatch(description, @"pr\.?\s*ml", RegexOptions.IgnoreCase))
+            {
+                return ("liter", ExtractPricePerUnit(description) * 1000); // Convert ml to liter
+            }
+
+            // Default volume fallback
+            return ("stk", price);
+        }
+
+        private (string, float) HandleCountUnits(string description, float price)
+        {
+            // Handle specific count patterns first
+            if (Regex.IsMatch(description, @"^/(stk|pk|bk|sæt|par|styk|piece|pieces)$", RegexOptions.IgnoreCase))
+            {
+                return ("stk", price);
+            }
+
+            // Handle /number patterns (like /12 means price for 12 pieces)
+            if (Regex.IsMatch(description, @"^/(\d+)"))
+            {
+                Match m = Regex.Match(description, @"^/(\d+)");
+                if (m.Success && float.TryParse(m.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out float count))
+                {
+                    return ("stk", price / count); // Price per single piece
+                }
+            }
+
+            // Handle "pr. stk" variations
+            if (Regex.IsMatch(description, @"pr\.?\s*(stk|styk|piece|pk|sæt|par)", RegexOptions.IgnoreCase))
+            {
+                // Special case: if it says "pk stk pris" or similar, return 1 stk
+                if (Regex.IsMatch(description, @"(pk|sæt|par).*stk.*pris", RegexOptions.IgnoreCase))
+                {
+                    return ("stk", price); // This ensures 1 stk instead of trying to extract price
+                }
+
+                return ("stk", price);
+            }
+
+            // Default fallback for everything else (boxes, sets, packages, etc.)
+            return ("stk", price);
+        }
+
 
         public float ExtractPricePerUnit(string input)
         {
-            // Step 1: Reverse the string
-            string reversed = new string(input.Reverse().ToArray());
+            var match = Regex.Match(input, @"(\d+([.,]\d+)?)\s*$");
+            if (!match.Success)
+                throw new FormatException("No valid price found at end of string");
 
-            // Step 2: Find the index of the first space
-            int spaceIndex = reversed.IndexOf(' ');
-
-            // Step 3: Take substring up to that space
-            string reversedWord = spaceIndex >= 0 ? reversed.Substring(0, spaceIndex) : reversed;
-
-            // Step 4: Reverse it back
-            string finalWord = new string(reversedWord.Reverse().ToArray());
-
-            return float.Parse(finalWord, locale);
+            // Use invariant culture to handle both comma and dot as decimal separators
+            string priceText = match.Groups[1].Value.Replace(",", ".");
+            return float.Parse(priceText, CultureInfo.InvariantCulture);
         }
+
     }
 }
