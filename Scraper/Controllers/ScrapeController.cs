@@ -17,7 +17,6 @@ namespace Scraper
         [HttpPost("{companyId}")]
         public IActionResult EnqueueScrape(int companyId)
         {
-            // Enqueue JobRunner using DI — Hangfire will resolve the dependency
             _backgroundJobClient.Enqueue<JobRunner>(runner =>
                 runner.ExecuteScrape(companyId));
 

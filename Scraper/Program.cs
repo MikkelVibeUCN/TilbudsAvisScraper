@@ -27,10 +27,16 @@ builder.Services.Configure<ScraperSettings>(options =>
 // Hangfire setup
 builder.Services.AddHangfire(cfg =>
     cfg.UsePostgreSqlStorage(connectionString));
-builder.Services.AddHangfireServer();
+
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = 1; // Only one job runs at a time across all types
+});
 
 // Register application services
 builder.Services.AddSingleton<JobRunner>();
+builder.Services.AddTransient<ScraperBootstrapper>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -44,6 +50,12 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
     Authorization = new[] { new AllowAllUsersAuthorizationFilter() }
 });
 
+using (var scope = app.Services.CreateScope())
+{
+    var bootstrapper = scope.ServiceProvider.GetRequiredService<ScraperBootstrapper>();
+    await bootstrapper.InitializeScrapers();
+}
+
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

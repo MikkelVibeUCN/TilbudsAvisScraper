@@ -16,6 +16,7 @@ namespace Scraper
             _config = options.Value;
         }
 
+        [DisableConcurrentExecution(3600)] // 1-hour lock
         public async Task ExecuteScrape(int companyId)
         {
             if (string.IsNullOrWhiteSpace(_config.Token) || string.IsNullOrWhiteSpace(_config.ApiUri))
@@ -31,7 +32,6 @@ namespace Scraper
 
             Console.WriteLine($"Scrape and save completed for company {companyId}");
 
-            // Schedule the next scrape
             var nextTime = avis.ValidTo.AddDays(1).AddHours(2);
 
             ScheduleNextScrape(companyId, nextTime);
