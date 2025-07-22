@@ -2,7 +2,7 @@ name: Scraper API - Build and Deploy
 
 on:
   push:
-    branches: [ refactoredscraper ]
+    branches: [ master ]
     paths:
       - 'Scraper/**'
       - 'APIIntegrationLibrary/**'
