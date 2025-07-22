@@ -35,7 +35,7 @@ builder.Services.AddHangfireServer(options =>
 
 // Register application services
 builder.Services.AddSingleton<JobRunner>();
-builder.Services.AddTransient<ScraperBootstrapper>();
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -50,12 +50,4 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
     Authorization = new[] { new AllowAllUsersAuthorizationFilter() }
 });
 
-using (var scope = app.Services.CreateScope())
-{
-    var bootstrapper = scope.ServiceProvider.GetRequiredService<ScraperBootstrapper>();
-    await bootstrapper.InitializeScrapers();
-}
-
-app.MapControllers();
-
-await app.RunAsync();
+app.Run();

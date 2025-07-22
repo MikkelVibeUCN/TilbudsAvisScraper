@@ -22,5 +22,14 @@ namespace Scraper
 
             return Ok($"Scrape for company {companyId} has been enqueued.");
         }
+
+        [HttpPost("all")]
+        public IActionResult EnqueueAllScrapes()
+        {
+            _backgroundJobClient.Enqueue<ScraperBootstrapper>(runner =>
+                runner.InitializeScrapers());
+
+            return Ok("All scrapes have been enqueued.");
+        }
     }
 }
