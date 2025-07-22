@@ -34,7 +34,8 @@ builder.Services.AddHangfireServer(options =>
 });
 
 // Register application services
-builder.Services.AddSingleton<JobRunner>();
+builder.Services.AddTransient<JobRunner>();
+builder.Services.AddTransient<ScraperBootstrapper>();
 
 
 builder.Services.AddControllers();
