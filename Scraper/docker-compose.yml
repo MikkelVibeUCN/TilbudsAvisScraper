@@ -1,0 +1,49 @@
+﻿version: "3.8"
+
+services:
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: scraperdb
+      POSTGRES_USER: scraperuser
+      POSTGRES_PASSWORD: scraperpass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  api:
+    image: ghcr.io/mikkelvibeucn/tilbudsavisscraper-scraperapi:latest
+    ports:
+      - target: 8080
+        published: 5000
+        protocol: tcp
+        mode: host
+    secrets:
+      - db-connection-string
+      - token
+      - api-uri
+    environment:
+      - ConnectionStrings__DefaultFile=/run/secrets/db-connection-string
+      - ScraperSettings__TokenFile=/run/secrets/token
+      - ScraperSettings__ApiUriFile=/run/secrets/api-uri
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - postgres
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]   # <-- add this
+
+secrets:
+  db-connection-string:
+    external: true
+  token:
+    external: true
+  api-uri:
+    external: true
+
+volumes:
+  pgdata:

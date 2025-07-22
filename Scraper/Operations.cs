@@ -5,15 +5,9 @@ using ScraperLibrary.COOP.SuperBrugsen;
 using ScraperLibrary.Interfaces;
 using ScraperLibrary.Lidl;
 using ScraperLibrary.Rema;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TilbudsAvisLibrary.DTO;
-using TilbudsAvisLibrary.Exceptions;
 
-namespace AutomaticScraperConsoleApp
+namespace Scraper
 {
     public class Operations
     {

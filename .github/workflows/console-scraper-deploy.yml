@@ -1,15 +1,14 @@
-name: ConsoleScraper build and deploy
+name: Scraper API - Build and Deploy
 
 on:
   push:
     branches: [ master ]
     paths:
-      - 'docker/**'
-      - 'ScraperLibrary/**'
+      - 'Scraper/**'
       - 'APIIntegrationLibrary/**'
       - 'docker-compose.yml'
       - '.github/**'
-      - 'AutomaticScraperConsoleApp/**'
+      - 'Scraper/Dockerfile.api'
 
 env:
   REGISTRY: ghcr.io
@@ -38,18 +37,17 @@ jobs:
           echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
           echo "GIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      - name: Build and push AutomaticScraperConsoleApp image
+      - name: Build and push Scraper API image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/Dockerfile.scraper
+          file: Scraper/Dockerfile.api
           push: true
           tags: |
-            ghcr.io/${{ env.IMAGE_NAME }}-scraper:${{ env.GIT_SHA }}
-            ghcr.io/${{ env.IMAGE_NAME }}-scraper:latest
+            ghcr.io/${{ env.IMAGE_NAME }}-scraperapi:${{ env.GIT_SHA }}
+            ghcr.io/${{ env.IMAGE_NAME }}-scraperapi:latest
 
-
-      - name: Deploy to homeserver
+      - name: Deploy to Home Server
         if: success()
         run: |
           mkdir -p ~/.ssh
@@ -57,20 +55,14 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.HOMESERVER_HOST }} >> ~/.ssh/known_hosts
 
-          ssh root@${{ secrets.HOMESERVER_HOST }} << EOF
-            set -e
-            cd /var/apps/Scraper/TilbudsAvisScraper
-            git pull
-            docker pull ghcr.io/${{ env.IMAGE_NAME }}-scraper:latest
+          IMAGE_TAG="ghcr.io/${{ env.IMAGE_NAME }}-scraperapi:latest"
 
-            if docker ps -a --format '{{.Names}}' | grep -q '^scraper-container$'; then
-              docker stop scraper-container
-              docker rm scraper-container
-            fi
-
-            docker run -d --name scraper-container \
-              -e TOKEN="${{ secrets.TOKEN }}" \
-              -e API_URI="${{ secrets.API_URI }}" \
-              ghcr.io/${{ env.IMAGE_NAME }}-scraper:latest
-
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.HOMESERVER_HOST }} \
+            IMAGE_TAG="$IMAGE_TAG" 'bash -s' <<'EOF'
+              set -e
+              cd /var/apps/NewScraper/TilbudsAvisScraper/Scraper
+              git pull
+              echo "Pulling latest Scraper API image: $IMAGE_TAG"
+              docker pull "$IMAGE_TAG"
+              docker stack deploy -c docker-compose.yml scraper
           EOF

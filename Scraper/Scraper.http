@@ -1,0 +1,6 @@
+@Scraper_HostAddress = http://localhost:5232
+
+GET {{Scraper_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
