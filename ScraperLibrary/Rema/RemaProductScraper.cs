@@ -49,18 +49,23 @@ namespace ScraperLibrary.Rema
                     endIndex = result.IndexOf(endPattern, startIndex);
                     // Adjust startIndex to skip the pattern itself
                     startIndex += startPattern.Length;
-
-                    // Extract the product from the html
-                    ProductDTO product = await CreateProduct(result, startIndex, endIndex, avisExternalId, companyId);
-
-                    if (product == null)
+                    try
                     {
-                        Debug.WriteLine("Failed to create product");
+                        ProductDTO product = await CreateProduct(result, startIndex, endIndex, avisExternalId, companyId);
+
+                        if (product == null)
+                        {
+                            Debug.WriteLine("Failed to create product");
+                        }
+                        else
+                        {
+                            products.Add(product);
+                            Debug.WriteLine(product.ToString());
+                        }
                     }
-                    else
+                    catch
                     {
-                        products.Add(product);
-                        Debug.WriteLine(product.ToString());
+                        Debug.WriteLine("Failed to create product, skipping");
                     }
 
                     currentIndex = endIndex + endPattern.Length;
