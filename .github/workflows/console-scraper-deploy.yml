@@ -9,6 +9,7 @@ on:
       - 'docker-compose.yml'
       - '.github/**'
       - 'Scraper/Dockerfile.api'
+      - 'ScraperLibrary/**'
 
 env:
   REGISTRY: ghcr.io
